@@ -144,7 +144,7 @@ import { autoRetry } from '@grammyjs/auto-retry';
 import { autoChatAction, AutoChatActionFlavor } from '@grammyjs/auto-chat-action';
 
 type MyContext = Context & AutoChatActionFlavor;
-const bot = new Bot<MyContext>(process.env.BOT_TOKEN!);
+const bot = new Bot<MyContext>(process.env.TELEGRAM_BOT_TOKEN!);
 
 // Auto-retry on rate limits (429) and server errors (5xx)
 bot.api.config.use(autoRetry());
@@ -432,7 +432,7 @@ import pino from 'pino';
 type MyContext = Context & AutoChatActionFlavor;
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-const bot = new Bot<MyContext>(process.env.BOT_TOKEN!);
+const bot = new Bot<MyContext>(process.env.TELEGRAM_BOT_TOKEN!);
 
 // Configure API-level plugins
 bot.api.config.use(autoRetry({
