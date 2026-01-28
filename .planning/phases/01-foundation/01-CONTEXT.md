@@ -8,7 +8,7 @@
 
 Gateway daemon (klausbot) runs 24/7, handles Telegram ↔ Claude Code communication, enforces security via pairing flow, persists message queue across restarts.
 
-**Project rename:** clawdbot → klausbot
+**Project rename:** klausbot → klausbot
 
 </domain>
 
@@ -16,18 +16,21 @@ Gateway daemon (klausbot) runs 24/7, handles Telegram ↔ Claude Code communicat
 ## Implementation Decisions
 
 ### Message handling
+
 - Typing indicator while processing (standard Telegram API)
 - Auto-split long responses that exceed Telegram's 4096 char limit
 - Flat messages (no reply threading)
 - Queue incoming messages — process sequentially, preserve order
 
 ### Error surfacing
+
 - Friendly + error type: "Network timeout while processing" — category visible, no stack traces
 - Auto-retry (2-3 attempts) silently before surfacing error to user
 - Clear explanation for rate limits/budget caps: "Rate limited, try again in X minutes"
 - Verbose non-blocking logging of full activity (requests, responses, errors, timings)
 
 ### Security / Pairing flow
+
 - Adopt moltbot-style pairing (reference: https://github.com/moltbot/moltbot)
 - `/start` command shows pairing code: "Use code X to pair"
 - CLI approval: `klausbot pairing approve telegram <code>`
@@ -36,6 +39,7 @@ Gateway daemon (klausbot) runs 24/7, handles Telegram ↔ Claude Code communicat
 - Log all pairing attempts (requested, approved, rejected) — full audit trail
 
 ### Slash commands
+
 - **Telegram-specific commands** (handled by gateway):
   - `/start` — pairing flow
   - `/model` — check/switch model
@@ -46,6 +50,7 @@ Gateway daemon (klausbot) runs 24/7, handles Telegram ↔ Claude Code communicat
   - Implementation needs research: how `claude -p` handles slash commands
 
 ### Operational behavior
+
 - Custom status messages progression: "Thinking..." → "Reading files..." → "Writing response..."
 - Persist message queue to disk — resume unprocessed messages on restart
 - Standard logging verbosity: requests, responses, key events (not debug-level)
@@ -56,6 +61,7 @@ Gateway daemon (klausbot) runs 24/7, handles Telegram ↔ Claude Code communicat
   - Dev mode: run directly without daemon installation
 
 ### Claude's Discretion
+
 - Exact status message progression and timing
 - Additional Telegram-specific commands beyond /start and /model
 - Logging format (structured JSON vs plaintext)
@@ -82,5 +88,5 @@ None — discussion stayed within phase scope
 
 ---
 
-*Phase: 01-foundation*
-*Context gathered: 2026-01-28*
+_Phase: 01-foundation_
+_Context gathered: 2026-01-28_

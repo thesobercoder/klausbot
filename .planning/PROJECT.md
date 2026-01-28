@@ -1,4 +1,4 @@
-# clawdbot
+# klausbot
 
 ## What This Is
 
@@ -37,12 +37,14 @@ A self-evolving personal assistant that communicates via Telegram, backed by Cla
 ## Context
 
 **Architecture (RLM-inspired):**
+
 - Don't stuff everything into context window
 - Claude uses tools to agentic-ally read conversation history and identity files
 - New session each message, but full context reconstructed from files
 - Infinite conversation without context loss
 
 **Identity system (Moltbot-inspired):**
+
 - `BOOTSTRAP.md` — onboarding conversation, creates other files, self-deletes
 - `IDENTITY.md` — surface attributes: name, vibe, emoji
 - `SOUL.md` — constitution: core truths, boundaries, values
@@ -50,6 +52,7 @@ A self-evolving personal assistant that communicates via Telegram, backed by Cla
 - `LEARNINGS.md` — mistakes and insights, consulted to avoid repeating errors
 
 **Wrapper process:**
+
 - Python/Node script runs continuously
 - Polls Telegram for new messages
 - On message: invokes Claude Code with message + file references
@@ -57,6 +60,7 @@ A self-evolving personal assistant that communicates via Telegram, backed by Cla
 - Handles cron scheduling separately
 
 **References:**
+
 - RLM paper: https://arxiv.org/html/2512.24601v1
 - Moltbot: https://github.com/moltbot/moltbot
 - Moltbot docs: https://docs.molt.bot/reference/templates/BOOTSTRAP
@@ -70,12 +74,13 @@ A self-evolving personal assistant that communicates via Telegram, backed by Cla
 
 ## Key Decisions
 
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| Claude Code as backend | User wants Claude's full agentic capabilities, not just chat | — Pending |
-| File-based memory over embeddings | RLM approach: agentic file reading vs vector search | — Pending |
-| Self-writable identity files | Enables self-improvement and evolution | — Pending |
-| Skill-based task execution | Reusable, composable, Claude can create new ones | — Pending |
+| Decision                          | Rationale                                                    | Outcome   |
+| --------------------------------- | ------------------------------------------------------------ | --------- |
+| Claude Code as backend            | User wants Claude's full agentic capabilities, not just chat | — Pending |
+| File-based memory over embeddings | RLM approach: agentic file reading vs vector search          | — Pending |
+| Self-writable identity files      | Enables self-improvement and evolution                       | — Pending |
+| Skill-based task execution        | Reusable, composable, Claude can create new ones             | — Pending |
 
 ---
-*Last updated: 2025-01-28 after initialization*
+
+_Last updated: 2025-01-28 after initialization_

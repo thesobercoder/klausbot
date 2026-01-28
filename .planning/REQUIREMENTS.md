@@ -1,4 +1,4 @@
-# Requirements: clawdbot
+# Requirements: klausbot
 
 **Defined:** 2026-01-28
 **Core Value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
@@ -86,64 +86,66 @@
 
 ## Out of Scope
 
-| Feature | Reason |
-|---------|--------|
-| Multi-user support | Personal assistant, single user only |
-| Web UI | Telegram is the interface |
-| Mobile app | Telegram handles mobile |
-| Sandbox/restrictions | Runs in VM, fully autonomous by design |
-| Multi-agent routing | Premature optimization; Claude Code handles routing |
-| OAuth for external services | Deferred to v2 |
+| Feature                     | Reason                                              |
+| --------------------------- | --------------------------------------------------- |
+| Multi-user support          | Personal assistant, single user only                |
+| Web UI                      | Telegram is the interface                           |
+| Mobile app                  | Telegram handles mobile                             |
+| Sandbox/restrictions        | Runs in VM, fully autonomous by design              |
+| Multi-agent routing         | Premature optimization; Claude Code handles routing |
+| OAuth for external services | Deferred to v2                                      |
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 1 | Pending |
-| INFRA-05 | Phase 1 | Pending |
-| COMM-01 | Phase 1 | Pending |
-| COMM-02 | Phase 1 | Pending |
-| COMM-03 | Phase 1 | Pending |
-| COMM-04 | Phase 1 | Pending |
-| COMM-05 | Phase 6 | Pending |
-| COMM-06 | Phase 6 | Pending |
-| MEM-01 | Phase 2 | Pending |
-| MEM-02 | Phase 2 | Pending |
-| MEM-03 | Phase 2 | Pending |
-| MEM-04 | Phase 2 | Pending |
-| MEM-05 | Phase 2 | Pending |
-| MEM-06 | Phase 2 | Pending |
-| MEM-07 | Phase 2 | Pending |
-| IDEN-01 | Phase 3 | Pending |
-| IDEN-02 | Phase 3 | Pending |
-| IDEN-03 | Phase 3 | Pending |
-| IDEN-04 | Phase 3 | Pending |
-| IDEN-05 | Phase 3 | Pending |
-| IDEN-06 | Phase 3 | Pending |
-| CRON-01 | Phase 5 | Pending |
-| CRON-02 | Phase 5 | Pending |
-| CRON-03 | Phase 5 | Pending |
-| CRON-04 | Phase 5 | Pending |
-| CRON-05 | Phase 5 | Pending |
-| SKILL-01 | Phase 4 | Pending |
-| SKILL-02 | Phase 4 | Pending |
-| SKILL-03 | Phase 4 | Pending |
-| SKILL-04 | Phase 4 | Pending |
-| SKILL-05 | Phase 4 | Pending |
-| EVOL-01 | Phase 5 | Pending |
-| EVOL-02 | Phase 5 | Pending |
-| EVOL-03 | Phase 5 | Pending |
-| EVOL-04 | Phase 1 | Pending |
-| EVOL-05 | Phase 5 | Pending |
+| Requirement | Phase   | Status  |
+| ----------- | ------- | ------- |
+| INFRA-01    | Phase 1 | Pending |
+| INFRA-02    | Phase 1 | Pending |
+| INFRA-03    | Phase 1 | Pending |
+| INFRA-04    | Phase 1 | Pending |
+| INFRA-05    | Phase 1 | Pending |
+| COMM-01     | Phase 1 | Pending |
+| COMM-02     | Phase 1 | Pending |
+| COMM-03     | Phase 1 | Pending |
+| COMM-04     | Phase 1 | Pending |
+| COMM-05     | Phase 6 | Pending |
+| COMM-06     | Phase 6 | Pending |
+| MEM-01      | Phase 2 | Pending |
+| MEM-02      | Phase 2 | Pending |
+| MEM-03      | Phase 2 | Pending |
+| MEM-04      | Phase 2 | Pending |
+| MEM-05      | Phase 2 | Pending |
+| MEM-06      | Phase 2 | Pending |
+| MEM-07      | Phase 2 | Pending |
+| IDEN-01     | Phase 3 | Pending |
+| IDEN-02     | Phase 3 | Pending |
+| IDEN-03     | Phase 3 | Pending |
+| IDEN-04     | Phase 3 | Pending |
+| IDEN-05     | Phase 3 | Pending |
+| IDEN-06     | Phase 3 | Pending |
+| CRON-01     | Phase 5 | Pending |
+| CRON-02     | Phase 5 | Pending |
+| CRON-03     | Phase 5 | Pending |
+| CRON-04     | Phase 5 | Pending |
+| CRON-05     | Phase 5 | Pending |
+| SKILL-01    | Phase 4 | Pending |
+| SKILL-02    | Phase 4 | Pending |
+| SKILL-03    | Phase 4 | Pending |
+| SKILL-04    | Phase 4 | Pending |
+| SKILL-05    | Phase 4 | Pending |
+| EVOL-01     | Phase 5 | Pending |
+| EVOL-02     | Phase 5 | Pending |
+| EVOL-03     | Phase 5 | Pending |
+| EVOL-04     | Phase 1 | Pending |
+| EVOL-05     | Phase 5 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 35 total
 - Mapped to phases: 35
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-01-28*
-*Last updated: 2026-01-28 after roadmap creation*
+
+_Requirements defined: 2026-01-28_
+_Last updated: 2026-01-28 after roadmap creation_
