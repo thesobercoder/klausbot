@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Gateway daemon with Telegram integration and security boundaries
 - [x] **Phase 2: Core Loop** - Claude Code integration with stateless sessions and file-based memory
-- [ ] **Phase 3: Identity** - Bootstrap flow and persistent personality system
+- [x] **Phase 3: Identity** - Bootstrap flow and persistent personality system
 - [ ] **Phase 4: Skills** - Extensible capabilities system with skill isolation
 - [ ] **Phase 5: Proactive** - Cron scheduling and self-evolution system
 - [ ] **Phase 6: Multimodal** - Voice transcription and image analysis
@@ -84,9 +84,9 @@ Plans:
 
 Plans:
 
-- [ ] 03-01-PLAN.md — Bootstrap foundation: detector, prompts, cache invalidation
-- [ ] 03-02-PLAN.md — Gateway integration: routing, identity update instructions
-- [ ] 03-03-PLAN.md — End-to-end verification (human checkpoint)
+- [x] 03-01-PLAN.md — Bootstrap foundation: detector, prompts, cache invalidation
+- [x] 03-02-PLAN.md — Gateway integration: routing, identity update instructions
+- [x] 03-03-PLAN.md — End-to-end verification (human checkpoint)
 
 ### Phase 4: Skills
 
@@ -153,7 +153,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | ------------- | -------------- | ----------- | ---------- |
 | 1. Foundation | 7/7            | Complete    | 2026-01-29 |
 | 2. Core Loop  | 5/5            | Complete    | 2026-01-29 |
-| 3. Identity   | 0/3            | Planned     | -          |
+| 3. Identity   | 3/3            | Complete    | 2026-01-29 |
 | 4. Skills     | 0/TBD          | Not started | -          |
 | 5. Proactive  | 0/TBD          | Not started | -          |
 | 6. Multimodal | 0/TBD          | Not started | -          |

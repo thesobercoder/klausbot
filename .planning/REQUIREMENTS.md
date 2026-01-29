@@ -34,12 +34,12 @@
 
 ### Identity
 
-- [ ] **IDEN-01**: SOUL.md defines personality, values, boundaries
-- [ ] **IDEN-02**: IDENTITY.md defines surface attributes (name, vibe, emoji)
-- [ ] **IDEN-03**: USER.md stores info about user (preferences, context)
-- [ ] **IDEN-04**: Bootstrap flow — first interaction creates identity files through conversation
-- [ ] **IDEN-05**: Identity files consulted every session for consistent personality
-- [ ] **IDEN-06**: Claude can update identity files based on learnings
+- [x] **IDEN-01**: SOUL.md defines personality, values, boundaries
+- [x] **IDEN-02**: IDENTITY.md defines surface attributes (name, vibe, emoji)
+- [x] **IDEN-03**: USER.md stores info about user (preferences, context)
+- [x] **IDEN-04**: Bootstrap flow — first interaction creates identity files through conversation
+- [x] **IDEN-05**: Identity files consulted every session for consistent personality
+- [x] **IDEN-06**: Claude can update identity files based on learnings
 
 ### Cron System
 
@@ -117,12 +117,12 @@
 | MEM-05      | Phase 2 | Complete |
 | MEM-06      | Phase 2 | Complete |
 | MEM-07      | Phase 2 | Complete |
-| IDEN-01     | Phase 3 | Pending |
-| IDEN-02     | Phase 3 | Pending |
-| IDEN-03     | Phase 3 | Pending |
-| IDEN-04     | Phase 3 | Pending |
-| IDEN-05     | Phase 3 | Pending |
-| IDEN-06     | Phase 3 | Pending |
+| IDEN-01     | Phase 3 | Complete |
+| IDEN-02     | Phase 3 | Complete |
+| IDEN-03     | Phase 3 | Complete |
+| IDEN-04     | Phase 3 | Complete |
+| IDEN-05     | Phase 3 | Complete |
+| IDEN-06     | Phase 3 | Complete |
 | CRON-01     | Phase 5 | Pending |
 | CRON-02     | Phase 5 | Pending |
 | CRON-03     | Phase 5 | Pending |
@@ -148,4 +148,4 @@
 ---
 
 _Requirements defined: 2026-01-28_
-_Last updated: 2026-01-29 after Phase 2 completion_
+_Last updated: 2026-01-29 after Phase 3 completion_
