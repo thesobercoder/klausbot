@@ -130,9 +130,20 @@ export async function startGateway(): Promise<void> {
     log.error({ err }, 'Initial queue processing error');
   });
 
-  // Create runner and wait for shutdown
+  // Create runner
   const runner = createRunner();
   log.info('Gateway running');
+
+  // Set up shutdown handlers
+  const shutdown = async () => {
+    log.info('Shutdown signal received');
+    await stopGateway();
+    await runner.stop();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 
   // Wait for runner to stop (blocks until shutdown signal)
   await runner.task();
