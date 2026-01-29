@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-28)
 ## Current Position
 
 Phase: 3 of 6 (Identity)
-Plan: 1 of 3 in Phase 3
+Plan: 2 of 3 in Phase 3
 Status: In progress
-Last activity: 2026-01-29 - Completed 03-01-PLAN.md (Bootstrap detection and cache invalidation)
+Last activity: 2026-01-29 - Completed 03-02-PLAN.md (Bootstrap wiring)
 
-Progress: [████______] 33% (1/3 Phase 3 plans)
+Progress: [███████___] 67% (2/3 Phase 3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 4 min (excluding human verification time)
-- Total execution time: ~52 min
+- Total execution time: ~54 min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [████______] 33% (1/3 Phase 3 plans)
 |-------|-------|-------|----------|
 | 01-foundation | 7/7 | ~35 min | 5 min |
 | 02-core-loop | 4/4 | 13 min | 3.3 min |
-| 03-identity | 1/3 | 4 min | 4 min |
+| 03-identity | 2/3 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (2 min), 02-03 (2 min), 02-05 (6 min), 03-01 (4 min)
+- Last 5 plans: 02-03 (2 min), 02-05 (6 min), 03-01 (4 min), 03-02 (2 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -72,6 +72,9 @@ Recent decisions affecting current work:
 - 03-01: REMINDERS.md excluded from required files (optional, not core identity)
 - 03-01: Moltbot four-dimension pattern: Identity, Nature, Demeanor, Symbol
 - 03-01: SOUL.md locked after bootstrap (constitution), IDENTITY.md/USER.md mutable
+- 03-02: Bootstrap appends to normal prompt (additive, never replaces)
+- 03-02: Cache invalidated after every response (not just bootstrap)
+- 03-02: Soft deflection phrases for boundary violations
 
 ### Pending Todos
 
@@ -83,8 +86,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-29T14:19:00Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-01-29T10:29:22Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
 
 ---
