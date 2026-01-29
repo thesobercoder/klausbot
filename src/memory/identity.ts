@@ -41,9 +41,14 @@ export const DEFAULT_USER = `# USER
 
 ## Context
 (User-specific information)
+`;
 
-## Notes
-(Additional observations)
+/** Default REMINDERS.md content - important notes and reminders */
+export const DEFAULT_REMINDERS = `# REMINDERS
+
+Important notes, deadlines, and things to remember.
+Each entry marked with [!important] for easy grep retrieval.
+
 `;
 
 /** Identity file defaults mapping */
@@ -51,6 +56,7 @@ const IDENTITY_FILES: Record<string, string> = {
   'SOUL.md': DEFAULT_SOUL,
   'IDENTITY.md': DEFAULT_IDENTITY,
   'USER.md': DEFAULT_USER,
+  'REMINDERS.md': DEFAULT_REMINDERS,
 };
 
 /**

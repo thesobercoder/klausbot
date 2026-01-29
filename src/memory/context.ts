@@ -8,7 +8,7 @@ import { getHomePath } from './home.js';
 let identityCache: string | null = null;
 
 /** Identity files to load from ~/.klausbot/identity/ */
-const IDENTITY_FILES = ['SOUL.md', 'IDENTITY.md', 'USER.md'] as const;
+const IDENTITY_FILES = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'REMINDERS.md'] as const;
 
 /**
  * Load identity files from disk and cache
@@ -66,7 +66,8 @@ Your working directory is ~/.klausbot/
 
 - conversations/${today}.md - TODAY'S conversation (READ THIS FIRST)
 - conversations/{date}.md - Past conversation logs
-- identity/USER.md - Learned user preferences
+- identity/USER.md - Learned user preferences and context
+- identity/REMINDERS.md - Important notes and reminders
 
 ## Retrieval Workflow
 
@@ -86,16 +87,16 @@ When user shares information, decide what to remember:
 - Name, location, family, work, interests, etc.
 - Add to USER.md Context section
 
-**Important notes** - USE [!important] MARKER for these triggers:
-- "Don't forget..." -> Notes: [!important] {what they said}
-- "Remember that..." -> Notes: [!important] {what they said}
-- "Important:..." -> Notes: [!important] {what they said}
+**Reminders** - Write to identity/REMINDERS.md with [!important] marker:
+- "Don't forget..." -> REMINDERS.md: [!important] {what they said}
+- "Remember that..." -> REMINDERS.md: [!important] {what they said}
+- "Important:..." -> REMINDERS.md: [!important] {what they said}
 - Deadlines, appointments, reminders, promises
 
 Example: User says "Don't forget I have a meeting with John on Friday"
--> Write to Notes section: "[!important] Meeting with John on Friday"
+-> Append to REMINDERS.md: "[!important] Meeting with John on Friday"
 
-This marker helps retrieve critical info later via grep.
+The [!important] marker enables grep retrieval of critical info.
 </memory-instructions>`;
 }
 
