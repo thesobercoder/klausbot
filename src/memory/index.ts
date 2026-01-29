@@ -29,6 +29,8 @@ export {
   loadIdentity,
   getRetrievalInstructions,
   buildSystemPrompt,
+  invalidateIdentityCache,
+  reloadIdentity,
 } from './context.js';
 
 // Embedding generation and storage

@@ -41,6 +41,25 @@ export function loadIdentity(): string {
 }
 
 /**
+ * Invalidate identity cache to force reload on next access
+ * Call after Claude modifies identity files
+ */
+export function invalidateIdentityCache(): void {
+  identityCache = null;
+}
+
+/**
+ * Force reload identity from disk
+ * Convenience function: invalidates cache and returns fresh identity
+ *
+ * @returns Fresh identity content from disk
+ */
+export function reloadIdentity(): string {
+  invalidateIdentityCache();
+  return loadIdentity();
+}
+
+/**
  * Build retrieval instructions for Claude's memory access
  * Tells Claude how to search conversations and update preferences
  *
