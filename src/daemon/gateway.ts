@@ -12,7 +12,6 @@ import { createChildLogger, sendLongMessage } from '../utils/index.js';
 import { autoCommitChanges } from '../utils/git.js';
 import {
   initializeHome,
-  initializeIdentity,
   initializeEmbeddings,
   logUserMessage,
   logAssistantMessage,
@@ -35,9 +34,9 @@ let shouldStop = false;
 export async function startGateway(): Promise<void> {
   log.info('Starting gateway...');
 
-  // Initialize ~/.klausbot/ data home and identity files
+  // Initialize ~/.klausbot/ data home (directories only)
+  // NOTE: Do NOT call initializeIdentity() here - bootstrap flow creates identity files
   initializeHome(log);
-  initializeIdentity(log);
   initializeEmbeddings();
 
   // Initialize data directory and components
