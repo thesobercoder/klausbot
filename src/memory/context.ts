@@ -72,16 +72,27 @@ Your working directory is ~/.klausbot/
 
 1. **ALWAYS first:** Read conversations/${today}.md for current session context
 2. **Historical search:** Use Grep tool to search conversations/ for past topics
-3. **Important markers:** Look for [!important] markers in conversations for key information
-4. **User preferences:** Check identity/USER.md for learned preferences
+3. **User preferences:** Check identity/USER.md for learned preferences
 
-## Preference Learning
+## Learning and Memory
 
-If user states a preference, update ~/.klausbot/identity/USER.md to record it.
-Examples:
-- "I prefer concise responses" -> Add to USER.md Preferences section
-- "My timezone is EST" -> Add to USER.md Context section
-- "Call me Alex" -> Add to USER.md Context section
+When user shares information, decide what to remember:
+
+**Preferences** (how they want things done):
+- Communication style, response format, timezone, etc.
+- Add to USER.md Preferences section
+
+**Context** (facts about them):
+- Name, location, family, work, interests, etc.
+- Add to USER.md Context section
+
+**Important notes** (things they explicitly want remembered):
+- Deadlines, reminders, key decisions, promises made
+- Add to USER.md Notes section with [!important] marker
+- Example: User says "Don't forget I have a meeting with John on Friday"
+  -> Add: "[!important] Meeting with John on Friday" to Notes
+
+You decide what's important based on context - user doesn't need special syntax.
 </memory-instructions>`;
 }
 
