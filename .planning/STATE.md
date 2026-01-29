@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** Phase 4 - Skills (In progress)
+**Current focus:** Phase 4 - Skills (Complete)
 
 ## Current Position
 
 Phase: 4 of 6 (Skills)
-Plan: 2 of 3 in Phase 4
-Status: In progress
-Last activity: 2026-01-29 - Completed 04-02-PLAN.md (Skills CLI & Auto-installer)
+Plan: 3 of 3 in Phase 4
+Status: Phase complete
+Last activity: 2026-01-29 - Completed 04-03-PLAN.md (E2E Verification)
 
-Progress: [██████░░░░] 66% (2/3 Phase 4 plans)
+Progress: [██████████] 100% (3/3 Phase 4 plans)
 
 ## Performance Metrics
 
@@ -30,10 +30,10 @@ Progress: [██████░░░░] 66% (2/3 Phase 4 plans)
 | 01-foundation | 7/7 | ~35 min | 5 min |
 | 02-core-loop | 4/4 | 13 min | 3.3 min |
 | 03-identity | 3/3 | ~12 min | 4 min |
-| 04-skills | 2/3 | ~4 min | 2 min |
+| 04-skills | 3/3 | ~35 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (2 min), 03-03 (25 min w/ iteration), 04-01 (2 min), 04-02 (2 min)
+- Last 5 plans: 03-03 (25 min), 04-01 (2 min), 04-02 (2 min), 04-03 (30 min w/ iteration)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -45,15 +45,14 @@ Progress: [██████░░░░] 66% (2/3 Phase 4 plans)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- 03-03: Remove initializeIdentity() from gateway startup - bootstrap creates files
-- 03-03: Hardcoded first message: "Hey. I just came online. Who am I? Who are you?"
-- 03-03: Bootstrap is minimal (up to 5 exchanges), files fill in over time
 - 03-03: Never expose internal details (file paths, memory system) to user
 - 03-03: Never proactively ask about projects/workspaces
 - 04-01: Local BotCommand interface (grammy doesnt export)
-- 04-01: No special /skill handler - Claude Code handles skill invocation natively
 - 04-01: Skills registered after ensureSkillCreator (guaranteed presence)
 - 04-02: GitHub API for recursive skill folder download
+- 04-03: Telegram sanitized names (underscores) need reverse lookup to original (hyphens)
+- 04-03: Translate /skill_creator → /skill-creator (Claude recognizes /skill-name format)
+- 04-03: Pino multistream for console + file logging (logs/app.log)
 
 ### Pending Todos
 
@@ -66,7 +65,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Completed 04-02-PLAN.md (Skills CLI & Auto-installer)
+Stopped at: Completed Phase 4 (Skills)
 Resume file: None
 
 ---
