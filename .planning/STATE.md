@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** Phase 2 - Core Loop
+**Current focus:** Phase 3 - Identity
 
 ## Current Position
 
-Phase: 2 of 6 (Core Loop)
-Plan: 4 of 4 in Phase 2
-Status: Phase complete
-Last activity: 2026-01-29 - Completed 02-05-PLAN.md (Semantic Search / MEM-05 Gap Closure)
+Phase: 3 of 6 (Identity)
+Plan: 1 of 3 in Phase 3
+Status: In progress
+Last activity: 2026-01-29 - Completed 03-01-PLAN.md (Bootstrap detection and cache invalidation)
 
-Progress: [██████████] 100% (4/4 Phase 2 plans)
+Progress: [████______] 33% (1/3 Phase 3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 4 min (excluding human verification time)
-- Total execution time: ~48 min
+- Total execution time: ~52 min
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [██████████] 100% (4/4 Phase 2 plans)
 |-------|-------|-------|----------|
 | 01-foundation | 7/7 | ~35 min | 5 min |
 | 02-core-loop | 4/4 | 13 min | 3.3 min |
+| 03-identity | 1/3 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3 min), 02-02 (2 min), 02-03 (2 min), 02-05 (6 min)
+- Last 5 plans: 02-02 (2 min), 02-03 (2 min), 02-05 (6 min), 03-01 (4 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - 02-05: text-embedding-3-small model for embeddings (cheapest, sufficient)
 - 02-05: Fire-and-forget embedding storage (don't block message flow)
 - 02-05: Graceful degradation when OPENAI_API_KEY missing
+- 03-01: REMINDERS.md excluded from required files (optional, not core identity)
+- 03-01: Moltbot four-dimension pattern: Identity, Nature, Demeanor, Symbol
+- 03-01: SOUL.md locked after bootstrap (constitution), IDENTITY.md/USER.md mutable
 
 ### Pending Todos
 
@@ -79,8 +83,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-29T14:10:00Z
-Stopped at: Completed 02-05-PLAN.md (Phase 2 complete)
+Last session: 2026-01-29T14:19:00Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
 
 ---
