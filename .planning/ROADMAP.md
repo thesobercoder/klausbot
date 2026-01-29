@@ -58,12 +58,14 @@ Plans:
 3. Claude's response reflects context from identity files (SOUL.md, IDENTITY.md, USER.md)
 4. User preferences stated in conversation appear in USER.md within same session
 5. Semantic search returns relevant memories when queried about past topics
-   **Plans**: TBD
+   **Plans**: 4 plans in 4 waves
 
 Plans:
 
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Memory foundation: data home, identity files, conversation logger
+- [ ] 02-02-PLAN.md — Context-aware spawner: system prompt builder, cwd injection
+- [ ] 02-03-PLAN.md — Integration: gateway wiring, CLI init subcommand
+- [ ] 02-04-PLAN.md — End-to-end verification (human checkpoint)
 
 ### Phase 3: Identity
 
@@ -148,7 +150,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase         | Plans Complete | Status      | Completed  |
 | ------------- | -------------- | ----------- | ---------- |
 | 1. Foundation | 7/7            | Complete    | 2026-01-29 |
-| 2. Core Loop  | 0/TBD          | Not started | -          |
+| 2. Core Loop  | 0/4            | In Progress | -          |
 | 3. Identity   | 0/TBD          | Not started | -          |
 | 4. Skills     | 0/TBD          | Not started | -          |
 | 5. Proactive  | 0/TBD          | Not started | -          |
