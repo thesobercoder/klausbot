@@ -1,4 +1,4 @@
-import { bot, createRunner, type MyContext } from '../telegram/index.js';
+import { bot, createRunner, type MyContext, registerSkillCommands, getInstalledSkillNames } from '../telegram/index.js';
 import { MessageQueue, queryClaudeCode, ensureDataDir } from './index.js';
 import type { QueuedMessage } from './queue.js';
 import {
@@ -18,6 +18,7 @@ import {
   invalidateIdentityCache,
 } from '../memory/index.js';
 import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from '../bootstrap/index.js';
+import { ensureSkillCreator } from '../cli/skills.js';
 
 const log = createChildLogger('gateway');
 
@@ -38,6 +39,13 @@ export async function startGateway(): Promise<void> {
   // NOTE: Do NOT call initializeIdentity() here - bootstrap flow creates identity files
   initializeHome(log);
   initializeEmbeddings();
+
+  // Auto-install skill-creator if missing
+  await ensureSkillCreator();
+
+  // Register skill commands in Telegram menu
+  await registerSkillCommands(bot);
+  log.info({ skills: getInstalledSkillNames() }, 'Registered skill commands');
 
   // Initialize data directory and components
   ensureDataDir(config.DATA_DIR);
