@@ -46,6 +46,7 @@ Usage:
   klausbot gateway                    Start the gateway daemon (alias)
   klausbot init                       Initialize ~/.klausbot/ directory
   klausbot install                    Interactive installation wizard
+  klausbot skills                     Install and manage skills
   klausbot pairing approve <code>     Approve pairing request
   klausbot pairing reject <code>      Reject pairing request
   klausbot pairing list               List pending/approved
@@ -211,6 +212,12 @@ async function main(): Promise<void> {
     case 'install': {
       const { runInstallWizard } = await import('./cli/index.js');
       await runInstallWizard();
+      break;
+    }
+
+    case 'skills': {
+      const { runSkillsCLI } = await import('./cli/index.js');
+      await runSkillsCLI();
       break;
     }
 
