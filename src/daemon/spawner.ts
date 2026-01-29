@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import { Logger } from 'pino';
 import { createChildLogger } from '../utils/logger.js';
+import { KLAUSBOT_HOME, buildSystemPrompt } from '../memory/index.js';
 
 /** Claude Code response structure */
 export interface ClaudeResponse {
@@ -51,13 +52,21 @@ export async function queryClaudeCode(
     ? `${prompt.slice(0, 100)}...`
     : prompt;
   logger.info(
-    { prompt: truncatedPrompt, timeout, model: options.model },
+    { prompt: truncatedPrompt, timeout, model: options.model, cwd: KLAUSBOT_HOME },
     'Spawning Claude Code'
   );
 
   return new Promise((resolve, reject) => {
+    // Build system prompt from identity files + retrieval instructions
+    const systemPrompt = buildSystemPrompt();
+
     // Build command arguments
-    const args = ['--dangerously-skip-permissions', '-p', prompt, '--output-format', 'json'];
+    const args = [
+      '--dangerously-skip-permissions',
+      '-p', prompt,
+      '--output-format', 'json',
+      '--append-system-prompt', systemPrompt,
+    ];
     if (options.model) {
       args.push('--model', options.model);
     }
@@ -65,6 +74,7 @@ export async function queryClaudeCode(
     // CRITICAL: stdin must inherit to avoid hang bug (issue #771)
     const claude = spawn('claude', args, {
       stdio: ['inherit', 'pipe', 'pipe'],
+      cwd: KLAUSBOT_HOME,  // Working directory for agentic file access
       env: process.env,
     });
 
