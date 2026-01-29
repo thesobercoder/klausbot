@@ -13,7 +13,7 @@ Build a self-evolving personal assistant that communicates via Telegram, backed 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Gateway daemon with Telegram integration and security boundaries
+- [x] **Phase 1: Foundation** - Gateway daemon with Telegram integration and security boundaries
 - [ ] **Phase 2: Core Loop** - Claude Code integration with stateless sessions and file-based memory
 - [ ] **Phase 3: Identity** - Bootstrap flow and persistent personality system
 - [ ] **Phase 4: Skills** - Extensible capabilities system with skill isolation
@@ -38,13 +38,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 
-- [ ] 01-01-PLAN.md — Project setup: npm, TypeScript, config, logger
-- [ ] 01-02-PLAN.md — Telegram bot core with grammY plugins
-- [ ] 01-03-PLAN.md — Message queue and Claude Code spawner
-- [ ] 01-04-PLAN.md — Pairing flow and security middleware
-- [ ] 01-05-PLAN.md — Gateway integration: wire all components
-- [ ] 01-06-PLAN.md — Deployment: install wizard, systemd, Docker
-- [ ] 01-07-PLAN.md — End-to-end verification (human checkpoint)
+- [x] 01-01-PLAN.md — Project setup: npm, TypeScript, config, logger
+- [x] 01-02-PLAN.md — Telegram bot core with grammY plugins
+- [x] 01-03-PLAN.md — Message queue and Claude Code spawner
+- [x] 01-04-PLAN.md — Pairing flow and security middleware
+- [x] 01-05-PLAN.md — Gateway integration: wire all components
+- [x] 01-06-PLAN.md — Deployment: install wizard, systemd, Docker
+- [x] 01-07-PLAN.md — End-to-end verification (human checkpoint)
 
 ### Phase 2: Core Loop
 
@@ -145,16 +145,16 @@ Plans:
 Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 (Phase 6 can parallelize with Phase 3-5 if prioritized)
 
-| Phase         | Plans Complete | Status      | Completed |
-| ------------- | -------------- | ----------- | --------- |
-| 1. Foundation | 0/7            | Planned     | -         |
-| 2. Core Loop  | 0/TBD          | Not started | -         |
-| 3. Identity   | 0/TBD          | Not started | -         |
-| 4. Skills     | 0/TBD          | Not started | -         |
-| 5. Proactive  | 0/TBD          | Not started | -         |
-| 6. Multimodal | 0/TBD          | Not started | -         |
+| Phase         | Plans Complete | Status      | Completed  |
+| ------------- | -------------- | ----------- | ---------- |
+| 1. Foundation | 7/7            | Complete    | 2026-01-29 |
+| 2. Core Loop  | 0/TBD          | Not started | -          |
+| 3. Identity   | 0/TBD          | Not started | -          |
+| 4. Skills     | 0/TBD          | Not started | -          |
+| 5. Proactive  | 0/TBD          | Not started | -          |
+| 6. Multimodal | 0/TBD          | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-01-28_
-_Last updated: 2026-01-28_
+_Last updated: 2026-01-29_
