@@ -71,7 +71,7 @@ export function getSkillDescription(name: string): string {
 
 /**
  * Translate skill command in message text
- * Converts /skill_creator [args] → /skill skill-creator [args]
+ * Converts /skill_creator [args] → /skill-creator [args]
  * Returns original text if not a skill command
  */
 export function translateSkillCommand(text: string): string {
@@ -88,8 +88,8 @@ export function translateSkillCommand(text: string): string {
   // Check if this is a registered skill command
   const skillName = skillCommandMap.get(command);
   if (skillName) {
-    // Translate to /skill <original-name> [args]
-    const translated = args ? `/skill ${skillName} ${args}` : `/skill ${skillName}`;
+    // Translate to /<original-name> [args] - Claude Code recognizes /skill-name format
+    const translated = args ? `/${skillName} ${args}` : `/${skillName}`;
     log.debug({ from: trimmed, to: translated }, 'Translated skill command');
     return translated;
   }
