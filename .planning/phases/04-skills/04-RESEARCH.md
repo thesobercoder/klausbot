@@ -6,13 +6,13 @@
 
 ## Summary
 
-Phase 4 implements an extensible skills system where Claude selects and executes reusable skills from `~/.klausbot/skills/`. Research confirms Claude Code's skills follow the Agent Skills open standard with YAML frontmatter + markdown instructions. The skill-creator from Anthropic's official repository provides the primary mechanism for creating new skills.
+Phase 4 implements an extensible skills system where Claude selects and executes reusable skills from `~/.claude/skills/`. Research confirms Claude Code's skills follow the Agent Skills open standard with YAML frontmatter + markdown instructions. The skill-creator from Anthropic's official repository provides the primary mechanism for creating new skills.
 
 Key architectural insight: Claude's skill selection uses pure LLM reasoning via the `Skill` tool - no algorithmic routing or intent classification. Skill descriptions are loaded into context (15k char budget default), and Claude's language model decides when to invoke based on matching user intent to descriptions.
 
 Telegram command registration via `setMyCommands` API enables skills to appear in the `/` menu. Commands must use lowercase + underscores only (no hyphens). Both `/skill <name>` and `/<skillname>` invocation patterns are supported.
 
-**Primary recommendation:** Follow Claude Code standard skill format (`~/.klausbot/skills/<name>/SKILL.md`). Ship skill-creator as mandatory pre-installed skill. Add skill descriptions to system prompt for auto-selection. Register skill names as Telegram commands. Detect repeated patterns via conversation log analysis.
+**Primary recommendation:** Follow Claude Code standard skill format (`~/.claude/skills/<name>/SKILL.md`). Ship skill-creator as mandatory pre-installed skill. Add skill descriptions to system prompt for auto-selection. Register skill names as Telegram commands. Detect repeated patterns via conversation log analysis.
 
 ## Standard Stack
 
@@ -62,19 +62,19 @@ description: What this skill does and when Claude should use it
 ```bash
 # Skills are markdown files, no packages needed
 # Skill-creator installs from Anthropic's repo:
-mkdir -p ~/.klausbot/skills/skill-creator
-curl -o ~/.klausbot/skills/skill-creator/SKILL.md \
+mkdir -p ~/.claude/skills/skill-creator
+curl -o ~/.claude/skills/skill-creator/SKILL.md \
   https://raw.githubusercontent.com/anthropics/skills/main/skills/skill-creator/SKILL.md
 ```
 
 ## Architecture Patterns
 
-### Recommended Directory Structure
+### Skills Directory Structure (Standard Claude Code Location)
 
 ```
-~/.klausbot/
-  skills/
-    skill-creator/          # MANDATORY - pre-installed
+~/.claude/
+  skills/                   # Standard Claude Code skills location (we read, don't own)
+    skill-creator/          # MANDATORY - pre-installed by klausbot
       SKILL.md
     summarize/              # Example zero-dep skill
       SKILL.md
@@ -83,13 +83,13 @@ curl -o ~/.klausbot/skills/skill-creator/SKILL.md \
       scripts/              # Optional executable scripts
       references/           # Optional documentation
       assets/               # Optional templates/output files
-  config/
-    skills-registry.json    # Local registry of available skills
 ```
+
+Note: We use the standard Claude Code skills directory, not a klausbot-specific one. This ensures compatibility with Claude Code CLI and other tools.
 
 ### Pattern 1: Skill Discovery and Loading
 
-**What:** Scan `~/.klausbot/skills/` for SKILL.md files, load descriptions into context.
+**What:** Scan `~/.claude/skills/` for SKILL.md files, load descriptions into context.
 
 **Source:** [Claude Code Skills Docs](https://code.claude.com/docs/en/skills)
 
@@ -106,7 +106,7 @@ interface SkillMeta {
   userInvocable?: boolean;
 }
 
-const SKILLS_DIR = join(KLAUSBOT_HOME, 'skills');
+const SKILLS_DIR = join(homedir(), '.claude', 'skills');
 const SKILLS_CHAR_BUDGET = 15000;  // Default context budget
 
 function extractFrontmatter(content: string): Record<string, unknown> | null {
@@ -357,7 +357,7 @@ Never create skills without asking first. The user may prefer case-by-case handl
 1. User approves skill creation suggestion
 2. Claude invokes `/skill-creator` or uses it via natural language
 3. skill-creator guides through: understanding examples, planning contents, initializing, editing, packaging
-4. New skill written to `~/.klausbot/skills/<name>/SKILL.md`
+4. New skill written to `~/.claude/skills/<name>/SKILL.md`
 5. Skills auto-discovered on next invocation (or hot-reload if implemented)
 
 **Confidence:** HIGH - official Anthropic skill, well-documented process.
@@ -446,10 +446,10 @@ export interface SkillMeta {
   userInvocable: boolean;
 }
 
-const SKILLS_DIR = join(KLAUSBOT_HOME, 'skills');
+const SKILLS_DIR = join(homedir(), '.claude', 'skills');
 
 /**
- * Discover all skills from ~/.klausbot/skills/
+ * Discover all skills from ~/.claude/skills/
  */
 export function discoverSkills(): SkillMeta[] {
   if (!existsSync(SKILLS_DIR)) {
@@ -562,10 +562,11 @@ To use a skill, the user can say "/skill <name>" or "/<name>", or you can sugges
 }
 ```
 
-### Skill Registry File Format
+### Skill Registry File Format (Optional - Not Implemented in Phase 4)
 
 ```typescript
-// ~/.klausbot/config/skills-registry.json
+// Optional registry for tracking skill metadata (not implemented in Phase 4)
+// Skills are discovered directly from ~/.claude/skills/ directory
 interface SkillRegistry {
   /** Version of registry format */
   version: 1;
@@ -685,7 +686,7 @@ export async function installSkillsInteractive(): Promise<void> {
    - Recommendation: Start with suggestion after 3 similar requests in 7 days, tune empirically
 
 4. **Skill sharing between instances**
-   - What we know: Skills are local to `~/.klausbot/`
+   - What we know: Skills are local to `~/.claude/skills/`
    - What's unclear: How to share skills between machines
    - Recommendation: Out of scope for Phase 4; manual file copy for now
 
