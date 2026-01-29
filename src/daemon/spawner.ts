@@ -57,7 +57,7 @@ export async function queryClaudeCode(
 
   return new Promise((resolve, reject) => {
     // Build command arguments
-    const args = ['-p', prompt, '--output-format', 'json'];
+    const args = ['--dangerously-skip-permissions', '-p', prompt, '--output-format', 'json'];
     if (options.model) {
       args.push('--model', options.model);
     }
