@@ -193,9 +193,22 @@ async function processQueue(): Promise<void> {
 async function processMessage(msg: QueuedMessage): Promise<void> {
   const startTime = Date.now();
 
+  // Send typing indicator continuously while processing
+  // Telegram typing indicator lasts ~5 seconds, so refresh every 4
+  const sendTyping = () => {
+    bot.api.sendChatAction(msg.chatId, 'typing').catch(() => {
+      // Ignore errors - chat may be unavailable
+    });
+  };
+  sendTyping(); // Send immediately
+  const typingInterval = setInterval(sendTyping, 4000);
+
   try {
     // Call Claude
     const response = await queryClaudeCode(msg.text);
+
+    // Stop typing indicator
+    clearInterval(typingInterval);
 
     // Mark as complete
     queue.complete(msg.id);
@@ -225,24 +238,16 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
       log.info({ queueId: msg.id }, 'Auto-committed Claude file changes');
     }
   } catch (err) {
+    // Stop typing indicator
+    clearInterval(typingInterval);
+
     // Determine error category
     const error = err instanceof Error ? err : new Error(String(err));
     const category = categorizeError(error);
     const userMessage = `Error (${category}): ${getBriefDescription(error)}`;
 
-    // Update/send error to user
-    const currentStatusId = statusMessageIds.get(msg.chatId);
-    if (currentStatusId) {
-      try {
-        await bot.api.editMessageText(msg.chatId, currentStatusId, userMessage);
-      } catch {
-        await bot.api.sendMessage(msg.chatId, userMessage).catch(() => {});
-      }
-    } else {
-      await bot.api.sendMessage(msg.chatId, userMessage).catch(() => {});
-    }
-
-    statusMessageIds.delete(msg.chatId);
+    // Send error to user
+    await bot.api.sendMessage(msg.chatId, userMessage).catch(() => {});
 
     // Mark as failed
     queue.fail(msg.id, error.message);
