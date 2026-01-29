@@ -7,9 +7,28 @@
  * Note: Uses dynamic imports to avoid loading config/bot for help command
  */
 
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
 // Parse CLI arguments
 const args = process.argv.slice(2);
 const command = args[0] ?? 'daemon';
+
+/**
+ * Get package version from package.json
+ */
+function getVersion(): string {
+  try {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    // Navigate up from dist/index.js to project root
+    const pkgPath = join(__dirname, '..', 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+    return pkg.version ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
 
 /**
  * Print CLI usage help
@@ -20,10 +39,12 @@ klausbot - Telegram gateway for Claude Code
 
 Usage:
   klausbot [daemon]                   Start the gateway daemon
+  klausbot install                    Interactive installation wizard
   klausbot pairing approve <code>     Approve pairing request
   klausbot pairing reject <code>      Reject pairing request
   klausbot pairing list               List pending/approved
   klausbot pairing revoke <chatId>    Revoke access
+  klausbot version                    Show version
   klausbot help                       Show this help
 
 Environment Variables:
@@ -160,8 +181,20 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'install': {
+      const { runInstallWizard } = await import('./cli/index.js');
+      await runInstallWizard();
+      break;
+    }
+
     case 'pairing':
       await handlePairing();
+      break;
+
+    case 'version':
+    case '--version':
+    case '-v':
+      console.log(`klausbot v${getVersion()}`);
       break;
 
     case 'help':
