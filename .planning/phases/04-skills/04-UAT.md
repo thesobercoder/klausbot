@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 04-skills
 source: [04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md]
 started: 2026-01-29T18:30:00Z
-updated: 2026-01-29T18:35:00Z
+updated: 2026-01-29T18:36:00Z
 ---
 
 ## Current Test
 
-number: 6
-name: Skill Creation Flow
-expected: |
-  Ask Claude to create a new skill - Claude uses skill-creator, creates SKILL.md in ~/.claude/skills/{name}/, skill appears in Telegram menu after restart
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -40,14 +36,15 @@ result: pass
 
 ### 6. Skill Creation Flow
 expected: Ask Claude to create a new skill - Claude uses skill-creator, creates SKILL.md in ~/.claude/skills/{name}/, skill appears in Telegram menu after restart
-result: [pending]
+result: pass
+note: "Enhancement: Add strong reminder that new skills always created in global ~/.claude/skills/ due to Klausbot architecture"
 
 ## Summary
 
 total: 6
-passed: 4
+passed: 5
 issues: 1
-pending: 1
+pending: 0
 skipped: 0
 
 ## Gaps
