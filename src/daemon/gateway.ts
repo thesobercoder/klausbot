@@ -18,8 +18,6 @@ let queue: MessageQueue;
 let isProcessing = false;
 let shouldStop = false;
 
-/** Status message ID per queue message (for update/delete) */
-const statusMessageIds = new Map<string, { chatId: number; messageId: number }>();
 
 /**
  * Start the gateway daemon
@@ -105,13 +103,8 @@ export async function startGateway(): Promise<void> {
     // Skip empty messages
     if (!text.trim()) return;
 
-    // Add to queue
+    // Add to queue - typing indicator shown by autoChatAction middleware
     const queueId = queue.add(chatId, text);
-
-    // Send status message and track ID by queue message ID
-    const statusMsg = await ctx.reply('Queued. Processing...');
-    statusMessageIds.set(queueId, { chatId, messageId: statusMsg.message_id });
-
     log.info({ chatId, queueId }, 'Message queued');
 
     // Trigger processing (non-blocking)
@@ -200,37 +193,12 @@ async function processQueue(): Promise<void> {
 async function processMessage(msg: QueuedMessage): Promise<void> {
   const startTime = Date.now();
 
-  // Update status message to "Thinking..."
-  const statusInfo = statusMessageIds.get(msg.id);
-  if (statusInfo) {
-    try {
-      await bot.api.editMessageText(statusInfo.chatId, statusInfo.messageId, 'Thinking...');
-    } catch {
-      // Message may have been deleted, send new one
-      try {
-        const newStatus = await bot.api.sendMessage(msg.chatId, 'Thinking...');
-        statusMessageIds.set(msg.id, { chatId: msg.chatId, messageId: newStatus.message_id });
-      } catch (err) {
-        log.warn({ err, chatId: msg.chatId }, 'Failed to send status message');
-      }
-    }
-  }
-
   try {
     // Call Claude
     const response = await queryClaudeCode(msg.text);
 
     // Mark as complete
     queue.complete(msg.id);
-
-    // Delete status message
-    const currentStatus = statusMessageIds.get(msg.id);
-    if (currentStatus) {
-      bot.api.deleteMessage(currentStatus.chatId, currentStatus.messageId).catch(() => {
-        // Ignore delete errors
-      });
-      statusMessageIds.delete(msg.id);
-    }
 
     // Send response (handles splitting for long messages)
     if (response.is_error) {
