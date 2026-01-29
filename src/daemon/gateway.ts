@@ -16,7 +16,9 @@ import {
   initializeEmbeddings,
   logUserMessage,
   logAssistantMessage,
+  invalidateIdentityCache,
 } from '../memory/index.js';
+import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from '../bootstrap/index.js';
 
 const log = createChildLogger('gateway');
 
@@ -219,8 +221,16 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
     // Log user message BEFORE processing (per CONTEXT.md: log original message)
     logUserMessage(msg.text);
 
-    // Call Claude
-    const response = await queryClaudeCode(msg.text);
+    // Check if bootstrap needed BEFORE processing
+    const isBootstrap = needsBootstrap();
+    if (isBootstrap) {
+      log.info({ chatId: msg.chatId }, 'Bootstrap mode: identity files missing');
+    }
+
+    // Call Claude (append bootstrap instructions if needed)
+    const response = await queryClaudeCode(msg.text, {
+      additionalInstructions: isBootstrap ? BOOTSTRAP_INSTRUCTIONS : undefined,
+    });
 
     // Stop typing indicator
     clearInterval(typingInterval);
@@ -238,8 +248,10 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
       // Log assistant response AFTER success
       logAssistantMessage(response.result);
 
-      // Create a minimal context-like object for sendLongMessage
-      // sendLongMessage expects a context with reply method
+      // Invalidate identity cache after Claude response
+      // Claude may have updated identity files during session
+      invalidateIdentityCache();
+
       const messages = await splitAndSend(msg.chatId, response.result);
       log.debug({ chatId: msg.chatId, chunks: messages }, 'Sent response chunks');
     }
