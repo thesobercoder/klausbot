@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { configSchema, type Config } from './schema.js';
 import { ZodError } from 'zod';
 

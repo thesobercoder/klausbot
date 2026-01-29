@@ -7,9 +7,13 @@
  * Note: Uses dynamic imports to avoid loading config/bot for help command
  */
 
+import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+
+// Load .env file FIRST before any config access
+dotenv.config();
 
 // Parse CLI arguments
 const args = process.argv.slice(2);
