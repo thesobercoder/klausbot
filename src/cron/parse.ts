@@ -54,7 +54,83 @@ export function parseSchedule(input: string): ParsedSchedule | null {
     }
   }
 
-  // Pattern 2: Cron expression (starts with digit or asterisk)
+  // Pattern 2: "every day at TIME" / "daily at TIME" -> cron expression
+  const dailyMatch = normalized.match(/(?:every\s*day|daily)\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (dailyMatch) {
+    let hour = parseInt(dailyMatch[1], 10);
+    const minute = dailyMatch[2] ? parseInt(dailyMatch[2], 10) : 0;
+    const ampm = dailyMatch[3]?.toLowerCase();
+
+    // Convert to 24-hour format
+    if (ampm === 'pm' && hour < 12) hour += 12;
+    if (ampm === 'am' && hour === 12) hour = 0;
+
+    const cronExpr = `${minute} ${hour} * * *`;
+    try {
+      const cron = new Cron(cronExpr);
+      const next = cron.nextRun();
+      const timeStr = `${hour % 12 || 12}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+      return {
+        schedule: { kind: 'cron', expr: cronExpr },
+        humanReadable: `every day at ${timeStr}`,
+        nextRun: next,
+      };
+    } catch {
+      // Fall through
+    }
+  }
+
+  // Pattern 3: "every morning/afternoon/evening at TIME"
+  const timeOfDayMatch = normalized.match(/every\s+(morning|afternoon|evening)\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (timeOfDayMatch) {
+    let hour = parseInt(timeOfDayMatch[2], 10);
+    const minute = timeOfDayMatch[3] ? parseInt(timeOfDayMatch[3], 10) : 0;
+    const ampm = timeOfDayMatch[4]?.toLowerCase();
+
+    if (ampm === 'pm' && hour < 12) hour += 12;
+    if (ampm === 'am' && hour === 12) hour = 0;
+
+    const cronExpr = `${minute} ${hour} * * *`;
+    try {
+      const cron = new Cron(cronExpr);
+      const next = cron.nextRun();
+      const timeStr = `${hour % 12 || 12}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+      return {
+        schedule: { kind: 'cron', expr: cronExpr },
+        humanReadable: `every day at ${timeStr}`,
+        nextRun: next,
+      };
+    } catch {
+      // Fall through
+    }
+  }
+
+  // Pattern 4: "every weekday at TIME"
+  const weekdayMatch = normalized.match(/every\s+weekday\s+at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (weekdayMatch) {
+    let hour = parseInt(weekdayMatch[1], 10);
+    const minute = weekdayMatch[2] ? parseInt(weekdayMatch[2], 10) : 0;
+    const ampm = weekdayMatch[3]?.toLowerCase();
+
+    if (ampm === 'pm' && hour < 12) hour += 12;
+    if (ampm === 'am' && hour === 12) hour = 0;
+
+    const cronExpr = `${minute} ${hour} * * 1-5`;
+    try {
+      const cron = new Cron(cronExpr);
+      const next = cron.nextRun();
+      const timeStr = `${hour % 12 || 12}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+      return {
+        schedule: { kind: 'cron', expr: cronExpr },
+        humanReadable: `every weekday at ${timeStr}`,
+        nextRun: next,
+      };
+    } catch {
+      // Fall through
+    }
+  }
+
+  // Pattern 5: Cron expression (starts with digit or asterisk)
   if (/^[\d*]/.test(normalized)) {
     try {
       const cron = new Cron(normalized);
@@ -69,7 +145,7 @@ export function parseSchedule(input: string): ParsedSchedule | null {
     }
   }
 
-  // Pattern 3: Natural language date (via chrono-node)
+  // Pattern 6: Natural language date (via chrono-node)
   const parsed = chrono.parse(input);
   if (parsed.length > 0 && parsed[0].start) {
     const date = parsed[0].start.date();
