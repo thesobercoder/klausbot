@@ -246,9 +246,20 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
       log.info({ chatId: msg.chatId }, 'Bootstrap mode: identity files missing');
     }
 
+    // Build additional instructions
+    // Always include chatId context for cron management
+    const chatIdContext = `<session-context>
+Current chat ID: ${msg.chatId}
+Use this chatId when creating cron jobs.
+</session-context>`;
+
+    const additionalInstructions = isBootstrap
+      ? chatIdContext + '\n\n' + BOOTSTRAP_INSTRUCTIONS
+      : chatIdContext;
+
     // Call Claude (append bootstrap instructions if needed)
     const response = await queryClaudeCode(msg.text, {
-      additionalInstructions: isBootstrap ? BOOTSTRAP_INSTRUCTIONS : undefined,
+      additionalInstructions,
     });
 
     // Stop typing indicator

@@ -189,10 +189,12 @@ Don't suggest if nothing relevant. Not every conversation needs suggestions.
 
 You can create, modify, and delete scheduled tasks via natural conversation.
 
+**Important:** The current chat ID is provided in <session-context>. Use this chatId for all cron operations.
+
 ### Creating Tasks
 When user requests a recurring action (e.g., "remind me every morning at 9am to check emails"):
 1. Parse the schedule using parseSchedule from cron module
-2. Create the job using createCronJob
+2. Create the job using createCronJob with the chatId from session context
 3. Confirm to user with next run time
 
 ### Modifying Tasks
