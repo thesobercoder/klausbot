@@ -5,10 +5,11 @@
  * Auto-installs skill-creator on gateway startup.
  */
 
-import { existsSync, mkdirSync, writeFileSync, readdirSync } from 'fs';
+import { createHash } from 'crypto';
+import { existsSync, mkdirSync, writeFileSync, readdirSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
-import { select } from '@inquirer/prompts';
+import { select, search, confirm } from '@inquirer/prompts';
 import { createChildLogger } from '../utils/logger.js';
 
 const log = createChildLogger('cli:skills');
@@ -17,14 +18,23 @@ const SKILLS_DIR = join(homedir(), '.claude', 'skills');
 // GitHub API base for anthropics/skills repo
 const GITHUB_API = 'https://api.github.com/repos/anthropics/skills/contents/skills';
 
-/** Curated skills available for installation */
-const CURATED_SKILLS = [
+/** Skill metadata in the registry */
+interface RegistrySkill {
+  name: string;
+  description: string;
+  commands: string[]; // Slash commands it provides
+  contentHash: string; // Hash of SKILL.md for version detection
+}
+
+/** Registry of available skills (hardcoded per CONTEXT.md decision) */
+const REGISTRY: RegistrySkill[] = [
   {
     name: 'skill-creator',
     description: 'Create new skills interactively (Anthropic official)',
-    mandatory: true,
+    commands: ['/skill-creator'],
+    contentHash: '', // Empty = no version check (always considered up-to-date)
   },
-] as const;
+];
 
 /** GitHub API content item shape */
 interface GitHubContentItem {
@@ -114,8 +124,103 @@ function getInstalledSkills(): string[] {
 }
 
 /**
+ * Get content hash of installed skill's SKILL.md
+ * Returns null if skill not installed
+ */
+function getInstalledHash(skillName: string): string | null {
+  const path = join(SKILLS_DIR, skillName, 'SKILL.md');
+  if (!existsSync(path)) return null;
+  const content = readFileSync(path, 'utf-8');
+  return createHash('sha256').update(content).digest('hex').slice(0, 12);
+}
+
+/**
+ * Check if an installed skill has an update available
+ * Returns false if not installed or registry has no hash set
+ */
+function checkForUpdate(skillName: string): boolean {
+  const installed = getInstalledHash(skillName);
+  const registry = REGISTRY.find((s) => s.name === skillName);
+  if (!installed || !registry || !registry.contentHash) return false;
+  return installed !== registry.contentHash;
+}
+
+/**
+ * Format skill choice for display in search list
+ * Adds checkmark for installed, up-arrow for updates
+ */
+function formatChoice(skill: RegistrySkill, installed: string[]): string {
+  const isInstalled = installed.includes(skill.name);
+  const hasUpdate = isInstalled && checkForUpdate(skill.name);
+
+  let badge = '';
+  if (isInstalled && hasUpdate) badge = ' [update]';
+  else if (isInstalled) badge = ' [installed]';
+
+  return `${skill.name} - ${skill.description}${badge}`;
+}
+
+/**
+ * Browse skills interactively with type-to-filter
+ * Uses @inquirer/search for real-time filtering
+ */
+export async function browseSkills(): Promise<void> {
+  const installed = getInstalledSkills();
+
+  const selected = await search({
+    message: 'Browse skills (type to filter):',
+    source: (term) => {
+      const filtered = REGISTRY.filter(
+        (s) =>
+          !term ||
+          s.name.toLowerCase().includes(term.toLowerCase()) ||
+          s.description.toLowerCase().includes(term.toLowerCase())
+      );
+      return filtered.map((s) => ({
+        name: formatChoice(s, installed),
+        value: s.name,
+        description: s.description,
+      }));
+    },
+  });
+
+  if (!selected) return;
+
+  const skill = REGISTRY.find((s) => s.name === selected);
+  if (!skill) return;
+
+  const isInstalled = installed.includes(selected);
+
+  // Show confirmation with details (per CONTEXT.md)
+  console.log(`\n${skill.name}`);
+  console.log(`  ${skill.description}`);
+  console.log(`  Commands: ${skill.commands.join(', ')}`);
+
+  if (isInstalled) {
+    const hasUpdate = checkForUpdate(selected);
+    if (hasUpdate) {
+      const doUpdate = await confirm({ message: 'Update available. Install update?' });
+      if (doUpdate) {
+        console.log(`Updating ${skill.name}...`);
+        await installSkillFolder(selected);
+        console.log(`Updated: ${skill.name}`);
+      }
+    } else {
+      console.log('  (already installed, up to date)');
+    }
+  } else {
+    const doInstall = await confirm({ message: 'Install?' });
+    if (doInstall) {
+      console.log(`Installing ${skill.name}...`);
+      await installSkillFolder(selected);
+      console.log(`Installed: ${skill.name}`);
+    }
+  }
+}
+
+/**
  * Run the skills CLI
- * Shows installed skills and provides option to install curated skills
+ * Shows installed skills and provides option to install registry skills
  */
 export async function runSkillsCLI(): Promise<void> {
   const installed = getInstalledSkills();
@@ -128,10 +233,10 @@ export async function runSkillsCLI(): Promise<void> {
   }
   console.log();
 
-  const notInstalled = CURATED_SKILLS.filter((s) => !installed.includes(s.name));
+  const notInstalled = REGISTRY.filter((s) => !installed.includes(s.name));
 
   if (notInstalled.length === 0) {
-    console.log('All curated skills installed.');
+    console.log('All registry skills installed.');
     return;
   }
 
@@ -145,7 +250,7 @@ export async function runSkillsCLI(): Promise<void> {
 
   if (choice === 'exit') return;
 
-  const skill = CURATED_SKILLS.find((s) => s.name === choice);
+  const skill = REGISTRY.find((s) => s.name === choice);
   if (skill) {
     console.log(`Installing ${skill.name}...`);
     await installSkillFolder(skill.name);
