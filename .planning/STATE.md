@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-28)
 ## Current Position
 
 Phase: 5 of 7 (Proactive)
-Plan: 2 of 5 in Phase 5
+Plan: 3 of 5 in Phase 5
 Status: In progress
-Last activity: 2026-01-30 - Completed 05-02-PLAN.md (Cron Execution Engine)
+Last activity: 2026-01-30 - Completed 05-03-PLAN.md (Gateway Integration)
 
-Progress: [██████░░░░] 67% (20/30 plans complete)
+Progress: [███████░░░] 70% (21/30 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 4 min (excluding human verification time)
-- Total execution time: ~70 min
+- Total execution time: ~72 min
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [██████░░░░] 67% (20/30 plans complete)
 | 03-identity | 3/3 | ~12 min | 4 min |
 | 04-skills | 3/3 | ~35 min | 12 min |
 | 04.1-skills-polish | 2/2 | 4 min | 2 min |
-| 05-proactive | 2/5 | 4.8 min | 2.4 min |
+| 05-proactive | 3/5 | 6.8 min | 2.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 04.1-01 (2 min), 04.1-02 (2 min), 05-01 (2.5 min), 05-02 (2.3 min)
+- Last 5 plans: 04.1-02 (2 min), 05-01 (2.5 min), 05-02 (2.3 min), 05-03 (2 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -65,6 +65,8 @@ Recent decisions affecting current work:
 - 05-02: Retry once after 60s delay (balance reliability vs resources)
 - 05-02: Sequential job execution via isExecuting flag
 - 05-02: Recover missed jobs within 24 hours on startup
+- 05-03: startScheduler after initializeHome, stopScheduler before processing cleanup
+- 05-03: /crons shows only enabled jobs with next run and last status
 
 ### Roadmap Evolution
 
@@ -81,7 +83,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 05-02-PLAN.md (Cron Execution Engine)
+Stopped at: Completed 05-03-PLAN.md (Gateway Integration)
 Resume file: None
 
 ---
