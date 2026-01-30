@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** Phase 5 - Proactive (Not started)
+**Current focus:** Phase 5 - Proactive (In progress)
 
 ## Current Position
 
 Phase: 5 of 7 (Proactive)
-Plan: 0 of TBD in Phase 5
-Status: Not started
-Last activity: 2026-01-30 - Completed Phase 4.1 (Skills Polish)
+Plan: 1 of TBD in Phase 5
+Status: In progress
+Last activity: 2026-01-30 - Completed 05-01-PLAN.md (Cron Foundation)
 
-Progress: [██████░░░░] 60% (18/TBD plans complete)
+Progress: [██████░░░░] 63% (19/TBD plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 4 min (excluding human verification time)
-- Total execution time: ~64 min
+- Total execution time: ~67 min
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [██████░░░░] 60% (18/TBD plans complete)
 | 03-identity | 3/3 | ~12 min | 4 min |
 | 04-skills | 3/3 | ~35 min | 12 min |
 | 04.1-skills-polish | 2/2 | 4 min | 2 min |
+| 05-proactive | 1/TBD | 2.5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (2 min), 04-03 (30 min), 04.1-01 (2 min), 04.1-02 (2 min)
+- Last 5 plans: 04-03 (30 min), 04.1-01 (2 min), 04.1-02 (2 min), 05-01 (2.5 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -58,6 +59,13 @@ Recent decisions affecting current work:
 - 04.1-01: Minimal wording: location only, no skill enumeration
 - 04.1-02: SHA256 content hash for skill version detection
 - 04.1-02: Empty contentHash = always up-to-date (no remote manifest)
+- 05-01: Three schedule kinds (at/every/cron) for comprehensive coverage
+- 05-01: croner for cron expressions (zero deps, TS native, timezone support)
+- 05-01: chrono-node for natural language parsing (battle-tested)
+
+### Roadmap Evolution
+
+- Phase 7 added: Resilience & Tooling (timeout recovery, skills cleanup, agent authoring)
 
 ### Pending Todos
 
@@ -70,7 +78,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed Phase 4.1 (Skills Polish)
+Stopped at: Completed 05-01-PLAN.md (Cron Foundation)
 Resume file: None
 
 ---
