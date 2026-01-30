@@ -37,7 +37,7 @@ export async function runCronCLI(args: string[]): Promise<void> {
       handleGet(args.slice(1));
       break;
     case 'delete':
-      handleDelete(args.slice(1));
+      await handleDelete(args.slice(1));
       break;
     case 'update':
       handleUpdate(args.slice(1));
@@ -55,7 +55,7 @@ Commands:
 Examples:
   klausbot cron add --name "Morning reminder" --schedule "every day at 9am" --instruction "Say good morning" --chatId 123456
   klausbot cron list --chatId 123456
-  klausbot cron delete --id abc-123
+  klausbot cron delete --id abc-123 [--force]
 `);
   }
 }
@@ -149,12 +149,25 @@ function handleGet(args: string[]): void {
   console.log(JSON.stringify({ success: true, job }, null, 2));
 }
 
-function handleDelete(args: string[]): void {
+async function handleDelete(args: string[]): Promise<void> {
   const opts = parseArgs(args);
 
   if (!opts.id) {
     console.error('Error: Missing --id argument');
     process.exit(1);
+  }
+
+  // Add confirmation before deleting (unless --force)
+  if (opts.force !== 'true') {
+    const { confirm } = await import('@inquirer/prompts');
+    const confirmed = await confirm({
+      message: `Delete cron job "${opts.id}"?`,
+      default: false,
+    });
+    if (!confirmed) {
+      console.log('Aborted.');
+      return;
+    }
   }
 
   const deleted = deleteCronJob(opts.id);
