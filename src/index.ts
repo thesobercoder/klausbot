@@ -215,7 +215,8 @@ pairing
 pairing
   .command('revoke <chatId>')
   .description('Revoke access for chat ID')
-  .action(async (chatIdStr: string) => {
+  .option('-f, --force', 'Skip confirmation prompt')
+  .action(async (chatIdStr: string, options: { force?: boolean }) => {
     const { config } = await import('./config/index.js');
     const { initPairingStore } = await import('./pairing/index.js');
     const store = initPairingStore(config.DATA_DIR);
@@ -224,6 +225,19 @@ pairing
     if (isNaN(chatId)) {
       console.error(`Error: Invalid chat ID "${chatIdStr}"`);
       process.exit(1);
+    }
+
+    // Add confirmation before revoking (unless --force)
+    if (!options.force) {
+      const { confirm } = await import('@inquirer/prompts');
+      const confirmed = await confirm({
+        message: `Revoke access for chat ID ${chatId}?`,
+        default: false,
+      });
+      if (!confirmed) {
+        console.log('Aborted.');
+        process.exit(0);
+      }
     }
 
     const revoked = store.revoke(chatId);
