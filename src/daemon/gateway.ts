@@ -19,6 +19,7 @@ import {
 } from '../memory/index.js';
 import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from '../bootstrap/index.js';
 import { ensureSkillCreator } from '../cli/skills.js';
+import { startScheduler, stopScheduler, loadCronStore } from '../cron/index.js';
 
 const log = createChildLogger('gateway');
 
@@ -39,6 +40,10 @@ export async function startGateway(): Promise<void> {
   // NOTE: Do NOT call initializeIdentity() here - bootstrap flow creates identity files
   initializeHome(log);
   initializeEmbeddings();
+
+  // Initialize cron system
+  startScheduler();
+  log.info({ jobs: loadCronStore().jobs.filter(j => j.enabled).length }, 'Cron scheduler initialized');
 
   // Auto-install skill-creator if missing
   await ensureSkillCreator();
@@ -172,6 +177,9 @@ export async function startGateway(): Promise<void> {
 export async function stopGateway(): Promise<void> {
   log.info('Stopping gateway...');
   shouldStop = true;
+
+  // Stop cron scheduler
+  stopScheduler();
 
   // Wait for current processing to finish (max 30s)
   const timeout = 30000;
