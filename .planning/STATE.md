@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** Phase 5.1 - MCP Cron Tools (Not started)
+**Current focus:** Phase 5.1 - MCP Cron Tools (In progress)
 
 ## Current Position
 
 Phase: 5.1 of 7 (MCP Cron Tools)
-Plan: 0 of 2 in Phase 5.1
-Status: Not started (reverted Agent SDK approach)
-Last activity: 2026-01-30 - Reverted 05.1 ACP work, pivoted to CLI spawner + MCP
+Plan: 1 of 2 in Phase 5.1
+Status: In progress
+Last activity: 2026-01-30 - Completed 05.1-01-PLAN.md (MCP server with cron tools)
 
-Progress: [███████░░░] 73% (22/30 plans complete)
+Progress: [████████░░] 77% (23/30 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 4 min (excluding human verification time)
-- Total execution time: ~75 min
+- Total execution time: ~77 min
 
 **By Phase:**
 
@@ -33,9 +33,10 @@ Progress: [███████░░░] 73% (22/30 plans complete)
 | 04-skills | 3/3 | ~35 min | 12 min |
 | 04.1-skills-polish | 2/2 | 4 min | 2 min |
 | 05-proactive | 4/5 | 9.8 min | 2.5 min |
+| 05.1-mcp-cron | 1/2 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (2.5 min), 05-02 (2.3 min), 05-03 (2 min), 05-04 (3 min)
+- Last 5 plans: 05-02 (2.3 min), 05-03 (2 min), 05-04 (3 min), 05.1-01 (2 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -63,6 +64,8 @@ Recent decisions affecting current work:
 - 05-04: Proactive suggestions at task end, not mid-conversation
 - 05-04: Cron management via natural language intent recognition
 - 05.1: PIVOT - Agent SDK query() hangs, use CLI spawner + MCP via --mcp-config flag
+- 05.1-01: Separate build entry for MCP server (dist/mcp-server/index.js)
+- 05.1-01: Tools return text content with graceful error messages
 
 ### Roadmap Evolution
 
@@ -80,7 +83,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Reverted 05.1 ACP work, updated planning docs for CLI + MCP approach
+Stopped at: Completed 05.1-01-PLAN.md
 Resume file: None
 
 ---
