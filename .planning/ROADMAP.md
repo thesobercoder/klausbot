@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Skills** - Extensible capabilities system with skill isolation
 - [x] **Phase 4.1: Skills Polish** - Skill registry and system prompt enhancements (INSERTED)
 - [ ] **Phase 5: Proactive** - Cron scheduling and self-evolution system
-- [ ] **Phase 5.1: ACP Streaming** - Replace CLI spawner with ACP client for streaming + MCP tools (INSERTED)
+- [ ] **Phase 5.1: MCP Cron Tools** - Typed MCP tools for cron management via CLI spawner (INSERTED)
 - [ ] **Phase 6: Multimodal** - Voice transcription and image analysis
 - [ ] **Phase 7: Resilience & Tooling** - Timeout recovery, skills cleanup, agent authoring
 
@@ -150,25 +150,26 @@ Plans:
 - [ ] 05-04-PLAN.md — Learning system: LEARNINGS.md, system prompt instructions
 - [ ] 05-05-PLAN.md — End-to-end verification (human checkpoint)
 
-### Phase 5.1: ACP Streaming (INSERTED)
+### Phase 5.1: MCP Cron Tools (INSERTED)
 
-**Goal**: Replace CLI spawner with ACP client for real-time streaming to Telegram, expose cron/memory as MCP tools
+**Goal**: Expose cron operations as typed MCP tools instead of CLI instructions in system prompt
 **Depends on**: Phase 5
-**Requirements**: None (architecture improvement discovered during Phase 5 UAT)
+**Requirements**: None (UX improvement - typed tools > string parsing)
 **Success Criteria** (what must be TRUE):
 
-1. User sends message, response streams to Telegram in chunks (not wait-for-completion)
-2. Claude calls `create_cron` MCP tool with typed parameters (no CLI string construction)
-3. Claude calls `list_crons`, `delete_cron` MCP tools for cron management
-4. Gateway acts as ACP client, claude-code-acp as agent (vendor-agnostic architecture)
-5. Existing functionality preserved (identity, memory, skills all still work)
-**Plans**: 3 plans in 3 waves
+1. Claude calls `mcp__klausbot__create_cron` with typed parameters (no CLI string construction)
+2. Claude calls `mcp__klausbot__list_crons`, `mcp__klausbot__delete_cron` for cron management
+3. MCP server runs via stdio transport, config passed via `--mcp-config` CLI flag
+4. Existing functionality preserved (identity, memory, skills all still work)
+5. Cron CLI instructions removed from system prompt (tools replace them)
+**Plans**: 2 plans in 2 waves
+
+Note: Originally planned as ACP streaming with Agent SDK. Pivoted to CLI spawner + MCP after Agent SDK `query()` hung indefinitely.
 
 Plans:
 
-- [ ] 05.1-01-PLAN.md — MCP server with cron tools (create_cron, list_crons, delete_cron)
-- [ ] 05.1-02-PLAN.md — ACP client with Telegram streaming, gateway integration
-- [ ] 05.1-03-PLAN.md — End-to-end verification (human checkpoint)
+- [ ] 05.1-01-PLAN.md — Standalone MCP server with cron tools (stdio transport)
+- [ ] 05.1-02-PLAN.md — Spawner integration and end-to-end verification
 
 ### Phase 6: Multimodal
 
@@ -222,7 +223,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Skills        | 3/3            | Complete    | 2026-01-29 |
 | 4.1 Skills Polish| 2/2            | Complete    | 2026-01-30 |
 | 5. Proactive     | 4/5            | In progress | -          |
-| 5.1 ACP Streaming| 0/3            | Not started | -          |
+| 5.1 MCP Cron     | 0/2            | Not started | -          |
 | 6. Multimodal    | 0/TBD          | Not started | -          |
 | 7. Resilience    | 0/4            | Not started | -          |
 
