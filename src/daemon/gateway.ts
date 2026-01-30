@@ -1,5 +1,6 @@
 import { bot, createRunner, type MyContext, registerSkillCommands, getInstalledSkillNames, translateSkillCommand } from '../telegram/index.js';
-import { MessageQueue, queryClaudeCode, ensureDataDir } from './index.js';
+import { MessageQueue, ensureDataDir } from './index.js';
+import { queryWithStreaming } from './acp-client.js';
 import type { QueuedMessage } from './queue.js';
 import {
   initPairingStore,
@@ -8,7 +9,7 @@ import {
   getPairingStore,
 } from '../pairing/index.js';
 import { config } from '../config/index.js';
-import { createChildLogger, sendLongMessage } from '../utils/index.js';
+import { createChildLogger } from '../utils/index.js';
 import { autoCommitChanges } from '../utils/git.js';
 import {
   initializeHome,
@@ -222,19 +223,10 @@ async function processQueue(): Promise<void> {
 
 /**
  * Process a single queued message
+ * Uses ACP streaming - response streams to Telegram as it's generated
  */
 async function processMessage(msg: QueuedMessage): Promise<void> {
   const startTime = Date.now();
-
-  // Send typing indicator continuously while processing
-  // Telegram typing indicator lasts ~5 seconds, so refresh every 4
-  const sendTyping = () => {
-    bot.api.sendChatAction(msg.chatId, 'typing').catch(() => {
-      // Ignore errors - chat may be unavailable
-    });
-  };
-  sendTyping(); // Send immediately
-  const typingInterval = setInterval(sendTyping, 4000);
 
   try {
     // Log user message BEFORE processing (per CONTEXT.md: log original message)
@@ -247,7 +239,7 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
     }
 
     // Build additional instructions
-    // Always include chatId context for cron management
+    // Always include chatId context for MCP cron tools
     const chatIdContext = `<session-context>
 Current chat ID: ${msg.chatId}
 Use this chatId when creating cron jobs.
@@ -257,19 +249,20 @@ Use this chatId when creating cron jobs.
       ? chatIdContext + '\n\n' + BOOTSTRAP_INSTRUCTIONS
       : chatIdContext;
 
-    // Call Claude (append bootstrap instructions if needed)
-    const response = await queryClaudeCode(msg.text, {
+    // Call Claude via ACP with streaming to Telegram
+    // Response streams as it's generated - no typing indicator needed
+    const response = await queryWithStreaming(msg.text, {
       additionalInstructions,
+      bot,
+      chatId: msg.chatId,
     });
-
-    // Stop typing indicator
-    clearInterval(typingInterval);
 
     // Mark as complete
     queue.complete(msg.id);
 
-    // Send response (handles splitting for long messages)
+    // Handle response
     if (response.is_error) {
+      // Error during ACP query - send error message
       await bot.api.sendMessage(
         msg.chatId,
         `Error (Claude): ${response.result}`
@@ -282,8 +275,7 @@ Use this chatId when creating cron jobs.
       // Claude may have updated identity files during session
       invalidateIdentityCache();
 
-      const messages = await splitAndSend(msg.chatId, response.result);
-      log.debug({ chatId: msg.chatId, chunks: messages }, 'Sent response chunks');
+      // Note: Response already streamed to Telegram via TelegramStreamer
     }
 
     const duration = Date.now() - startTime;
@@ -298,9 +290,6 @@ Use this chatId when creating cron jobs.
       log.info({ queueId: msg.id }, 'Auto-committed Claude file changes');
     }
   } catch (err) {
-    // Stop typing indicator
-    clearInterval(typingInterval);
-
     // Determine error category
     const error = err instanceof Error ? err : new Error(String(err));
     const category = categorizeError(error);
@@ -317,46 +306,6 @@ Use this chatId when creating cron jobs.
       'Message failed'
     );
   }
-}
-
-/**
- * Split and send a long message directly via bot API
- */
-async function splitAndSend(chatId: number, text: string): Promise<number> {
-  const MAX_LENGTH = 4096;
-  const chunks: string[] = [];
-
-  let remaining = text;
-  while (remaining.length > 0) {
-    if (remaining.length <= MAX_LENGTH) {
-      chunks.push(remaining);
-      break;
-    }
-
-    // Try to split at sentence boundary
-    let splitPoint = remaining.lastIndexOf('. ', MAX_LENGTH);
-    if (splitPoint === -1 || splitPoint < MAX_LENGTH * 0.5) {
-      // Try word boundary
-      splitPoint = remaining.lastIndexOf(' ', MAX_LENGTH);
-    }
-    if (splitPoint === -1 || splitPoint < MAX_LENGTH * 0.5) {
-      // Hard split
-      splitPoint = MAX_LENGTH;
-    }
-
-    chunks.push(remaining.slice(0, splitPoint + 1));
-    remaining = remaining.slice(splitPoint + 1);
-  }
-
-  // Send chunks with delay
-  for (const chunk of chunks) {
-    await bot.api.sendMessage(chatId, chunk);
-    if (chunks.length > 1) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  }
-
-  return chunks.length;
 }
 
 /**
