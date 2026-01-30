@@ -1,7 +1,48 @@
 import { spawn } from 'child_process';
+import { writeFileSync } from 'fs';
+import os from 'os';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Logger } from 'pino';
 import { createChildLogger } from '../utils/logger.js';
 import { KLAUSBOT_HOME, buildSystemPrompt } from '../memory/index.js';
+
+/**
+ * Get MCP server configuration for klausbot cron tools
+ *
+ * @returns MCP config object for --mcp-config flag
+ */
+function getMcpConfig(): object {
+  // __dirname equivalent for ESM - points to dist/daemon/
+  // Need to reach dist/mcp-server/index.js
+  const mcpServerPath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '../mcp-server/index.js'
+  );
+
+  return {
+    mcpServers: {
+      klausbot: {
+        command: 'node',
+        args: [mcpServerPath],
+        env: {}
+      }
+    }
+  };
+}
+
+/**
+ * Write MCP config to a temp file for Claude CLI
+ * Claude CLI requires a file path for --mcp-config flag
+ *
+ * @returns Path to temporary config file
+ */
+function writeMcpConfigFile(): string {
+  const config = getMcpConfig();
+  const configPath = path.join(os.tmpdir(), `klausbot-mcp-${process.pid}.json`);
+  writeFileSync(configPath, JSON.stringify(config, null, 2));
+  return configPath;
+}
 
 /** Claude Code response structure */
 export interface ClaudeResponse {
@@ -67,12 +108,16 @@ export async function queryClaudeCode(
       systemPrompt += '\n\n' + options.additionalInstructions;
     }
 
+    // Write MCP config to temp file for Claude CLI
+    const mcpConfigPath = writeMcpConfigFile();
+
     // Build command arguments
     const args = [
       '--dangerously-skip-permissions',
       '-p', prompt,
       '--output-format', 'json',
       '--append-system-prompt', systemPrompt,
+      '--mcp-config', mcpConfigPath,
     ];
     if (options.model) {
       args.push('--model', options.model);
