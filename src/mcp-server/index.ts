@@ -6,6 +6,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerCronTools } from './tools/cron.js';
+import { registerMemoryTools } from './tools/memory.js';
 
 /**
  * Run the MCP server
@@ -20,6 +21,7 @@ export async function runMcpServer(): Promise<void> {
 
   // Register all tools
   registerCronTools(server);
+  registerMemoryTools(server);
 
   // Connect to stdio transport (spawned by Claude CLI)
   const transport = new StdioServerTransport();
