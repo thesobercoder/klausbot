@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** Phase 5.1 - ACP Streaming (In progress)
+**Current focus:** Phase 5.1 - ACP Streaming (Complete)
 
 ## Current Position
 
 Phase: 5.1 of 7 (ACP Streaming)
-Plan: 1 of 2 in Phase 5.1
-Status: In progress
-Last activity: 2026-01-30 - Completed 05.1-01-PLAN.md (MCP Server)
+Plan: 2 of 2 in Phase 5.1
+Status: Phase complete
+Last activity: 2026-01-30 - Completed 05.1-02-PLAN.md (ACP Streaming)
 
-Progress: [███████░░░] 77% (23/30 plans complete)
+Progress: [████████░░] 80% (24/30 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 4 min (excluding human verification time)
-- Total execution time: ~78 min
+- Total execution time: ~82 min
 
 **By Phase:**
 
@@ -33,10 +33,10 @@ Progress: [███████░░░] 77% (23/30 plans complete)
 | 04-skills | 3/3 | ~35 min | 12 min |
 | 04.1-skills-polish | 2/2 | 4 min | 2 min |
 | 05-proactive | 4/5 | 9.8 min | 2.5 min |
-| 05.1-acp-streaming | 1/2 | 3 min | 3 min |
+| 05.1-acp-streaming | 2/2 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (2.3 min), 05-03 (2 min), 05-04 (3 min), 05.1-01 (3 min)
+- Last 5 plans: 05-03 (2 min), 05-04 (3 min), 05.1-01 (3 min), 05.1-02 (4 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -65,6 +65,9 @@ Recent decisions affecting current work:
 - 05-04: Cron management via natural language intent recognition
 - 05.1-01: Use zod/v4 import (required by claude-agent-sdk)
 - 05.1-01: Server name 'klausbot' - tools prefixed mcp__klausbot__*
+- 05.1-02: 500ms debounce for Telegram edits (rate limit safe)
+- 05.1-02: Streaming replaces typing indicator (better UX)
+- 05.1-02: CLI cron instructions removed from prompt (MCP tools take over)
 
 ### Roadmap Evolution
 
@@ -82,7 +85,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 05.1-01-PLAN.md (MCP Server)
+Stopped at: Completed 05.1-02-PLAN.md (ACP Streaming) - Phase 5.1 complete
 Resume file: None
 
 ---
