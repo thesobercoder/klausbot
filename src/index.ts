@@ -77,7 +77,8 @@ program
   .description('Initialize or reset ~/.klausbot/ directory')
   .option('-f, --force', 'Skip confirmation prompt')
   .action(async (options: { force?: boolean }) => {
-    const { existsSync } = await import('fs');
+    const { existsSync, rmSync, readdirSync } = await import('fs');
+    const { join } = await import('path');
     const { confirm } = await import('@inquirer/prompts');
     const { createChildLogger } = await import('./utils/logger.js');
     const { initializeHome, initializeIdentity, KLAUSBOT_HOME } = await import('./memory/index.js');
@@ -88,8 +89,8 @@ program
     if (!options.force) {
       if (alreadyExists) {
         console.log(`\n⚠️  ${KLAUSBOT_HOME} already exists.`);
-        console.log('This will reset identity files (SOUL.md, IDENTITY.md, USER.md).');
-        console.log('Conversations and config will be preserved.\n');
+        console.log('This will reset identity and conversations.');
+        console.log('Config will be preserved.\n');
       }
 
       const confirmed = await confirm({
@@ -106,15 +107,23 @@ program
     const log = createChildLogger('init');
     console.log(`\nInitializing klausbot data home at ${KLAUSBOT_HOME}...`);
 
+    // Clear conversations directory if it exists
+    const conversationsDir = join(KLAUSBOT_HOME, 'conversations');
+    if (existsSync(conversationsDir)) {
+      const files = readdirSync(conversationsDir);
+      for (const file of files) {
+        rmSync(join(conversationsDir, file), { recursive: true, force: true });
+      }
+      log.info({ path: conversationsDir, count: files.length }, 'Cleared conversations');
+    }
+
     initializeHome(log);
     initializeIdentity(log);
 
-    console.log('Done! Created:');
-    console.log('  ~/.klausbot/config/');
-    console.log('  ~/.klausbot/conversations/');
-    console.log('  ~/.klausbot/identity/SOUL.md');
-    console.log('  ~/.klausbot/identity/IDENTITY.md');
-    console.log('  ~/.klausbot/identity/USER.md');
+    console.log('Done!');
+    console.log('  ~/.klausbot/config/ (preserved)');
+    console.log('  ~/.klausbot/conversations/ (cleared)');
+    console.log('  ~/.klausbot/identity/ (reset)');
   });
 
 // install command
