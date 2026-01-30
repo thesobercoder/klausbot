@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** Phase 5.1 - MCP Cron Tools (In progress)
+**Current focus:** Phase 5.1 - MCP Cron Tools (Complete)
 
 ## Current Position
 
 Phase: 5.1 of 7 (MCP Cron Tools)
-Plan: 1 of 2 in Phase 5.1
-Status: In progress
-Last activity: 2026-01-30 - Completed 05.1-01-PLAN.md (MCP server with cron tools)
+Plan: 2 of 2 in Phase 5.1
+Status: Phase complete
+Last activity: 2026-01-30 - Completed 05.1-02-PLAN.md (CLI spawner MCP integration)
 
-Progress: [████████░░] 77% (23/30 plans complete)
+Progress: [████████░░] 80% (24/30 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 4 min (excluding human verification time)
-- Total execution time: ~77 min
+- Total execution time: ~80 min
 
 **By Phase:**
 
@@ -33,10 +33,10 @@ Progress: [████████░░] 77% (23/30 plans complete)
 | 04-skills | 3/3 | ~35 min | 12 min |
 | 04.1-skills-polish | 2/2 | 4 min | 2 min |
 | 05-proactive | 4/5 | 9.8 min | 2.5 min |
-| 05.1-mcp-cron | 1/2 | 2 min | 2 min |
+| 05.1-mcp-cron | 2/2 | ~5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (2.3 min), 05-03 (2 min), 05-04 (3 min), 05.1-01 (2 min)
+- Last 5 plans: 05-03 (2 min), 05-04 (3 min), 05.1-01 (2 min), 05.1-02 (~3 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 - 05.1: PIVOT - Agent SDK query() hangs, use CLI spawner + MCP via --mcp-config flag
 - 05.1-01: Separate build entry for MCP server (dist/mcp-server/index.js)
 - 05.1-01: Tools return text content with graceful error messages
+- 05.1-02: MCP config via temp file per process (klausbot-mcp-{pid}.json)
+- 05.1-02: Removed cron CLI instructions (MCP tools self-describing)
 
 ### Roadmap Evolution
 
@@ -83,7 +85,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 05.1-01-PLAN.md
+Stopped at: Completed 05.1-02-PLAN.md (Phase 5.1 complete)
 Resume file: None
 
 ---
