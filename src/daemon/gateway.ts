@@ -20,6 +20,14 @@ import {
 import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from '../bootstrap/index.js';
 import { ensureSkillCreator } from '../cli/skills.js';
 import { startScheduler, stopScheduler, loadCronStore } from '../cron/index.js';
+import {
+  MediaAttachment,
+  transcribeAudio,
+  isTranscriptionAvailable,
+  saveImage,
+  withRetry,
+} from '../media/index.js';
+import { unlinkSync } from 'fs';
 
 const log = createChildLogger('gateway');
 
@@ -28,6 +36,124 @@ let queue: MessageQueue;
 let isProcessing = false;
 let shouldStop = false;
 
+/**
+ * Pre-process media attachments before Claude query
+ * - Voice: transcribe and delete audio file
+ * - Photo: save to images directory
+ *
+ * @returns Processed attachments with transcripts/paths filled in
+ */
+async function processMedia(
+  attachments: MediaAttachment[]
+): Promise<{ processed: MediaAttachment[]; errors: string[] }> {
+  const processed: MediaAttachment[] = [];
+  const errors: string[] = [];
+
+  for (const attachment of attachments) {
+    const startTime = Date.now();
+
+    if (attachment.type === 'voice') {
+      // Transcribe voice
+      if (!isTranscriptionAvailable()) {
+        errors.push('Voice transcription not available (OPENAI_API_KEY missing)');
+        continue;
+      }
+
+      if (!attachment.localPath) {
+        errors.push('Voice file not downloaded');
+        continue;
+      }
+
+      try {
+        const result = await withRetry(() => transcribeAudio(attachment.localPath!));
+
+        // Delete audio file after transcription (per CONTEXT.md)
+        try {
+          unlinkSync(attachment.localPath);
+        } catch {
+          // Ignore delete errors
+        }
+
+        processed.push({
+          ...attachment,
+          transcript: result.text,
+          processingTimeMs: Date.now() - startTime,
+          localPath: undefined, // Clear path since file deleted
+        });
+
+        log.info(
+          { type: 'voice', transcriptLength: result.text.length, durationMs: result.durationMs },
+          'Transcribed voice message'
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`Transcription failed: ${msg}`);
+        log.error({ err, localPath: attachment.localPath }, 'Voice transcription failed');
+      }
+    } else if (attachment.type === 'photo') {
+      // Save image
+      if (!attachment.localPath) {
+        errors.push('Image file not downloaded');
+        continue;
+      }
+
+      try {
+        const savedPath = saveImage(attachment.localPath);
+
+        processed.push({
+          ...attachment,
+          localPath: savedPath, // Update to permanent path
+          processingTimeMs: Date.now() - startTime,
+        });
+
+        log.info({ type: 'photo', savedPath }, 'Saved image');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`Failed to save image: ${msg}`);
+        log.error({ err, localPath: attachment.localPath }, 'Image save failed');
+      }
+    }
+  }
+
+  return { processed, errors };
+}
+
+/**
+ * Build prompt text incorporating media context
+ */
+function buildPromptWithMedia(
+  text: string,
+  media: MediaAttachment[]
+): string {
+  const voiceTranscripts = media
+    .filter(m => m.type === 'voice' && m.transcript)
+    .map(m => m.transcript);
+
+  const imagePaths = media
+    .filter(m => m.type === 'photo' && m.localPath)
+    .map(m => m.localPath!);
+
+  let prompt = text;
+
+  // If voice-only (no text), use transcript as prompt
+  if (!text.trim() && voiceTranscripts.length > 0) {
+    prompt = voiceTranscripts.join('\n');
+  } else if (voiceTranscripts.length > 0) {
+    // Text + voice: prepend transcript context
+    prompt = `[Voice message transcript: ${voiceTranscripts.join(' ')}]\n\n${text}`;
+  }
+
+  // Add image references for Claude to read
+  if (imagePaths.length > 0) {
+    const imageInstructions = imagePaths
+      .map((p, i) => `Image ${i + 1}: ${p}`)
+      .join('\n');
+
+    prompt = `The user sent ${imagePaths.length} image(s). Read and analyze them using your Read tool:\n${imageInstructions}\n\n${prompt || '(no text, just the image(s))'}`;
+  }
+
+  return prompt;
+}
 
 /**
  * Start the gateway daemon
@@ -240,6 +366,37 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
     // Log user message BEFORE processing (per CONTEXT.md: log original message)
     logUserMessage(msg.text);
 
+    // Process media attachments if present
+    let effectiveText = msg.text;
+    let mediaErrors: string[] = [];
+
+    if (msg.media && msg.media.length > 0) {
+      const { processed, errors } = await processMedia(msg.media);
+      mediaErrors = errors;
+
+      if (processed.length > 0) {
+        effectiveText = buildPromptWithMedia(msg.text, processed);
+
+        // Log image paths to conversation (per CONTEXT.md)
+        for (const m of processed) {
+          if (m.type === 'photo' && m.localPath) {
+            logUserMessage(`[Image: ${m.localPath}]`);
+          }
+        }
+      }
+    }
+
+    // If all media failed and no text, send error and return
+    if (mediaErrors.length > 0 && !effectiveText.trim()) {
+      clearInterval(typingInterval);
+      queue.fail(msg.id, mediaErrors.join('; '));
+      await bot.api.sendMessage(
+        msg.chatId,
+        `Could not process media: ${mediaErrors.join('. ')}`
+      );
+      return;
+    }
+
     // Check if bootstrap needed BEFORE processing
     const isBootstrap = needsBootstrap();
     if (isBootstrap) {
@@ -257,8 +414,8 @@ Use this chatId when creating cron jobs.
       ? chatIdContext + '\n\n' + BOOTSTRAP_INSTRUCTIONS
       : chatIdContext;
 
-    // Call Claude (append bootstrap instructions if needed)
-    const response = await queryClaudeCode(msg.text, {
+    // Call Claude (with media-enriched prompt if applicable)
+    const response = await queryClaudeCode(effectiveText, {
       additionalInstructions,
     });
 
@@ -284,6 +441,14 @@ Use this chatId when creating cron jobs.
 
       const messages = await splitAndSend(msg.chatId, response.result);
       log.debug({ chatId: msg.chatId, chunks: messages }, 'Sent response chunks');
+
+      // Notify user of non-fatal media errors
+      if (mediaErrors.length > 0) {
+        await bot.api.sendMessage(
+          msg.chatId,
+          `Note: Some media could not be processed: ${mediaErrors.join('. ')}`
+        );
+      }
     }
 
     const duration = Date.now() - startTime;
