@@ -74,10 +74,30 @@ program
 // init command
 program
   .command('init')
-  .description('Initialize ~/.klausbot/ directory')
-  .action(async () => {
+  .description('Initialize or reset ~/.klausbot/ directory')
+  .option('-f, --force', 'Skip confirmation prompt')
+  .action(async (options: { force?: boolean }) => {
+    const { existsSync } = await import('fs');
     const { createChildLogger } = await import('./utils/logger.js');
     const { initializeHome, initializeIdentity, KLAUSBOT_HOME } = await import('./memory/index.js');
+
+    // Check if already exists
+    if (existsSync(KLAUSBOT_HOME) && !options.force) {
+      const { confirm } = await import('@inquirer/prompts');
+      console.log(`\n⚠️  ${KLAUSBOT_HOME} already exists.`);
+      console.log('This will reset identity files (SOUL.md, IDENTITY.md, USER.md).');
+      console.log('Conversations and config will be preserved.\n');
+
+      const confirmed = await confirm({
+        message: 'Continue with reset?',
+        default: false,
+      });
+
+      if (!confirmed) {
+        console.log('Aborted.');
+        process.exit(0);
+      }
+    }
 
     const log = createChildLogger('init');
     console.log(`Initializing klausbot data home at ${KLAUSBOT_HOME}...`);
