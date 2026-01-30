@@ -2,29 +2,22 @@ import { spawn } from 'child_process';
 import { writeFileSync } from 'fs';
 import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { Logger } from 'pino';
 import { createChildLogger } from '../utils/logger.js';
 import { KLAUSBOT_HOME, buildSystemPrompt } from '../memory/index.js';
 
 /**
  * Get MCP server configuration for klausbot cron tools
+ * Uses `klausbot mcp-server` subcommand (consistent with project philosophy)
  *
  * @returns MCP config object for --mcp-config flag
  */
 function getMcpConfig(): object {
-  // __dirname equivalent for ESM - after tsup bundling, this is dist/
-  // mcp-server is at dist/mcp-server/index.js (sibling directory)
-  const mcpServerPath = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    'mcp-server/index.js'
-  );
-
   return {
     mcpServers: {
       klausbot: {
-        command: 'node',
-        args: [mcpServerPath],
+        command: 'klausbot',
+        args: ['mcp-server'],
         env: {}
       }
     }
