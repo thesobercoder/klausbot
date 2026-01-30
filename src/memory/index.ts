@@ -47,4 +47,4 @@ export {
 export { migrateEmbeddings } from './migrate.js';
 
 // Semantic search
-export { semanticSearch, cosineSimilarity } from './search.js';
+export { semanticSearch } from './search.js';
