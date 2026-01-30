@@ -118,18 +118,26 @@ function handleList(args: string[]): void {
 
   const jobs = listCronJobs(chatId);
 
-  console.log(JSON.stringify({
-    success: true,
-    count: jobs.length,
-    jobs: jobs.map(j => ({
-      id: j.id,
-      name: j.name,
-      humanSchedule: j.humanSchedule,
-      enabled: j.enabled,
-      nextRunAt: j.nextRunAtMs ? new Date(j.nextRunAtMs).toISOString() : null,
-      lastStatus: j.lastStatus,
-    }))
-  }, null, 2));
+  if (jobs.length === 0) {
+    console.log('No cron jobs found.');
+    return;
+  }
+
+  console.log(`=== Cron Jobs (${jobs.length}) ===\n`);
+  for (const job of jobs) {
+    const status = job.enabled ? '✓' : '○';
+    const nextRun = job.nextRunAtMs
+      ? new Date(job.nextRunAtMs).toLocaleString()
+      : 'N/A';
+    const lastStatus = job.lastStatus ?? 'never run';
+
+    console.log(`${status} ${job.name}`);
+    console.log(`  ID:       ${job.id}`);
+    console.log(`  Schedule: ${job.humanSchedule}`);
+    console.log(`  Next run: ${nextRun}`);
+    console.log(`  Last:     ${lastStatus}`);
+    console.log('');
+  }
 }
 
 function handleGet(args: string[]): void {

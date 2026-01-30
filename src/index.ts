@@ -150,6 +150,7 @@ program
   .argument('[action]', 'Action: list, enable, disable, delete')
   .argument('[id]', 'Job ID')
   .action(async (action?: string, id?: string) => {
+    silenceLogs();
     const { runCronCLI } = await import('./cli/index.js');
     const args = [action, id].filter(Boolean) as string[];
     await runCronCLI(args);
