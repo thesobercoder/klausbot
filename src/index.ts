@@ -46,13 +46,14 @@ Usage:
   klausbot gateway                    Start the gateway daemon (alias)
   klausbot init                       Initialize ~/.klausbot/ directory
   klausbot install                    Interactive installation wizard
-  klausbot skills [browse]             Install and manage skills
   klausbot pairing approve <code>     Approve pairing request
   klausbot pairing reject <code>      Reject pairing request
   klausbot pairing list               List pending/approved
   klausbot pairing revoke <chatId>    Revoke access
   klausbot version                    Show version
   klausbot help                       Show this help
+
+Skills: npx skills or manually add to ~/.claude/skills/
 
 Environment Variables:
   TELEGRAM_BOT_TOKEN    Telegram bot token (required)
@@ -212,18 +213,6 @@ async function main(): Promise<void> {
     case 'install': {
       const { runInstallWizard } = await import('./cli/index.js');
       await runInstallWizard();
-      break;
-    }
-
-    case 'skills': {
-      const subcommand = args[1];
-      if (subcommand === 'browse') {
-        const { browseSkills } = await import('./cli/index.js');
-        await browseSkills();
-      } else {
-        const { runSkillsCLI } = await import('./cli/index.js');
-        await runSkillsCLI();
-      }
       break;
     }
 
