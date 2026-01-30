@@ -1,6 +1,5 @@
-import { existsSync, readFileSync } from 'fs';
-import { getHomePath } from './home.js';
-import { generateEmbedding, type EmbeddingEntry } from './embeddings.js';
+import { getDb } from './db.js';
+import { generateEmbedding } from './embeddings.js';
 
 /** Search result with relevance score */
 export interface SearchResult {
@@ -10,84 +9,29 @@ export interface SearchResult {
   timestamp: string;
 }
 
-/** Minimum similarity score to include in results */
-const MIN_SCORE_THRESHOLD = 0.7;
-
-/** Default number of results to return */
-const DEFAULT_TOP_K = 5;
-
-/**
- * Calculate cosine similarity between two vectors
- * Pure TypeScript implementation (no dependencies)
- *
- * @param a - First vector
- * @param b - Second vector
- * @returns Cosine similarity (0 to 1, where 1 = identical)
- */
-export function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length || a.length === 0) {
-    return 0;
-  }
-
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-
-  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
-  if (denominator === 0) {
-    return 0;
-  }
-
-  return dotProduct / denominator;
+/** Search options */
+export interface SearchOptions {
+  topK?: number;
+  daysBack?: number;  // Filter to last N days
 }
 
 /**
- * Load embeddings from storage
- *
- * @returns Array of embedding entries or empty array
- */
-function loadStoredEmbeddings(): EmbeddingEntry[] {
-  const path = getHomePath('embeddings.json');
-  if (!existsSync(path)) {
-    return [];
-  }
-
-  try {
-    const content = readFileSync(path, 'utf-8');
-    const data = JSON.parse(content) as { entries: EmbeddingEntry[] };
-    return data.entries || [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Semantic search over stored embeddings
- * Finds the most relevant entries for a query using cosine similarity
+ * Semantic search over stored embeddings using sqlite-vec KNN
+ * Finds the most relevant entries for a query
  *
  * @param query - Natural language query
- * @param topK - Number of results to return (default: 5)
+ * @param options - Search options (topK, daysBack)
  * @returns Array of search results sorted by relevance
  */
 export async function semanticSearch(
   query: string,
-  topK: number = DEFAULT_TOP_K
+  options: SearchOptions = {}
 ): Promise<SearchResult[]> {
+  const { topK = 5, daysBack } = options;
+
   // Check for API key first
   if (!process.env.OPENAI_API_KEY) {
     console.warn('[search] OPENAI_API_KEY not set, semantic search unavailable');
-    return [];
-  }
-
-  // Load stored embeddings
-  const entries = loadStoredEmbeddings();
-  if (entries.length === 0) {
     return [];
   }
 
@@ -97,26 +41,61 @@ export async function semanticSearch(
     return [];
   }
 
-  // Calculate similarity scores
-  const scored: { entry: EmbeddingEntry; score: number }[] = [];
-  for (const entry of entries) {
-    const score = cosineSimilarity(queryEmbedding, entry.embedding);
-    if (score >= MIN_SCORE_THRESHOLD) {
-      scored.push({ entry, score });
-    }
+  const db = getDb();
+
+  // Build query with optional date filter
+  // sqlite-vec uses k = ? constraint for KNN, not LIMIT
+  // Join vec_embeddings.rowid to embeddings.id for text data
+  let sql: string;
+  const params: (Float32Array | number | string)[] = [new Float32Array(queryEmbedding), topK];
+
+  if (daysBack !== undefined && daysBack > 0) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - daysBack);
+
+    sql = `
+      SELECT
+        e.text,
+        e.source,
+        e.timestamp,
+        v.distance
+      FROM vec_embeddings v
+      INNER JOIN embeddings e ON e.id = v.rowid
+      WHERE v.embedding MATCH ?
+        AND v.k = ?
+        AND e.timestamp >= ?
+      ORDER BY v.distance
+    `;
+    params.push(cutoff.toISOString());
+  } else {
+    sql = `
+      SELECT
+        e.text,
+        e.source,
+        e.timestamp,
+        v.distance
+      FROM vec_embeddings v
+      INNER JOIN embeddings e ON e.id = v.rowid
+      WHERE v.embedding MATCH ?
+        AND v.k = ?
+      ORDER BY v.distance
+    `;
   }
 
-  // Sort by score descending
-  scored.sort((a, b) => b.score - a.score);
+  // Execute KNN search
+  const rows = db.prepare(sql).all(...params) as Array<{
+    text: string;
+    source: string;
+    timestamp: string;
+    distance: number;
+  }>;
 
-  // Take top K
-  const topResults = scored.slice(0, topK);
-
-  // Map to SearchResult format
-  return topResults.map(({ entry, score }) => ({
-    text: entry.text,
-    score,
-    source: entry.source,
-    timestamp: entry.timestamp,
+  // Convert distance to similarity score (sqlite-vec returns L2 distance)
+  // Lower distance = more similar, convert to 0-1 score where 1 = identical
+  return rows.map(row => ({
+    text: row.text,
+    source: row.source,
+    timestamp: row.timestamp,
+    score: 1 / (1 + row.distance),
   }));
 }
