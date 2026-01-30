@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { Logger } from 'pino';
 import { createChildLogger } from '../utils/logger.js';
+import type { MediaAttachment } from '../media/index.js';
 
 /** Message status in queue lifecycle */
 export type MessageStatus = 'pending' | 'processing' | 'done' | 'failed';
@@ -14,6 +15,7 @@ export interface QueuedMessage {
   timestamp: number;
   status: MessageStatus;
   error?: string;
+  media?: MediaAttachment[];
 }
 
 /** Queue statistics */
@@ -108,9 +110,10 @@ export class MessageQueue {
    * Add a message to the queue
    * @param chatId - Telegram chat ID
    * @param text - Message text
+   * @param media - Optional media attachments
    * @returns Message ID
    */
-  add(chatId: number, text: string): string {
+  add(chatId: number, text: string, media?: MediaAttachment[]): string {
     const id = randomUUID();
     const message: QueuedMessage = {
       id,
@@ -118,6 +121,7 @@ export class MessageQueue {
       text,
       timestamp: Date.now(),
       status: 'pending',
+      media,
     };
 
     this.queue.push(message);
