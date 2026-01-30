@@ -13,12 +13,10 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.25",
     "@grammyjs/auto-chat-action": "^0.1.1",
     "@grammyjs/auto-retry": "^2.0.2",
     "@grammyjs/runner": "^2.0.3",
     "@inquirer/prompts": "^7.2.1",
-    "@modelcontextprotocol/sdk": "^1.25.3",
     "chrono-node": "^2.9.0",
     "croner": "^9.1.0",
     "dotenv": "^16.4.7",
