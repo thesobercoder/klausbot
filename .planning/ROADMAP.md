@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Core Loop** - Claude Code integration with stateless sessions and file-based memory
 - [x] **Phase 3: Identity** - Bootstrap flow and persistent personality system
 - [x] **Phase 4: Skills** - Extensible capabilities system with skill isolation
-- [ ] **Phase 4.1: Skills Polish** - Skill registry and system prompt enhancements (INSERTED)
+- [x] **Phase 4.1: Skills Polish** - Skill registry and system prompt enhancements (INSERTED)
 - [ ] **Phase 5: Proactive** - Cron scheduling and self-evolution system
 - [ ] **Phase 6: Multimodal** - Voice transcription and image analysis
 
@@ -122,8 +122,8 @@ Plans:
 
 Plans:
 
-- [ ] 04.1-01-PLAN.md — System prompt skill folder reminder
-- [ ] 04.1-02-PLAN.md — Interactive browse command with type-to-filter
+- [x] 04.1-01-PLAN.md — System prompt skill folder reminder
+- [x] 04.1-02-PLAN.md — Interactive browse command with type-to-filter
 
 ### Phase 5: Proactive
 
@@ -173,11 +173,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Core Loop     | 5/5            | Complete    | 2026-01-29 |
 | 3. Identity      | 3/3            | Complete    | 2026-01-29 |
 | 4. Skills        | 3/3            | Complete    | 2026-01-29 |
-| 4.1 Skills Polish| 0/2            | Planned     | -          |
+| 4.1 Skills Polish| 2/2            | Complete    | 2026-01-30 |
 | 5. Proactive     | 0/TBD          | Not started | -          |
 | 6. Multimodal    | 0/TBD          | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-01-28_
-_Last updated: 2026-01-29_
+_Last updated: 2026-01-30_
