@@ -22,8 +22,8 @@ export function getDb(): Database.Database {
   // Enable WAL mode for concurrent reads
   db.pragma('journal_mode = WAL');
 
-  // Load sqlite-vec extension
-  db.loadExtension(sqliteVec.getLoadablePath());
+  // Load sqlite-vec extension (uses load() instead of loadExtension for proper binding support)
+  sqliteVec.load(db);
 
   // Create schema
   db.exec(`

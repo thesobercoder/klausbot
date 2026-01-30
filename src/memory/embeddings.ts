@@ -1,20 +1,13 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
 import OpenAI from 'openai';
-import { getHomePath } from './home.js';
+import { getDb } from './db.js';
 
-/** Embedding entry stored in JSON file */
+/** Embedding entry stored in SQLite */
 export interface EmbeddingEntry {
   id: string;
   text: string;
   embedding: number[];
   timestamp: string;
   source: string;
-}
-
-/** Embeddings storage format */
-interface EmbeddingsFile {
-  entries: EmbeddingEntry[];
 }
 
 /** Lazy-initialized OpenAI client */
@@ -25,11 +18,6 @@ const EMBEDDING_MODEL = 'text-embedding-3-small';
 
 /** Max chunk size for text splitting (~500 chars for better retrieval) */
 const CHUNK_SIZE = 500;
-
-/** Path to embeddings storage file */
-function getEmbeddingsPath(): string {
-  return getHomePath('embeddings.json');
-}
 
 /**
  * Get or create OpenAI client
@@ -122,42 +110,6 @@ function chunkText(text: string): string[] {
 }
 
 /**
- * Load embeddings from storage file
- *
- * @returns Embeddings file content or empty structure
- */
-function loadEmbeddings(): EmbeddingsFile {
-  const path = getEmbeddingsPath();
-  if (!existsSync(path)) {
-    return { entries: [] };
-  }
-
-  try {
-    const content = readFileSync(path, 'utf-8');
-    return JSON.parse(content) as EmbeddingsFile;
-  } catch {
-    // Corrupt file - return empty
-    return { entries: [] };
-  }
-}
-
-/**
- * Save embeddings to storage file
- *
- * @param data - Embeddings to save
- */
-function saveEmbeddings(data: EmbeddingsFile): void {
-  const path = getEmbeddingsPath();
-  const dir = dirname(path);
-
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
-
-  writeFileSync(path, JSON.stringify(data, null, 2));
-}
-
-/**
  * Store embedding for text
  * Splits long text into chunks and embeds each chunk separately
  * Fire-and-forget: errors are logged but don't propagate
@@ -173,8 +125,17 @@ export async function storeEmbedding(text: string, source: string): Promise<void
   }
 
   const chunks = chunkText(text);
-  const data = loadEmbeddings();
   const timestamp = new Date().toISOString();
+  const db = getDb();
+
+  const insertStmt = db.prepare(`
+    INSERT INTO embeddings (text_id, text, timestamp, source)
+    VALUES (?, ?, ?, ?)
+  `);
+  const vecStmt = db.prepare(`
+    INSERT INTO vec_embeddings (rowid, embedding)
+    VALUES (?, ?)
+  `);
 
   for (const chunk of chunks) {
     const embedding = await generateEmbedding(chunk);
@@ -182,30 +143,21 @@ export async function storeEmbedding(text: string, source: string): Promise<void
       continue; // Skip failed embeddings
     }
 
-    const entry: EmbeddingEntry = {
-      id: `${source}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      text: chunk,
-      embedding,
-      timestamp,
-      source,
-    };
+    const textId = `${source}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const info = insertStmt.run(textId, chunk, timestamp, source);
+    const rowid = info.lastInsertRowid;
 
-    data.entries.push(entry);
-  }
-
-  // Only save if we added any entries
-  if (data.entries.length > 0) {
-    saveEmbeddings(data);
+    // Use BigInt for rowid and Float32Array directly for sqlite-vec
+    vecStmt.run(BigInt(rowid), new Float32Array(embedding));
   }
 }
 
 /**
  * Initialize embeddings storage
- * Creates empty embeddings.json if it doesn't exist
+ * No-op for SQLite - schema created on db init
+ * @deprecated Use getDb() directly for database initialization
  */
 export function initializeEmbeddings(): void {
-  const path = getEmbeddingsPath();
-  if (!existsSync(path)) {
-    saveEmbeddings({ entries: [] });
-  }
+  // No-op - database handles its own initialization
+  // Kept for API compatibility during migration period
 }
