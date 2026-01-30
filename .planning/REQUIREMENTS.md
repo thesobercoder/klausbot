@@ -19,8 +19,8 @@
 - [ ] **COMM-02**: Conversation context maintained within session
 - [ ] **COMM-03**: "Thinking..." indicator shown while processing
 - [ ] **COMM-04**: Errors surfaced transparently (never silent failures)
-- [ ] **COMM-05**: Voice messages transcribed and processed as text
-- [ ] **COMM-06**: Images analyzed and described/acted upon
+- [x] **COMM-05**: Voice messages transcribed and processed as text
+- [x] **COMM-06**: Images analyzed and described/acted upon
 
 ### Memory
 
@@ -108,8 +108,8 @@
 | COMM-02     | Phase 1 | Pending |
 | COMM-03     | Phase 1 | Pending |
 | COMM-04     | Phase 1 | Pending |
-| COMM-05     | Phase 6 | Pending |
-| COMM-06     | Phase 6 | Pending |
+| COMM-05     | Phase 6 | Complete |
+| COMM-06     | Phase 6 | Complete |
 | MEM-01      | Phase 2 | Complete |
 | MEM-02      | Phase 2 | Complete |
 | MEM-03      | Phase 2 | Complete |

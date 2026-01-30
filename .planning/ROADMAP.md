@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4.1: Skills Polish** - Skill registry and system prompt enhancements (INSERTED)
 - [ ] **Phase 5: Proactive** - Cron scheduling and self-evolution system
 - [x] **Phase 5.1: MCP Cron Tools** - Typed MCP tools for cron management via CLI spawner (INSERTED)
-- [ ] **Phase 6: Multimodal** - Voice transcription and image analysis
+- [x] **Phase 6: Multimodal** - Voice transcription and image analysis
 - [ ] **Phase 7: Resilience & Tooling** - Timeout recovery, skills cleanup, agent authoring
 
 ## Phase Details
@@ -185,11 +185,11 @@ Plans:
 
 Plans:
 
-- [ ] 06-01-PLAN.md — Media foundation: types, download, transcription
-- [ ] 06-02-PLAN.md — Image storage and module exports
-- [ ] 06-03-PLAN.md — Queue and gateway media integration
-- [ ] 06-04-PLAN.md — Telegram voice/photo handlers
-- [ ] 06-05-PLAN.md — End-to-end verification (human checkpoint)
+- [x] 06-01-PLAN.md — Media foundation: types, download, transcription
+- [x] 06-02-PLAN.md — Image storage and module exports
+- [x] 06-03-PLAN.md — Queue and gateway media integration
+- [x] 06-04-PLAN.md — Telegram voice/photo handlers
+- [x] 06-05-PLAN.md — End-to-end verification (human checkpoint)
 
 ### Phase 7: Resilience & Tooling
 
@@ -228,7 +228,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4.1 Skills Polish| 2/2            | Complete    | 2026-01-30 |
 | 5. Proactive     | 4/5            | In progress | -          |
 | 5.1 MCP Cron     | 2/2            | Complete    | 2026-01-30 |
-| 6. Multimodal    | 0/5            | Planned     | -          |
+| 6. Multimodal    | 5/5            | Complete    | 2026-01-30 |
 | 7. Resilience    | 0/4            | Not started | -          |
 
 ---
