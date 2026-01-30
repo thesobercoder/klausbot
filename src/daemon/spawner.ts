@@ -13,11 +13,11 @@ import { KLAUSBOT_HOME, buildSystemPrompt } from '../memory/index.js';
  * @returns MCP config object for --mcp-config flag
  */
 function getMcpConfig(): object {
-  // __dirname equivalent for ESM - points to dist/daemon/
-  // Need to reach dist/mcp-server/index.js
+  // __dirname equivalent for ESM - after tsup bundling, this is dist/
+  // mcp-server is at dist/mcp-server/index.js (sibling directory)
   const mcpServerPath = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    '../mcp-server/index.js'
+    'mcp-server/index.js'
   );
 
   return {
