@@ -2,11 +2,12 @@
 /**
  * klausbot - Telegram gateway for Claude Code
  *
- * Entry point and CLI dispatcher
+ * Entry point and CLI dispatcher using Commander.js
  *
  * Note: Uses dynamic imports to avoid loading config/bot for help command
  */
 
+import { Command } from 'commander';
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -14,10 +15,6 @@ import { dirname, join } from 'path';
 
 // Load .env file FIRST before any config access
 dotenv.config();
-
-// Parse CLI arguments
-const args = process.argv.slice(2);
-const command = args[0] ?? 'daemon';
 
 /**
  * Get package version from package.json
@@ -35,34 +32,6 @@ function getVersion(): string {
 }
 
 /**
- * Print CLI usage help
- */
-function printHelp(): void {
-  console.log(`
-klausbot - Telegram gateway for Claude Code
-
-Usage:
-  klausbot [daemon]                   Start the gateway daemon (default)
-  klausbot gateway                    Start the gateway daemon (alias)
-  klausbot init                       Initialize ~/.klausbot/ directory
-  klausbot install                    Interactive installation wizard
-  klausbot pairing approve <code>     Approve pairing request
-  klausbot pairing reject <code>      Reject pairing request
-  klausbot pairing list               List pending/approved
-  klausbot pairing revoke <chatId>    Revoke access
-  klausbot version                    Show version
-  klausbot help                       Show this help
-
-Skills: npx skills or manually add to ~/.claude/skills/
-
-Environment Variables:
-  TELEGRAM_BOT_TOKEN    Telegram bot token (required)
-  DATA_DIR              Data directory (default: ./data)
-  LOG_LEVEL             Log level (default: info)
-`.trim());
-}
-
-/**
  * Format relative time for display
  */
 function formatAge(timestamp: number): string {
@@ -76,185 +45,183 @@ function formatAge(timestamp: number): string {
   return `${days}d ago`;
 }
 
-/**
- * Handle pairing subcommands
- */
-async function handlePairing(): Promise<void> {
-  const action = args[1];
-  const arg = args[2];
+// Create CLI program
+const program = new Command();
 
-  // Dynamic imports to load config only when needed
-  const { config } = await import('./config/index.js');
-  const { initPairingStore } = await import('./pairing/index.js');
+program
+  .name('klausbot')
+  .description('Telegram gateway for Claude Code')
+  .version(getVersion(), '-v, --version', 'Show version')
+  .addHelpText('after', `
+Skills: npx skills or manually add to ~/.claude/skills/
 
-  // Initialize store without starting bot
-  const store = initPairingStore(config.DATA_DIR);
+Environment Variables:
+  TELEGRAM_BOT_TOKEN    Telegram bot token (required)
+  DATA_DIR              Data directory (default: ./data)
+  LOG_LEVEL             Log level (default: info)
+`);
 
-  switch (action) {
-    case 'approve': {
-      if (!arg) {
-        console.error('Error: Missing pairing code');
-        console.log('Usage: klausbot pairing approve <code>');
-        process.exit(1);
-      }
-      const result = store.approvePairing(arg.toUpperCase());
-      if (result) {
-        console.log(`Approved: chatId=${result.chatId}, username=${result.username ?? 'N/A'}`);
-      } else {
-        console.error(`Error: Code "${arg}" not found`);
-        process.exit(1);
-      }
-      break;
-    }
+// daemon command (also default when called explicitly)
+program
+  .command('daemon')
+  .alias('gateway')
+  .description('Start the gateway daemon')
+  .action(async () => {
+    const { startGateway } = await import('./daemon/index.js');
+    await startGateway();
+  });
 
-    case 'reject': {
-      if (!arg) {
-        console.error('Error: Missing pairing code');
-        console.log('Usage: klausbot pairing reject <code>');
-        process.exit(1);
-      }
-      const rejected = store.rejectPairing(arg.toUpperCase());
-      if (rejected) {
-        console.log(`Rejected: code=${arg}`);
-      } else {
-        console.error(`Error: Code "${arg}" not found`);
-        process.exit(1);
-      }
-      break;
-    }
+// init command
+program
+  .command('init')
+  .description('Initialize ~/.klausbot/ directory')
+  .action(async () => {
+    const { createChildLogger } = await import('./utils/logger.js');
+    const { initializeHome, initializeIdentity, KLAUSBOT_HOME } = await import('./memory/index.js');
 
-    case 'list': {
-      const pending = store.listPending();
-      const approved = store.listApproved();
+    const log = createChildLogger('init');
+    console.log(`Initializing klausbot data home at ${KLAUSBOT_HOME}...`);
 
-      console.log('=== Pending Requests ===');
-      if (pending.length === 0) {
-        console.log('  (none)');
-      } else {
-        for (const req of pending) {
-          console.log(`  Code: ${req.code}  Chat: ${req.chatId}  User: ${req.username ?? 'N/A'}  Age: ${formatAge(req.requestedAt)}`);
-        }
-      }
+    initializeHome(log);
+    initializeIdentity(log);
 
-      console.log('\n=== Approved Users ===');
-      if (approved.length === 0) {
-        console.log('  (none)');
-      } else {
-        for (const user of approved) {
-          console.log(`  Chat: ${user.chatId}  User: ${user.username ?? 'N/A'}  Since: ${formatAge(user.approvedAt)}`);
-        }
-      }
-      break;
-    }
+    console.log('Done! Created:');
+    console.log('  ~/.klausbot/config/');
+    console.log('  ~/.klausbot/conversations/');
+    console.log('  ~/.klausbot/identity/SOUL.md');
+    console.log('  ~/.klausbot/identity/IDENTITY.md');
+    console.log('  ~/.klausbot/identity/USER.md');
+  });
 
-    case 'revoke': {
-      if (!arg) {
-        console.error('Error: Missing chat ID');
-        console.log('Usage: klausbot pairing revoke <chatId>');
-        process.exit(1);
-      }
-      const chatId = parseInt(arg, 10);
-      if (isNaN(chatId)) {
-        console.error(`Error: Invalid chat ID "${arg}"`);
-        process.exit(1);
-      }
-      const revoked = store.revoke(chatId);
-      if (revoked) {
-        console.log(`Revoked: chatId=${chatId}`);
-      } else {
-        console.error(`Error: Chat ID ${chatId} not found in approved users`);
-        process.exit(1);
-      }
-      break;
-    }
+// install command
+program
+  .command('install')
+  .description('Interactive installation wizard')
+  .action(async () => {
+    const { runInstallWizard } = await import('./cli/index.js');
+    await runInstallWizard();
+  });
 
-    default:
-      console.error(`Error: Unknown pairing action "${action}"`);
-      console.log('Valid actions: approve, reject, list, revoke');
+// cron command
+program
+  .command('cron')
+  .description('Manage scheduled jobs')
+  .argument('[action]', 'Action: list, enable, disable, delete')
+  .argument('[id]', 'Job ID')
+  .action(async (action?: string, id?: string) => {
+    const { runCronCLI } = await import('./cli/index.js');
+    const args = [action, id].filter(Boolean) as string[];
+    await runCronCLI(args);
+  });
+
+// mcp command (internal, for Claude CLI integration)
+program
+  .command('mcp')
+  .description('MCP server for Claude CLI (internal)')
+  .action(async () => {
+    const { runMcpServer } = await import('./mcp-server/index.js');
+    await runMcpServer();
+  });
+
+// pairing command with subcommands
+const pairing = program
+  .command('pairing')
+  .description('Manage user pairing');
+
+pairing
+  .command('approve <code>')
+  .description('Approve pairing request')
+  .action(async (code: string) => {
+    const { config } = await import('./config/index.js');
+    const { initPairingStore } = await import('./pairing/index.js');
+    const store = initPairingStore(config.DATA_DIR);
+
+    const result = store.approvePairing(code.toUpperCase());
+    if (result) {
+      console.log(`Approved: chatId=${result.chatId}, username=${result.username ?? 'N/A'}`);
+    } else {
+      console.error(`Error: Code "${code}" not found`);
       process.exit(1);
-  }
-}
-
-/**
- * Main entry point
- */
-async function main(): Promise<void> {
-  switch (command) {
-    case 'daemon':
-    case 'gateway':  // Explicit alias per CONTEXT.md
-    case undefined:
-    case '': {
-      // Dynamic import to avoid loading bot when running CLI commands
-      const { startGateway } = await import('./daemon/index.js');
-      await startGateway();
-      break;
     }
+  });
 
-    case 'init': {
-      // Initialize ~/.klausbot/ without starting gateway
-      const { createChildLogger } = await import('./utils/logger.js');
-      const { initializeHome, initializeIdentity, KLAUSBOT_HOME } = await import('./memory/index.js');
+pairing
+  .command('reject <code>')
+  .description('Reject pairing request')
+  .action(async (code: string) => {
+    const { config } = await import('./config/index.js');
+    const { initPairingStore } = await import('./pairing/index.js');
+    const store = initPairingStore(config.DATA_DIR);
 
-      const log = createChildLogger('init');
-      console.log(`Initializing klausbot data home at ${KLAUSBOT_HOME}...`);
-
-      initializeHome(log);
-      initializeIdentity(log);
-
-      console.log('Done! Created:');
-      console.log('  ~/.klausbot/config/');
-      console.log('  ~/.klausbot/conversations/');
-      console.log('  ~/.klausbot/identity/SOUL.md');
-      console.log('  ~/.klausbot/identity/IDENTITY.md');
-      console.log('  ~/.klausbot/identity/USER.md');
-      break;
-    }
-
-    case 'install': {
-      const { runInstallWizard } = await import('./cli/index.js');
-      await runInstallWizard();
-      break;
-    }
-
-    case 'cron': {
-      const { runCronCLI } = await import('./cli/index.js');
-      await runCronCLI(args.slice(1));
-      break;
-    }
-
-    case 'mcp': {
-      // MCP server for Claude CLI integration (stdio transport)
-      // Invoked via --mcp-config flag, not meant for direct use
-      const { runMcpServer } = await import('./mcp-server/index.js');
-      await runMcpServer();
-      break;
-    }
-
-    case 'pairing':
-      await handlePairing();
-      break;
-
-    case 'version':
-    case '--version':
-    case '-v':
-      console.log(`klausbot v${getVersion()}`);
-      break;
-
-    case 'help':
-    case '--help':
-    case '-h':
-      printHelp();
-      break;
-
-    default:
-      console.error(`Error: Unknown command "${command}"`);
-      printHelp();
+    const rejected = store.rejectPairing(code.toUpperCase());
+    if (rejected) {
+      console.log(`Rejected: code=${code}`);
+    } else {
+      console.error(`Error: Code "${code}" not found`);
       process.exit(1);
-  }
-}
+    }
+  });
 
-// Run
-main().catch((err) => {
-  console.error('Fatal error:', err.message);
-  process.exit(1);
-});
+pairing
+  .command('list')
+  .description('List pending and approved users')
+  .action(async () => {
+    const { config } = await import('./config/index.js');
+    const { initPairingStore } = await import('./pairing/index.js');
+    const store = initPairingStore(config.DATA_DIR);
+
+    const pending = store.listPending();
+    const approved = store.listApproved();
+
+    console.log('=== Pending Requests ===');
+    if (pending.length === 0) {
+      console.log('  (none)');
+    } else {
+      for (const req of pending) {
+        console.log(`  Code: ${req.code}  Chat: ${req.chatId}  User: ${req.username ?? 'N/A'}  Age: ${formatAge(req.requestedAt)}`);
+      }
+    }
+
+    console.log('\n=== Approved Users ===');
+    if (approved.length === 0) {
+      console.log('  (none)');
+    } else {
+      for (const user of approved) {
+        console.log(`  Chat: ${user.chatId}  User: ${user.username ?? 'N/A'}  Since: ${formatAge(user.approvedAt)}`);
+      }
+    }
+  });
+
+pairing
+  .command('revoke <chatId>')
+  .description('Revoke access for chat ID')
+  .action(async (chatIdStr: string) => {
+    const { config } = await import('./config/index.js');
+    const { initPairingStore } = await import('./pairing/index.js');
+    const store = initPairingStore(config.DATA_DIR);
+
+    const chatId = parseInt(chatIdStr, 10);
+    if (isNaN(chatId)) {
+      console.error(`Error: Invalid chat ID "${chatIdStr}"`);
+      process.exit(1);
+    }
+
+    const revoked = store.revoke(chatId);
+    if (revoked) {
+      console.log(`Revoked: chatId=${chatId}`);
+    } else {
+      console.error(`Error: Chat ID ${chatId} not found in approved users`);
+      process.exit(1);
+    }
+  });
+
+// Parse and execute
+// If no command provided, show help
+if (process.argv.length <= 2) {
+  program.help();
+} else {
+  program.parseAsync(process.argv).catch((err) => {
+    console.error('Fatal error:', err.message);
+    process.exit(1);
+  });
+}
