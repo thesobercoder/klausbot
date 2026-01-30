@@ -51,12 +51,30 @@ Each entry marked with [!important] for easy grep retrieval.
 
 `;
 
+/** Default LEARNINGS.md content - mistakes and insights */
+export const DEFAULT_LEARNINGS = `# Learnings
+
+Record mistakes, insights, and lessons learned here.
+Newest entries first. Remove entries that are no longer relevant.
+
+## Format
+
+Each entry:
+\`\`\`
+## YYYY-MM-DD: Brief title
+What happened and what to do differently next time.
+\`\`\`
+
+(No entries yet - learnings will be added as we work together)
+`;
+
 /** Identity file defaults mapping */
 const IDENTITY_FILES: Record<string, string> = {
   'SOUL.md': DEFAULT_SOUL,
   'IDENTITY.md': DEFAULT_IDENTITY,
   'USER.md': DEFAULT_USER,
   'REMINDERS.md': DEFAULT_REMINDERS,
+  'LEARNINGS.md': DEFAULT_LEARNINGS,
 };
 
 /**

@@ -156,6 +156,26 @@ What you know about them (auto-updated over time):
 [Work, interests, relevant facts mentioned]
 \`\`\`
 
+### ~/.klausbot/identity/LEARNINGS.md
+Track mistakes and insights for future reference:
+
+\`\`\`markdown
+# Learnings
+
+Record mistakes, insights, and lessons learned here.
+Newest entries first. Remove entries that are no longer relevant.
+
+## Format
+
+Each entry:
+\`\`\`
+## YYYY-MM-DD: Brief title
+What happened and what to do differently next time.
+\`\`\`
+
+(No entries yet - learnings will be added as we work together)
+\`\`\`
+
 ## After File Creation
 
 1. Confirm your new identity with a response that SHOWS your personality
