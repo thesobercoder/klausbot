@@ -221,16 +221,42 @@ Skills live in ~/.claude/skills/ — create and save skills there.
 }
 
 /**
+ * Get agent folder reminder for system prompt
+ * Tells Claude where to create and save agents
+ *
+ * @returns Agent folder reminder wrapped in XML tags
+ */
+export function getAgentReminder(): string {
+  return `<agent-folder>
+Agents live in ~/.claude/agents/ - create and save agent files there.
+
+Agent file format (markdown with YAML frontmatter):
+---
+name: agent-name
+description: What this agent does
+tools: Read, Glob, Grep, Bash
+model: inherit
+---
+
+Body is the system prompt for the agent.
+
+When user wants to create an agent, write the file to ~/.claude/agents/{name}.md
+</agent-folder>`;
+}
+
+/**
  * Build the complete system prompt for Claude sessions
- * Combines skill reminder + identity files + retrieval instructions
+ * Combines skill reminder + agent reminder + identity files + retrieval instructions
  *
  * @returns Complete system prompt string
  */
 export function buildSystemPrompt(): string {
   const skillReminder = getSkillReminder();
+  const agentReminder = getAgentReminder();
   const identity = loadIdentity();
   const instructions = getRetrievalInstructions();
 
-  // Skill reminder first (Claude sees this first), then identity, then instructions
-  return skillReminder + '\n\n' + identity + '\n\n' + instructions;
+  // Skill reminder first, agent reminder second (both folder location reminders grouped together)
+  // Then identity, then instructions
+  return skillReminder + '\n\n' + agentReminder + '\n\n' + identity + '\n\n' + instructions;
 }
