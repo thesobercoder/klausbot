@@ -8,7 +8,10 @@ import { KLAUSBOT_HOME, buildSystemPrompt } from '../memory/index.js';
 
 /**
  * Get MCP server configuration for klausbot cron tools
- * Uses `klausbot mcp-server` subcommand (consistent with project philosophy)
+ * Uses same invocation method as current process (works in dev and production)
+ *
+ * - Dev: `node dist/index.js daemon` → MCP uses `node dist/index.js mcp-server`
+ * - Prod: `klausbot daemon` → MCP uses `node /path/to/klausbot mcp-server`
  *
  * @returns MCP config object for --mcp-config flag
  */
@@ -16,8 +19,8 @@ function getMcpConfig(): object {
   return {
     mcpServers: {
       klausbot: {
-        command: 'klausbot',
-        args: ['mcp-server'],
+        command: process.argv[0],  // node executable
+        args: [process.argv[1], 'mcp-server'],  // [script path, subcommand]
         env: {}
       }
     }
