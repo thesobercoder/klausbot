@@ -57,6 +57,31 @@ function formatAge(timestamp: number): string {
 // Create CLI program
 const program = new Command();
 
+// Customize help output colors (like kubectl, gh CLI)
+program.configureHelp({
+  // Color command names cyan
+  subcommandTerm: (cmd) => {
+    const name = cmd.name();
+    const alias = cmd.alias();
+    // Get arguments only (skip [options] clutter)
+    const args = cmd.registeredArguments
+      .map((arg) => arg.required ? `<${arg.name()}>` : `[${arg.name()}]`)
+      .join(' ');
+    // Subcommands indicator
+    const subCmds = cmd.commands.length > 0 ? '[command]' : '';
+
+    let term = alias ? `${name}|${alias}` : name;
+    if (args) term += ` ${args}`;
+    if (subCmds) term += ` ${subCmds}`;
+
+    return theme.colors.cyan(term);
+  },
+  // Color option flags cyan
+  optionTerm: (option) => {
+    return theme.colors.cyan(option.flags);
+  },
+});
+
 program
   .name('klausbot')
   .description('Telegram gateway for Claude Code')
