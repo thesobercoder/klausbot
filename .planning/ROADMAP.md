@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Resilience & Tooling** - Timeout recovery, skills cleanup, agent authoring
 - [ ] **Phase 7.1: Memory Search MCP** - Migrate embeddings to SQLite, add search_memories MCP tool (INSERTED)
 - [ ] **Phase 7.2: Conversation Continuity** - Claude Code hooks for context injection and conversation ownership (INSERTED)
-- [ ] **Phase 8: CLI Theme System** - Consistent output formatting with helper methods and unified color scheme
+- [x] **Phase 8: CLI Theme System** - Consistent output formatting with helper methods and unified color scheme
 
 ## Phase Details
 
@@ -279,9 +279,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 08-01-PLAN.md — Create theme module with muted color helpers
-- [ ] 08-02-PLAN.md — Migrate CLI files to use theme
-- [ ] 08-03-PLAN.md — End-to-end verification (human checkpoint)
+- [x] 08-01-PLAN.md — Create theme module with muted color helpers
+- [x] 08-02-PLAN.md — Migrate CLI files to use theme
+- [x] 08-03-PLAN.md — End-to-end verification (human checkpoint)
 
 ## Progress
 
@@ -302,7 +302,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 7. Resilience    | 4/4            | Complete    | 2026-01-30 |
 | 7.1 Memory Search| 3/3            | Complete    | 2026-01-30 |
 | 7.2 Continuity   | 5/5            | Complete    | 2026-01-31 |
-| 8. CLI Theme     | 0/3            | Not started | -          |
+| 8. CLI Theme     | 3/3            | Complete    | 2026-01-31 |
 
 ---
 
