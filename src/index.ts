@@ -86,7 +86,7 @@ program
   .description('Initialize or reset ~/.klausbot/ directory')
   .option('-f, --force', 'Skip confirmation prompt')
   .action(async (options: { force?: boolean }) => {
-    const { existsSync, rmSync, readdirSync } = await import('fs');
+    const { existsSync, rmSync } = await import('fs');
     const { join } = await import('path');
     const { confirm } = await import('@inquirer/prompts');
     const { createChildLogger } = await import('./utils/logger.js');
@@ -116,14 +116,15 @@ program
     const log = createChildLogger('init');
     console.log(`\nInitializing klausbot data home at ${KLAUSBOT_HOME}...`);
 
-    // Clear conversations directory if it exists
-    const conversationsDir = join(KLAUSBOT_HOME, 'conversations');
-    if (existsSync(conversationsDir)) {
-      const files = readdirSync(conversationsDir);
-      for (const file of files) {
-        rmSync(join(conversationsDir, file), { recursive: true, force: true });
-      }
-      log.info({ path: conversationsDir, count: files.length }, 'Cleared conversations');
+    // Clear database if it exists (conversations, embeddings)
+    const dbPath = join(KLAUSBOT_HOME, 'klausbot.db');
+    const dbWalPath = join(KLAUSBOT_HOME, 'klausbot.db-wal');
+    const dbShmPath = join(KLAUSBOT_HOME, 'klausbot.db-shm');
+    if (existsSync(dbPath)) {
+      rmSync(dbPath, { force: true });
+      if (existsSync(dbWalPath)) rmSync(dbWalPath, { force: true });
+      if (existsSync(dbShmPath)) rmSync(dbShmPath, { force: true });
+      log.info({ path: dbPath }, 'Cleared database');
     }
 
     initializeHome(log);
@@ -131,7 +132,7 @@ program
 
     console.log(pc.green('Done!'));
     console.log(`  ~/.klausbot/config/ ${pc.dim('(preserved)')}`);
-    console.log(`  ~/.klausbot/conversations/ ${pc.dim('(cleared)')}`);
+    console.log(`  ~/.klausbot/klausbot.db ${pc.dim('(cleared)')}`);
     console.log(`  ~/.klausbot/identity/ ${pc.dim('(reset)')}`);
   });
 
