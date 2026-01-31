@@ -23,6 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Multimodal** - Voice transcription and image analysis
 - [x] **Phase 7: Resilience & Tooling** - Timeout recovery, skills cleanup, agent authoring
 - [ ] **Phase 7.1: Memory Search MCP** - Migrate embeddings to SQLite, add search_memories MCP tool (INSERTED)
+- [ ] **Phase 7.2: Conversation Continuity** - Claude Code hooks for context injection and conversation ownership (INSERTED)
 - [ ] **Phase 8: CLI Theme System** - Consistent output formatting with helper methods and unified color scheme
 
 ## Phase Details
@@ -236,6 +237,33 @@ Plans:
 - [x] 07.1-02-PLAN.md — MCP tool: search_memories with date filtering
 - [x] 07.1-03-PLAN.md — Gap closure: add logging to MCP server tools
 
+### Phase 7.2: Conversation Continuity (INSERTED)
+
+**Goal**: klausbot owns conversation data with Claude Code hooks for context injection and history search
+**Depends on**: Phase 7.1
+**Requirements**: None (architecture improvement - discrete sessions with context bridging)
+**Success Criteria** (what must be TRUE):
+
+1. SessionStart hook injects current datetime + recent conversation summaries
+2. PreCompact hook saves conversation state before context compaction
+3. SessionEnd hook copies transcript to `~/.klausbot/conversations/`, generates summary
+4. Conversations indexed in SQLite with summaries and embeddings
+5. `search_memories` MCP tool searches both memory files AND conversation summaries
+6. `get_conversation` MCP tool retrieves full transcript by session_id
+7. Hook commands use exact klausbot CLI path (not relying on global install)
+8. Spawner passes hooks via `--settings` inline JSON
+9. Drizzle ORM manages SQLite schema with migrations on gateway startup
+**Plans**: 5 plans in 3 waves
+
+Note: Inspired by OpenClaw's memory architecture. Sessions remain discrete but context-aware via hook injection. Deep history available via MCP search tools. SQLite is single source of truth for conversations (no redundant markdown files).
+
+Plans:
+- [ ] 07.2-01-PLAN.md — Hook CLI commands: `klausbot hook start|compact|end`, remove markdown logger
+- [ ] 07.2-02-PLAN.md — Conversation storage: Drizzle schema + migrations, parse transcript, summarize
+- [ ] 07.2-03-PLAN.md — Spawner integration: --settings JSON with hooks, path detection
+- [ ] 07.2-04-PLAN.md — MCP tool updates: search conversations, get_conversation tool
+- [ ] 07.2-05-PLAN.md — End-to-end verification (human checkpoint)
+
 ### Phase 8: CLI Theme System
 
 **Goal**: Unified CLI output formatting with consistent colors, helper methods, and coherent visual identity
@@ -271,9 +299,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 6. Multimodal    | 5/5            | Complete    | 2026-01-30 |
 | 7. Resilience    | 4/4            | Complete    | 2026-01-30 |
 | 7.1 Memory Search| 3/3            | Complete    | 2026-01-30 |
+| 7.2 Continuity   | 0/5            | Not started | -          |
 | 8. CLI Theme     | 0/?            | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-01-28_
-_Last updated: 2026-01-30_
+_Last updated: 2026-01-31_
