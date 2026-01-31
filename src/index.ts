@@ -59,7 +59,7 @@ const program = new Command();
 
 // Customize help output colors (like kubectl, gh CLI)
 program.configureHelp({
-  // Color command names cyan
+  // Color command names magenta (purple theme)
   subcommandTerm: (cmd) => {
     const name = cmd.name();
     const alias = cmd.alias();
@@ -74,11 +74,11 @@ program.configureHelp({
     if (args) term += ` ${args}`;
     if (subCmds) term += ` ${subCmds}`;
 
-    return theme.colors.cyan(term);
+    return theme.colors.magenta(term);
   },
-  // Color option flags cyan
+  // Color option flags magenta (purple theme)
   optionTerm: (option) => {
-    return theme.colors.cyan(option.flags);
+    return theme.colors.magenta(option.flags);
   },
 });
 

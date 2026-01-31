@@ -18,11 +18,11 @@ const colors = {
   green: noColor ? (s: string) => s : pc.green,
   red: noColor ? (s: string) => s : pc.red,
   yellow: noColor ? (s: string) => s : pc.yellow,
-  cyan: noColor ? (s: string) => s : pc.cyan,
+  magenta: noColor ? (s: string) => s : pc.magenta,
   dim: noColor ? (s: string) => s : pc.dim,
   bold: noColor ? (s: string) => s : pc.bold,
   boldGreen: noColor ? (s: string) => s : (s: string) => pc.bold(pc.green(s)),
-  boldCyan: noColor ? (s: string) => s : (s: string) => pc.bold(pc.cyan(s)),
+  boldMagenta: noColor ? (s: string) => s : (s: string) => pc.bold(pc.magenta(s)),
   boldYellow: noColor ? (s: string) => s : (s: string) => pc.bold(pc.yellow(s)),
 };
 
@@ -77,10 +77,10 @@ function warn(msg: string): void {
 }
 
 /**
- * Output info message with cyan info symbol
+ * Output info message with magenta info symbol
  */
 function info(msg: string): void {
-  console.log(colors.cyan(`${symbols.info} ${msg}`));
+  console.log(colors.magenta(`${symbols.info} ${msg}`));
 }
 
 /**
@@ -88,9 +88,9 @@ function info(msg: string): void {
  */
 function header(title: string, width = 40): void {
   const line = box.horizontal.repeat(width);
-  console.log(colors.boldCyan(line));
-  console.log(colors.boldCyan(title));
-  console.log(colors.boldCyan(line));
+  console.log(colors.boldMagenta(line));
+  console.log(colors.boldMagenta(title));
+  console.log(colors.boldMagenta(line));
 }
 
 /**
@@ -275,7 +275,7 @@ function asciiArt(): void {
   ];
 
   for (const line of lines) {
-    console.log(colors.cyan(line));
+    console.log(colors.magenta(line));
   }
 }
 
