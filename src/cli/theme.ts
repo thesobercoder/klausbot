@@ -27,15 +27,16 @@ const colors = {
 };
 
 /**
- * Unicode symbols for output
+ * Unicode symbols for output - modern minimal style
  */
 const symbols = {
-  check: '\u2713',   // checkmark
-  cross: '\u2717',   // x mark
-  warning: '\u26A0', // warning triangle
-  info: '\u2139',    // info circle
-  bullet: '\u2022',  // bullet point
-  arrow: '\u2192',   // right arrow
+  check: '\u2713',   // ✓ checkmark
+  cross: '\u2717',   // ✗ x mark
+  warning: '\u26A0', // ⚠ warning triangle
+  info: '\u2139',    // ℹ info circle
+  bullet: '\u2022',  // • bullet point
+  arrow: '\u2192',   // → right arrow
+  pointer: '\u25B8', // ▸ right pointer (modern header icon)
 };
 
 /**
@@ -57,48 +58,44 @@ const box = {
 
 /**
  * Output success message with green checkmark
+ * Style: ✓ message (green)
  */
 function success(msg: string): void {
-  console.log(colors.green(`${symbols.check} ${msg}`));
+  console.log(`${colors.green(symbols.check)} ${colors.green(msg)}`);
 }
 
 /**
  * Output error message with red X
+ * Style: ✗ message (red)
  */
 function error(msg: string): void {
-  console.log(colors.red(`${symbols.cross} ${msg}`));
+  console.log(`${colors.red(symbols.cross)} ${colors.red(msg)}`);
 }
 
 /**
  * Output warning message with yellow warning symbol
+ * Style: ⚠ message (yellow)
  */
 function warn(msg: string): void {
-  console.log(colors.yellow(`${symbols.warning} ${msg}`));
+  console.log(`${colors.yellow(symbols.warning)}  ${colors.yellow(msg)}`);
 }
 
 /**
- * Output info message with magenta info symbol
+ * Output info message with dim info symbol
+ * Style: ℹ message (dim for subtle info)
  */
 function info(msg: string): void {
-  console.log(colors.magenta(`${symbols.info} ${msg}`));
+  console.log(`${colors.dim(symbols.info)} ${colors.dim(msg)}`);
 }
 
 /**
- * Output header with bold title in a full box
+ * Output header with modern minimal style
+ * Uses pointer icon + bold magenta title + subtle underline
  */
-function header(title: string, width = 40): void {
-  // Inner width excludes the 2 vertical border chars
-  const innerWidth = width - 2;
-  // Title with 1 space padding on left, rest filled with spaces
-  const paddedTitle = ` ${title}`.padEnd(innerWidth);
-
-  const topLine = `${box.topLeft}${box.horizontal.repeat(innerWidth)}${box.topRight}`;
-  const middleLine = `${box.vertical}${paddedTitle}${box.vertical}`;
-  const bottomLine = `${box.bottomLeft}${box.horizontal.repeat(innerWidth)}${box.bottomRight}`;
-
-  console.log(colors.boldMagenta(topLine));
-  console.log(colors.boldMagenta(middleLine));
-  console.log(colors.boldMagenta(bottomLine));
+function header(title: string, underlineWidth = 20): void {
+  console.log(''); // blank line before for separation
+  console.log(`${colors.magenta(symbols.pointer)} ${colors.boldMagenta(title)}`);
+  console.log(`  ${colors.dim(box.horizontal.repeat(underlineWidth))}`);
 }
 
 /**
