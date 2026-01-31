@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "dev": "tsx src/index.ts",
+    "dev": "npm run build && node dist/index.js",
     "start": "node dist/index.js"
   },
   "dependencies": {
@@ -38,7 +38,6 @@
     "@types/node": "^22.10.7",
     "drizzle-kit": "^0.31.8",
     "tsup": "^8.5.1",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },
   "engines": {
