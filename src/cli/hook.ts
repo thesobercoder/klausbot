@@ -125,58 +125,69 @@ export async function handleHookCompact(): Promise<void> {
  * Copies transcript to storage, generates summary
  */
 export async function handleHookEnd(): Promise<void> {
-  const input = await readStdin();
+  let sessionId = 'unknown';
+  try {
+    const input = await readStdin();
+    sessionId = input.session_id;
 
-  hookLog(`[end] session=${input.session_id} path=${input.transcript_path}`);
+    hookLog(`[end] session=${input.session_id} path=${input.transcript_path}`);
 
-  // Read transcript file
-  if (!existsSync(input.transcript_path)) {
-    hookLog(`[end] ERROR: Transcript not found: ${input.transcript_path}`);
-    return;
+    // Read transcript file
+    if (!existsSync(input.transcript_path)) {
+      hookLog(`[end] ERROR: Transcript not found: ${input.transcript_path}`);
+      return;
+    }
+
+    const transcriptContent = readFileSync(input.transcript_path, 'utf-8');
+    hookLog(`[end] Read transcript: ${transcriptContent.length} bytes`);
+
+    // Dynamic imports
+    const {
+      parseTranscript,
+      extractConversationText,
+      generateSummary,
+      storeConversation,
+    } = await import('../memory/conversations.js');
+
+    // Parse transcript
+    const entries = parseTranscript(transcriptContent);
+    const messageCount = entries.filter(e => e.type === 'user' || e.type === 'assistant').length;
+    hookLog(`[end] Parsed: ${entries.length} entries, ${messageCount} messages`);
+
+    if (messageCount === 0) {
+      hookLog('[end] No messages in transcript, skipping');
+      return;
+    }
+
+    // Extract timestamps
+    const timestamps = entries
+      .filter(e => e.timestamp)
+      .map(e => e.timestamp!)
+      .sort();
+
+    const startedAt = timestamps[0] ?? new Date().toISOString();
+    const endedAt = timestamps[timestamps.length - 1] ?? new Date().toISOString();
+
+    // Generate summary
+    hookLog('[end] Generating summary...');
+    const conversationText = extractConversationText(entries);
+    const summary = await generateSummary(conversationText);
+    hookLog(`[end] Summary generated: ${summary.length} chars`);
+
+    // Store conversation
+    hookLog('[end] Storing conversation...');
+    storeConversation({
+      sessionId: input.session_id,
+      startedAt,
+      endedAt,
+      transcript: transcriptContent,
+      summary,
+      messageCount,
+      // chatId: extracted from session metadata if available
+    });
+
+    hookLog(`[end] Stored conversation: ${messageCount} messages, summary: ${summary.slice(0, 50)}...`);
+  } catch (err) {
+    hookLog(`[end] ERROR session=${sessionId}: ${err instanceof Error ? err.message : String(err)}`);
   }
-
-  const transcriptContent = readFileSync(input.transcript_path, 'utf-8');
-
-  // Dynamic imports
-  const {
-    parseTranscript,
-    extractConversationText,
-    generateSummary,
-    storeConversation,
-  } = await import('../memory/conversations.js');
-
-  // Parse transcript
-  const entries = parseTranscript(transcriptContent);
-  const messageCount = entries.filter(e => e.type === 'user' || e.type === 'assistant').length;
-
-  if (messageCount === 0) {
-    hookLog('[end] No messages in transcript, skipping');
-    return;
-  }
-
-  // Extract timestamps
-  const timestamps = entries
-    .filter(e => e.timestamp)
-    .map(e => e.timestamp!)
-    .sort();
-
-  const startedAt = timestamps[0] ?? new Date().toISOString();
-  const endedAt = timestamps[timestamps.length - 1] ?? new Date().toISOString();
-
-  // Generate summary
-  const conversationText = extractConversationText(entries);
-  const summary = await generateSummary(conversationText);
-
-  // Store conversation
-  storeConversation({
-    sessionId: input.session_id,
-    startedAt,
-    endedAt,
-    transcript: transcriptContent,
-    summary,
-    messageCount,
-    // chatId: extracted from session metadata if available
-  });
-
-  hookLog(`[end] Stored conversation: ${messageCount} messages, summary: ${summary.slice(0, 50)}...`);
 }
