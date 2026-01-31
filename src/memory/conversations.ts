@@ -57,10 +57,19 @@ export function extractConversationText(entries: TranscriptEntry[]): string {
 
   for (const entry of entries) {
     if ((entry.type === 'user' || entry.type === 'assistant') && entry.message?.content) {
-      const textContent = entry.message.content
-        .filter(c => c.type === 'text' && c.text)
-        .map(c => c.text)
-        .join('\n');
+      let textContent: string;
+
+      // Handle both string and array content formats
+      if (typeof entry.message.content === 'string') {
+        textContent = entry.message.content;
+      } else if (Array.isArray(entry.message.content)) {
+        textContent = entry.message.content
+          .filter(c => c.type === 'text' && c.text)
+          .map(c => c.text)
+          .join('\n');
+      } else {
+        continue;
+      }
 
       if (textContent) {
         const role = entry.type === 'user' ? 'User' : 'Assistant';
