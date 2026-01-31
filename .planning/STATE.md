@@ -32,7 +32,7 @@ Progress: [██████████] 100% (43/43 plans complete)
 | 03-identity | 3/3 | ~12 min | 4 min |
 | 04-skills | 3/3 | ~35 min | 12 min |
 | 04.1-skills-polish | 2/2 | 4 min | 2 min |
-| 05-proactive | 4/5 | 9.8 min | 2.5 min |
+| 05-proactive | 5/5 | ~25 min | 5 min |
 | 05.1-mcp-cron | 2/2 | ~5 min | 2.5 min |
 | 06-multimodal | 5/5 | ~11 min | 2.2 min |
 | 07-resilience-tooling | 4/4 | ~52 min | 13 min |
