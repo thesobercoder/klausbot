@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-28)
 ## Current Position
 
 Phase: 7.2 of 7.2 (Conversation Continuity)
-Plan: 1 of 3 in Phase 7.2
+Plan: 2 of 3 in Phase 7.2
 Status: In progress
-Last activity: 2026-01-31 - Completed 07.2-01-PLAN.md (Hook CLI Commands)
+Last activity: 2026-01-31 - Completed 07.2-02-PLAN.md (Conversation Storage)
 
-Progress: [██████████] 100% (39/41 plans complete)
+Progress: [██████████] 100% (40/41 plans complete)
 
 ## Performance Metrics
 
@@ -37,11 +37,11 @@ Progress: [██████████] 100% (39/41 plans complete)
 | 06-multimodal | 5/5 | ~11 min | 2.2 min |
 | 07-resilience-tooling | 4/4 | ~52 min | 13 min |
 | 07.1-memory-search-mcp | 3/3 | 16 min | 5.3 min |
-| 07.2-conversation-continuity | 1/3 | 2 min | 2 min |
+| 07.2-conversation-continuity | 2/3 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 07.1-01 (12 min), 07.1-02 (2 min), 07.1-03 (2 min), 07.2-01 (2 min)
-- Trend: Phase 7.2 started - Hook CLI commands complete
+- Last 5 plans: 07.1-02 (2 min), 07.1-03 (2 min), 07.2-01 (2 min), 07.2-02 (4 min)
+- Trend: Phase 7.2 - Conversation storage complete
 
 *Updated after each plan completion*
 
@@ -118,6 +118,11 @@ Recent decisions affecting current work:
 - 07.2-01: 5s timeout on stdin read to prevent hanging
 - 07.2-01: stdout for SessionStart context injection, stderr for logging
 - 07.2-01: Markdown logger deprecated (kept for reference)
+- 07.2-02: Raw SQL for migrations instead of drizzle-kit push (simpler runtime)
+- 07.2-02: gpt-4o-mini for summarization (cost-effective at ~$0.0001/summary)
+- 07.2-02: Truncate conversations to 10k chars before summarization
+- 07.2-02: Upsert by sessionId for safe re-execution of SessionEnd hook
+- 07.2-02: Dynamic imports in hooks avoid DB initialization overhead
 
 ### Roadmap Evolution
 
@@ -137,8 +142,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-31T05:01:43Z
-Stopped at: Completed 07.2-01-PLAN.md (Hook CLI Commands)
+Last session: 2026-01-31T05:10:00Z
+Stopped at: Completed 07.2-02-PLAN.md (Conversation Storage)
 Resume file: None
 
 ---
