@@ -122,65 +122,65 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | TBD | Pending |
-| SETUP-02 | TBD | Pending |
-| SETUP-03 | TBD | Pending |
-| SETUP-04 | TBD | Pending |
-| SETUP-05 | TBD | Pending |
-| SERV-01 | TBD | Pending |
-| SERV-02 | TBD | Pending |
-| SERV-03 | TBD | Pending |
-| SERV-04 | TBD | Pending |
-| SERV-05 | TBD | Pending |
-| STRM-01 | TBD | Pending |
-| STRM-02 | TBD | Pending |
-| STRM-03 | TBD | Pending |
-| STRM-04 | TBD | Pending |
-| TELE-01 | TBD | Pending |
-| TELE-02 | TBD | Pending |
-| SECU-01 | TBD | Pending |
-| SECU-02 | TBD | Pending |
-| SECU-03 | TBD | Pending |
-| PLAT-01 | TBD | Pending |
-| PLAT-02 | TBD | Pending |
-| PLAT-03 | TBD | Pending |
-| PLAT-04 | TBD | Pending |
-| PLAT-05 | TBD | Pending |
-| PLAT-06 | TBD | Pending |
-| DTCT-01 | TBD | Pending |
-| DTCT-02 | TBD | Pending |
-| DTCT-03 | TBD | Pending |
-| DTCT-04 | TBD | Pending |
-| DTCT-05 | TBD | Pending |
-| DOCT-01 | TBD | Pending |
-| DOCT-02 | TBD | Pending |
-| DOCT-03 | TBD | Pending |
-| DOCT-04 | TBD | Pending |
-| DOCT-05 | TBD | Pending |
-| DOCT-06 | TBD | Pending |
-| DOCT-07 | TBD | Pending |
-| DOCT-08 | TBD | Pending |
-| HRTB-01 | TBD | Pending |
-| HRTB-02 | TBD | Pending |
-| HRTB-03 | TBD | Pending |
-| HRTB-04 | TBD | Pending |
-| HRTB-05 | TBD | Pending |
-| HRTB-06 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
-| TEST-04 | TBD | Pending |
-| RLSE-01 | TBD | Pending |
-| RLSE-02 | TBD | Pending |
-| RLSE-03 | TBD | Pending |
-| RLSE-04 | TBD | Pending |
-| RLSE-05 | TBD | Pending |
+| PLAT-01 | Phase 9 | Pending |
+| PLAT-02 | Phase 9 | Pending |
+| PLAT-03 | Phase 9 | Pending |
+| PLAT-05 | Phase 9 | Pending |
+| PLAT-06 | Phase 9 | Pending |
+| DTCT-01 | Phase 9 | Pending |
+| DTCT-02 | Phase 9 | Pending |
+| DTCT-03 | Phase 9 | Pending |
+| DTCT-04 | Phase 9 | Pending |
+| DTCT-05 | Phase 9 | Pending |
+| DOCT-01 | Phase 10 | Pending |
+| DOCT-02 | Phase 10 | Pending |
+| DOCT-03 | Phase 10 | Pending |
+| DOCT-04 | Phase 10 | Pending |
+| DOCT-05 | Phase 10 | Pending |
+| DOCT-06 | Phase 10 | Pending |
+| DOCT-07 | Phase 10 | Pending |
+| DOCT-08 | Phase 10 | Pending |
+| SETUP-01 | Phase 11 | Pending |
+| SETUP-02 | Phase 11 | Pending |
+| SETUP-03 | Phase 11 | Pending |
+| SETUP-04 | Phase 11 | Pending |
+| SETUP-05 | Phase 11 | Pending |
+| SERV-01 | Phase 12 | Pending |
+| SERV-02 | Phase 12 | Pending |
+| SERV-03 | Phase 12 | Pending |
+| SERV-04 | Phase 12 | Pending |
+| SERV-05 | Phase 12 | Pending |
+| SECU-01 | Phase 13 | Pending |
+| SECU-02 | Phase 13 | Pending |
+| SECU-03 | Phase 13 | Pending |
+| STRM-01 | Phase 14 | Pending |
+| STRM-02 | Phase 14 | Pending |
+| STRM-03 | Phase 14 | Pending |
+| STRM-04 | Phase 14 | Pending |
+| TELE-01 | Phase 15 | Pending |
+| TELE-02 | Phase 15 | Pending |
+| HRTB-01 | Phase 16 | Pending |
+| HRTB-02 | Phase 16 | Pending |
+| HRTB-03 | Phase 16 | Pending |
+| HRTB-04 | Phase 16 | Pending |
+| HRTB-05 | Phase 16 | Pending |
+| HRTB-06 | Phase 16 | Pending |
+| PLAT-04 | Phase 17 | Pending |
+| RLSE-01 | Phase 17 | Pending |
+| RLSE-02 | Phase 17 | Pending |
+| RLSE-03 | Phase 17 | Pending |
+| RLSE-04 | Phase 17 | Pending |
+| RLSE-05 | Phase 17 | Pending |
+| TEST-01 | Phase 18 | Pending |
+| TEST-02 | Phase 18 | Pending |
+| TEST-03 | Phase 18 | Pending |
+| TEST-04 | Phase 18 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 49 total
-- Mapped to phases: 0
-- Unmapped: 49
+- Mapped to phases: 49
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-31*
-*Last updated: 2026-01-31 after initial definition*
+*Last updated: 2026-01-31 after roadmap creation*
