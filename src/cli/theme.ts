@@ -89,13 +89,15 @@ function info(msg: string): void {
 }
 
 /**
- * Output header with modern minimal style
- * Uses pointer icon + bold magenta title + subtle underline
+ * Output header with equal sign borders
+ * Uses magenta equal sign lines (top/bottom) + pointer icon + bold magenta title
  */
-function header(title: string, underlineWidth = 20): void {
+function header(title: string, lineWidth = 23): void {
+  const equalLine = '\u2550'.repeat(lineWidth); // ═ double horizontal
   console.log(''); // blank line before for separation
-  console.log(`${colors.magenta(symbols.pointer)} ${colors.boldMagenta(title)}`);
-  console.log(`  ${colors.dim(box.horizontal.repeat(underlineWidth))}`);
+  console.log(colors.magenta(equalLine));
+  console.log(`${colors.boldMagenta(symbols.pointer)} ${colors.boldMagenta(title)}`);
+  console.log(colors.magenta(equalLine));
 }
 
 /**
