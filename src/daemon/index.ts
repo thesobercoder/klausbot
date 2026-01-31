@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { config } from '../config/index.js';
+import { KLAUSBOT_HOME } from '../memory/home.js';
 
 // Re-export queue types and class
 export { MessageQueue } from './queue.js';
@@ -36,12 +36,11 @@ export function ensureDataDir(path: string): void {
 }
 
 /**
- * Get full path within data directory
- * Uses config.DATA_DIR as the base
+ * Get full path within klausbot home directory
  *
- * @param subpath - Path relative to data directory
+ * @param subpath - Path relative to ~/.klausbot/
  * @returns Full path
  */
 export function getDataPath(subpath: string): string {
-  return join(config.DATA_DIR, subpath);
+  return join(KLAUSBOT_HOME, subpath);
 }

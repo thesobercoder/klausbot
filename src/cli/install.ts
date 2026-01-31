@@ -1,362 +1,485 @@
 /**
- * klausbot install wizard
+ * klausbot setup wizard
  *
- * Interactive installation and configuration for klausbot deployment
+ * Single unified setup that handles everything:
+ * - Prompts for credentials (if not present)
+ * - Creates directories
+ * - Writes config
+ * - Installs user service
+ * - Shows summary
  */
 
-import { input, confirm, select } from '@inquirer/prompts';
+import { input } from '@inquirer/prompts';
 import { execSync } from 'child_process';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
-import { ensureSkillCreator } from './skills.js';
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'fs';
+import { homedir } from 'os';
+import { dirname, join } from 'path';
 import { theme } from './theme.js';
+import { detectPlatform } from '../platform/detect.js';
+import { which } from '../utils/which.js';
+
+/** klausbot home directory */
+const KLAUSBOT_HOME = join(homedir(), '.klausbot');
+const ENV_PATH = join(KLAUSBOT_HOME, '.env');
+const LOGS_DIR = join(KLAUSBOT_HOME, 'logs');
+
+/** Service paths */
+const SYSTEMD_DIR = join(homedir(), '.config', 'systemd', 'user');
+const SYSTEMD_SERVICE = join(SYSTEMD_DIR, 'klausbot.service');
+const LAUNCHD_DIR = join(homedir(), 'Library', 'LaunchAgents');
+const LAUNCHD_PLIST = join(LAUNCHD_DIR, 'com.klausbot.plist');
+
+/** Track what we did */
+interface SetupActions {
+  createdDirs: string[];
+  wroteEnv: boolean;
+  envVars: string[];
+  installedService: string | null;
+  startedService: boolean;
+}
 
 /**
- * Check if a command exists
+ * Parse existing .env file
  */
-function commandExists(cmd: string): boolean {
+function parseEnvFile(path: string): Record<string, string> {
+  if (!existsSync(path)) return {};
+
+  const content = readFileSync(path, 'utf-8');
+  const env: Record<string, string> = {};
+
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const [key, ...rest] = trimmed.split('=');
+    if (key && rest.length > 0) {
+      env[key] = rest.join('=');
+    }
+  }
+
+  return env;
+}
+
+/**
+ * Get the path to the actual JS entry point
+ * Resolves symlinks to find the real dist/index.js
+ */
+function getExecPath(): string {
   try {
-    execSync(`which ${cmd}`, { stdio: 'pipe' });
-    return true;
+    // Resolve symlinks (e.g., /usr/local/bin/klausbot -> /path/to/dist/index.js)
+    return realpathSync(process.argv[1]);
   } catch {
-    return false;
+    return process.argv[1];
   }
 }
 
-/**
- * Generate .env file content
- */
-function generateEnvContent(token: string, dataDir: string): string {
-  return `# klausbot configuration
-TELEGRAM_BOT_TOKEN=${token}
-DATA_DIR=${dataDir}
-LOG_LEVEL=info
-NODE_ENV=production
-`;
-}
 
 /**
- * Generate systemd service file content
+ * Generate systemd user service
  */
-function generateServiceFile(installDir: string): string {
+function generateSystemdService(): string {
+  const nodePath = process.execPath;
+  const scriptPath = getExecPath();
+  const claudePath = which('claude');
+  // Include directory containing claude in PATH
+  const claudeDir = claudePath ? dirname(claudePath) : '';
+  const pathLine = claudeDir ? `Environment="PATH=${claudeDir}"\n` : '';
   return `[Unit]
 Description=Klausbot Telegram Gateway
-Documentation=https://github.com/yourrepo/klausbot
-After=network-online.target
-Wants=network-online.target
+After=network.target
 
 [Service]
 Type=simple
-User=klausbot
-Group=klausbot
-WorkingDirectory=${installDir}
-ExecStart=/usr/bin/node ${installDir}/dist/index.js daemon
+${pathLine}ExecStart=${nodePath} ${scriptPath} daemon
 Restart=always
 RestartSec=10
-StandardOutput=journal
-StandardError=journal
-EnvironmentFile=${installDir}/.env
-
-# Security hardening
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=${installDir}/data
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 `;
 }
 
 /**
- * Run the installation wizard
+ * Generate macOS launchd plist
  */
-export async function runInstallWizard(): Promise<void> {
+function generateLaunchdPlist(): string {
+  const nodePath = process.execPath;
+  const scriptPath = getExecPath();
+  const claudePath = which('claude');
+  const claudeDir = claudePath ? dirname(claudePath) : '';
+  const envBlock = claudeDir ? `
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>${claudeDir}</string>
+    </dict>` : '';
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.klausbot</string>${envBlock}
+    <key>ProgramArguments</key>
+    <array>
+        <string>${nodePath}</string>
+        <string>${scriptPath}</string>
+        <string>daemon</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>${join(LOGS_DIR, 'stdout.log')}</string>
+    <key>StandardErrorPath</key>
+    <string>${join(LOGS_DIR, 'stderr.log')}</string>
+</dict>
+</plist>
+`;
+}
+
+/**
+ * Run the unified setup wizard
+ */
+export async function runSetupWizard(): Promise<void> {
+  const actions: SetupActions = {
+    createdDirs: [],
+    wroteEnv: false,
+    envVars: [],
+    installedService: null,
+    startedService: false,
+  };
+
   theme.asciiArt();
   theme.blank();
-  theme.header('Installation Wizard');
-  theme.blank();
-  theme.info('This wizard will help you configure klausbot for your environment.');
+  theme.header('Setup');
   theme.blank();
 
-  // Check prerequisites
-  theme.info('Checking prerequisites...');
-  theme.blank();
+  // Load existing config (from file and environment)
+  const fileEnv = parseEnvFile(ENV_PATH);
+  const existingEnv = {
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || fileEnv.TELEGRAM_BOT_TOKEN,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY || fileEnv.OPENAI_API_KEY,
+  };
+  const newEnv: Record<string, string> = { ...fileEnv };
 
-  const hasClaudeCli = commandExists('claude');
-  if (hasClaudeCli) {
-    theme.success('Claude CLI found');
+  // 1. Telegram Bot Token
+  if (existingEnv.TELEGRAM_BOT_TOKEN) {
+    theme.success('Telegram Bot Token: already configured');
+    newEnv.TELEGRAM_BOT_TOKEN = existingEnv.TELEGRAM_BOT_TOKEN;
   } else {
-    theme.warn('Claude CLI not found');
-    const continueAnyway = await confirm({
-      message: 'Claude CLI not detected. Continue anyway?',
-      default: false,
-    });
-    if (!continueAnyway) {
-      theme.blank();
-      theme.info('Install Claude CLI first: https://claude.ai/code');
-      process.exit(1);
-    }
-  }
-
-  theme.blank();
-
-  // Prompt for bot token
-  const botToken = await input({
-    message: 'Telegram Bot Token:',
-    validate: (value) => {
-      if (!value.includes(':')) {
-        return 'Invalid token format. Get your token from @BotFather on Telegram.';
-      }
-      return true;
-    },
-  });
-
-  // Select deployment mode
-  const deployMode = await select({
-    message: 'Deployment mode:',
-    choices: [
-      {
-        name: 'systemd (recommended for Linux servers)',
-        value: 'systemd',
-      },
-      {
-        name: 'docker (containerized deployment)',
-        value: 'docker',
-      },
-      {
-        name: 'dev (development, run foreground)',
-        value: 'dev',
-      },
-    ],
-  });
-
-  if (deployMode === 'systemd') {
-    await handleSystemdInstall(botToken);
-  } else if (deployMode === 'docker') {
-    await handleDockerInstall(botToken);
-  } else {
-    await handleDevInstall(botToken);
-  }
-
-  // Install skill-creator for Claude skill authoring
-  theme.blank();
-  theme.info('Installing skill-creator...');
-  try {
-    await ensureSkillCreator();
-    theme.success('skill-creator installed to ~/.claude/skills/');
-  } catch (error) {
-    // Non-fatal - user can install later
-    theme.warn('Failed to install skill-creator (network error). Run install again later.');
-  }
-}
-
-/**
- * Handle systemd deployment mode
- */
-async function handleSystemdInstall(botToken: string): Promise<void> {
-  // Check systemd availability
-  if (!commandExists('systemctl')) {
+    theme.info('Get your bot token from @BotFather on Telegram');
     theme.blank();
-    theme.warn('systemd not available on this system.');
-    const fallback = await select({
-      message: 'Choose alternative:',
-      choices: [
-        { name: 'Docker', value: 'docker' },
-        { name: 'Dev mode', value: 'dev' },
-        { name: 'Exit', value: 'exit' },
-      ],
+
+    const token = await input({
+      message: 'Telegram Bot Token:',
+      validate: (value) => {
+        if (!value.includes(':')) {
+          return 'Invalid format (should contain ":")';
+        }
+        return true;
+      },
     });
 
-    if (fallback === 'docker') {
-      return handleDockerInstall(botToken);
-    } else if (fallback === 'dev') {
-      return handleDevInstall(botToken);
-    } else {
-      process.exit(0);
+    newEnv.TELEGRAM_BOT_TOKEN = token;
+    actions.envVars.push('TELEGRAM_BOT_TOKEN');
+  }
+
+  // 2. OpenAI API Key (optional)
+  theme.blank();
+  if (existingEnv.OPENAI_API_KEY) {
+    theme.success('OpenAI API Key: already configured');
+    newEnv.OPENAI_API_KEY = existingEnv.OPENAI_API_KEY;
+  } else {
+    const apiKey = await input({
+      message: 'OpenAI API Key (optional, enter to skip):',
+      validate: (value) => {
+        if (value && !value.startsWith('sk-')) {
+          return 'Invalid format (should start with "sk-")';
+        }
+        return true;
+      },
+    });
+
+    if (apiKey) {
+      newEnv.OPENAI_API_KEY = apiKey;
+      actions.envVars.push('OPENAI_API_KEY');
     }
   }
 
-  // Prompt for paths
-  const installDir = await input({
-    message: 'Install directory:',
-    default: '/opt/klausbot',
-  });
+  // 3. Create directories (only if needed)
+  const dirs = [KLAUSBOT_HOME, LOGS_DIR, join(KLAUSBOT_HOME, 'identity')];
+  for (const dir of dirs) {
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+      actions.createdDirs.push(dir);
+    }
+  }
 
-  const dataDir = await input({
-    message: 'Data directory:',
-    default: `${installDir}/data`,
-  });
+  // 4. Write .env file (only if we have new values)
+  if (actions.envVars.length > 0) {
+    const envContent = Object.entries(newEnv)
+      .map(([k, v]) => `${k}=${v}`)
+      .join('\n') + '\n';
+    writeFileSync(ENV_PATH, envContent, { mode: 0o600 });
+    actions.wroteEnv = true;
+  }
 
-  // Generate .env file
-  const envContent = generateEnvContent(botToken, dataDir);
-  const envPath = './.env';
+  // 5. Install/start service
+  const platform = detectPlatform();
 
-  theme.blank();
-  theme.info('Generating configuration...');
-  writeFileSync(envPath, envContent);
-  theme.success(`Created: ${envPath}`);
+  if (platform.platform === 'linux' || platform.isWSL) {
+    // Always regenerate service file (paths may change)
+    if (!existsSync(SYSTEMD_DIR)) {
+      mkdirSync(SYSTEMD_DIR, { recursive: true });
+      actions.createdDirs.push(SYSTEMD_DIR);
+    }
+    writeFileSync(SYSTEMD_SERVICE, generateSystemdService());
+    actions.installedService = SYSTEMD_SERVICE;
 
-  // Generate service file
-  const serviceContent = generateServiceFile(installDir);
-  const servicePath = './klausbot.service';
-  writeFileSync(servicePath, serviceContent);
-  theme.success(`Created: ${servicePath}`);
-
-  // Ask to install now
-  theme.blank();
-  const installNow = await confirm({
-    message: 'Install and start systemd service now? (requires sudo)',
-    default: false,
-  });
-
-  if (installNow) {
     try {
-      theme.blank();
-      theme.info('Installing systemd service...');
-
-      // Create user if needed
+      execSync('systemctl --user daemon-reload', { stdio: 'pipe' });
+      execSync('systemctl --user enable klausbot', { stdio: 'pipe' });
+      // Restart if already running, start if not
       try {
-        execSync('id klausbot', { stdio: 'pipe' });
+        execSync('systemctl --user restart klausbot', { stdio: 'pipe' });
       } catch {
-        theme.info('Creating klausbot user...');
-        execSync('sudo useradd -r -s /bin/false klausbot', { stdio: 'inherit' });
+        execSync('systemctl --user start klausbot', { stdio: 'pipe' });
       }
+      actions.startedService = true;
+    } catch {
+      // Will show manual instructions
+    }
+  } else if (platform.platform === 'macos') {
+    // Always regenerate plist (paths may change)
+    if (!existsSync(LAUNCHD_DIR)) {
+      mkdirSync(LAUNCHD_DIR, { recursive: true });
+      actions.createdDirs.push(LAUNCHD_DIR);
+    }
+    writeFileSync(LAUNCHD_PLIST, generateLaunchdPlist());
+    actions.installedService = LAUNCHD_PLIST;
 
-      // Create directories
-      theme.info('Creating directories...');
-      execSync(`sudo mkdir -p ${installDir}`, { stdio: 'inherit' });
-      execSync(`sudo mkdir -p ${dataDir}`, { stdio: 'inherit' });
-      execSync(`sudo chown -R klausbot:klausbot ${installDir}`, { stdio: 'inherit' });
+    try {
+      // Unload first in case it's running
+      try { execSync(`launchctl unload ${LAUNCHD_PLIST}`, { stdio: 'pipe' }); } catch {}
+      execSync(`launchctl load ${LAUNCHD_PLIST}`, { stdio: 'pipe' });
+      actions.startedService = true;
+    } catch {
+      // Will show manual instructions
+    }
+  }
 
-      // Copy service file
-      theme.info('Installing service file...');
-      execSync(`sudo cp ${servicePath} /etc/systemd/system/klausbot.service`, { stdio: 'inherit' });
+  // 6. Show summary
+  theme.blank();
+  theme.header('Summary');
+  theme.blank();
 
-      // Reload and enable
-      theme.info('Enabling service...');
-      execSync('sudo systemctl daemon-reload', { stdio: 'inherit' });
-      execSync('sudo systemctl enable klausbot', { stdio: 'inherit' });
-      execSync('sudo systemctl start klausbot', { stdio: 'inherit' });
+  const didSomething = actions.createdDirs.length > 0 || actions.wroteEnv || actions.installedService;
 
-      theme.blank();
-      theme.success('klausbot service installed and started!');
-      theme.blank();
-      theme.header('Useful commands');
-      theme.list([
-        'sudo systemctl status klausbot   # Check status',
-        'sudo journalctl -u klausbot -f   # View logs',
-        'sudo systemctl restart klausbot  # Restart',
-      ], { indent: 2 });
-    } catch (err) {
-      theme.blank();
-      theme.error('Installation failed. You can install manually:');
-      theme.list([
-        `Copy files to ${installDir}`,
-        `sudo cp ${servicePath} /etc/systemd/system/`,
-        'sudo systemctl daemon-reload',
-        'sudo systemctl enable --now klausbot',
-      ], { indent: 2 });
+  if (actions.createdDirs.length > 0) {
+    theme.info('Created:');
+    theme.list(actions.createdDirs);
+    theme.blank();
+  }
+
+  if (actions.wroteEnv) {
+    theme.info('Configured:');
+    theme.list([ENV_PATH, ...actions.envVars.map(v => `  ${v}`)]);
+    theme.blank();
+  }
+
+  if (actions.installedService) {
+    theme.info('Installed:');
+    theme.list([actions.installedService]);
+    theme.blank();
+  }
+
+  if (actions.startedService) {
+    theme.success('klausbot is running!');
+  } else if (platform.platform === 'linux' || platform.isWSL || platform.platform === 'macos') {
+    theme.warn('Could not start service automatically');
+    theme.info('Run: klausbot restart');
+  } else {
+    theme.info('Run: klausbot daemon');
+  }
+
+  if (!didSomething && actions.startedService) {
+    theme.blank();
+    theme.info('Everything was already configured, service restarted.');
+  }
+
+  theme.blank();
+  theme.info('klausbot status   - check status');
+  theme.info('klausbot restart  - restart service');
+}
+
+/**
+ * Show klausbot status
+ */
+export async function runStatus(): Promise<void> {
+  theme.header('Status');
+  theme.blank();
+
+  const platform = detectPlatform();
+
+  // 1. Config status
+  const fileEnv = parseEnvFile(ENV_PATH);
+  const hasToken = Boolean(process.env.TELEGRAM_BOT_TOKEN || fileEnv.TELEGRAM_BOT_TOKEN);
+  const hasOpenAI = Boolean(process.env.OPENAI_API_KEY || fileEnv.OPENAI_API_KEY);
+
+  if (hasToken) {
+    theme.success('Telegram Bot Token: configured');
+  } else {
+    theme.error('Telegram Bot Token: missing');
+  }
+
+  if (hasOpenAI) {
+    theme.success('OpenAI API Key: configured');
+  } else {
+    theme.info('OpenAI API Key: not configured (optional)');
+  }
+
+  // 2. Claude CLI
+  theme.blank();
+  const claudePath = which('claude');
+  if (claudePath) {
+    theme.success(`Claude CLI: ${claudePath}`);
+  } else {
+    theme.error('Claude CLI: not found in PATH');
+  }
+
+  // 3. Service status
+  theme.blank();
+  if (platform.platform === 'linux' || platform.isWSL) {
+    if (!existsSync(SYSTEMD_SERVICE)) {
+      theme.info('Service: not installed');
+      theme.info('Run: klausbot setup');
+    } else {
+      try {
+        const output = execSync('systemctl --user is-active klausbot', {
+          encoding: 'utf-8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
+        if (output === 'active') {
+          theme.success('Service: running');
+        } else {
+          theme.warn(`Service: ${output}`);
+        }
+      } catch {
+        theme.warn('Service: not running');
+      }
+    }
+  } else if (platform.platform === 'macos') {
+    if (!existsSync(LAUNCHD_PLIST)) {
+      theme.info('Service: not installed');
+      theme.info('Run: klausbot setup');
+    } else {
+      try {
+        const output = execSync('launchctl list | grep com.klausbot', {
+          encoding: 'utf-8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
+        if (output) {
+          theme.success('Service: running');
+        } else {
+          theme.warn('Service: not running');
+        }
+      } catch {
+        theme.warn('Service: not running');
+      }
     }
   } else {
-    theme.blank();
-    theme.header('Manual Installation');
-    theme.list([
-      `Copy project files to ${installDir}`,
-      `Copy .env to ${installDir}/.env`,
-      `sudo cp ${servicePath} /etc/systemd/system/`,
-      'sudo useradd -r -s /bin/false klausbot',
-      `sudo mkdir -p ${dataDir}`,
-      `sudo chown -R klausbot:klausbot ${installDir}`,
-      'sudo systemctl daemon-reload',
-      'sudo systemctl enable --now klausbot',
-    ], { indent: 2 });
+    theme.info('Service: not supported on this platform');
   }
 }
 
 /**
- * Handle Docker deployment mode
+ * Restart klausbot service
  */
-async function handleDockerInstall(botToken: string): Promise<void> {
-  // Check docker availability
-  if (!commandExists('docker')) {
-    theme.blank();
-    theme.error('Docker not found. Please install Docker first.');
-    process.exit(1);
+export async function runRestart(): Promise<void> {
+  const platform = detectPlatform();
+
+  if (platform.platform === 'linux' || platform.isWSL) {
+    if (!existsSync(SYSTEMD_SERVICE)) {
+      theme.error('Service not installed. Run: klausbot setup');
+      return;
+    }
+    try {
+      execSync('systemctl --user restart klausbot', { stdio: 'pipe' });
+      theme.success('Service restarted');
+    } catch {
+      theme.error('Failed to restart service');
+    }
+  } else if (platform.platform === 'macos') {
+    if (!existsSync(LAUNCHD_PLIST)) {
+      theme.error('Service not installed. Run: klausbot setup');
+      return;
+    }
+    try {
+      execSync(`launchctl unload ${LAUNCHD_PLIST}`, { stdio: 'pipe' });
+      execSync(`launchctl load ${LAUNCHD_PLIST}`, { stdio: 'pipe' });
+      theme.success('Service restarted');
+    } catch {
+      theme.error('Failed to restart service');
+    }
+  } else {
+    theme.error('Service not supported on this platform');
   }
-
-  const dataDir = await input({
-    message: 'Data directory (host path):',
-    default: './data',
-  });
-
-  // Generate .env file
-  const envContent = generateEnvContent(botToken, '/app/data');
-  const envPath = './.env';
-
-  theme.blank();
-  theme.info('Generating configuration...');
-  writeFileSync(envPath, envContent);
-  theme.success(`Created: ${envPath}`);
-
-  // Ensure data dir exists
-  if (!existsSync(dataDir)) {
-    mkdirSync(dataDir, { recursive: true });
-    theme.success(`Created: ${dataDir}/`);
-  }
-
-  theme.blank();
-  theme.success('Docker deployment ready!');
-  theme.blank();
-  theme.header('Build and run');
-  theme.list([
-    'docker build -t klausbot .',
-    `docker run -d --name klausbot --env-file .env -v ${dataDir}:/app/data klausbot`,
-  ], { indent: 2 });
-  theme.blank();
-  theme.header('Management');
-  theme.list([
-    'docker logs -f klausbot   # View logs',
-    'docker restart klausbot   # Restart',
-    'docker stop klausbot      # Stop',
-  ], { indent: 2 });
 }
 
 /**
- * Handle dev deployment mode
+ * Uninstall klausbot service
  */
-async function handleDevInstall(botToken: string): Promise<void> {
-  const dataDir = await input({
-    message: 'Data directory:',
-    default: './data',
-  });
-
-  // Generate .env file
-  const envContent = generateEnvContent(botToken, dataDir);
-  const envPath = './.env';
-
+export async function runUninstall(): Promise<void> {
+  theme.header('Uninstall');
   theme.blank();
-  theme.info('Generating configuration...');
-  writeFileSync(envPath, envContent);
-  theme.success(`Created: ${envPath}`);
 
-  // Ensure data dir exists
-  if (!existsSync(dataDir)) {
-    mkdirSync(dataDir, { recursive: true });
-    theme.success(`Created: ${dataDir}/`);
+  const platform = detectPlatform();
+  let removed = false;
+
+  if (platform.platform === 'linux' || platform.isWSL) {
+    if (existsSync(SYSTEMD_SERVICE)) {
+      try {
+        execSync('systemctl --user stop klausbot', { stdio: 'pipe' });
+        theme.info('Stopped service');
+      } catch { /* not running */ }
+
+      try {
+        execSync('systemctl --user disable klausbot', { stdio: 'pipe' });
+        theme.info('Disabled service');
+      } catch { /* not enabled */ }
+
+      const { unlinkSync } = await import('fs');
+      unlinkSync(SYSTEMD_SERVICE);
+      theme.info(`Removed: ${SYSTEMD_SERVICE}`);
+
+      execSync('systemctl --user daemon-reload', { stdio: 'pipe' });
+      removed = true;
+    } else {
+      theme.info('Service not installed');
+    }
+  } else if (platform.platform === 'macos') {
+    if (existsSync(LAUNCHD_PLIST)) {
+      try {
+        execSync(`launchctl unload ${LAUNCHD_PLIST}`, { stdio: 'pipe' });
+        theme.info('Unloaded service');
+      } catch { /* not loaded */ }
+
+      const { unlinkSync } = await import('fs');
+      unlinkSync(LAUNCHD_PLIST);
+      theme.info(`Removed: ${LAUNCHD_PLIST}`);
+      removed = true;
+    } else {
+      theme.info('Service not installed');
+    }
+  } else {
+    theme.info('No service to uninstall on this platform');
   }
 
-  theme.blank();
-  theme.success('Development mode ready!');
-  theme.blank();
-  theme.header('Run klausbot');
-  theme.list([
-    'npm run dev',
-  ], { indent: 2 });
-  theme.blank();
-  theme.header('Production build');
-  theme.list([
-    'npm run build',
-    'npm start',
-  ], { indent: 2 });
+  if (removed) {
+    theme.blank();
+    theme.success('Service uninstalled');
+    theme.blank();
+    theme.info(`Config preserved: ${ENV_PATH}`);
+    theme.info(`Data preserved: ${KLAUSBOT_HOME}`);
+  }
 }

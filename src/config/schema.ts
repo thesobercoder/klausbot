@@ -15,9 +15,6 @@ export const envSchema = z.object({
   LOG_LEVEL: z
     .enum(['silent', 'trace', 'debug', 'info', 'warn', 'error', 'fatal'])
     .default('info'),
-
-  /** Directory for persistent data (queue, pairing, etc.) */
-  DATA_DIR: z.string().default('./data'),
 });
 
 /** Inferred environment config type */

@@ -10,12 +10,16 @@
 import { Command } from 'commander';
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
+import { homedir } from 'os';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { theme } from './cli/theme.js';
 
-// Load .env file FIRST before any config access
+// Load .env from both locations (later loads don't override existing)
+// 1. Current directory (for development)
+// 2. ~/.klausbot/.env (for production)
 dotenv.config();
+dotenv.config({ path: join(homedir(), '.klausbot', '.env') });
 
 /**
  * Get package version from package.json
@@ -95,7 +99,6 @@ Skills: npx skills or manually add to ~/.claude/skills/
 
 Environment Variables:
   TELEGRAM_BOT_TOKEN    Telegram bot token (required)
-  DATA_DIR              Data directory (default: ./data)
   LOG_LEVEL             Log level (default: info)
 `);
 
@@ -170,13 +173,40 @@ program
     ], { indent: 2 });
   });
 
-// install command
+// setup command
 program
-  .command('install')
-  .description('Interactive installation wizard')
+  .command('setup')
+  .description('First-time setup wizard')
   .action(async () => {
-    const { runInstallWizard } = await import('./cli/index.js');
-    await runInstallWizard();
+    const { runSetupWizard } = await import('./cli/install.js');
+    await runSetupWizard();
+  });
+
+// uninstall command
+program
+  .command('uninstall')
+  .description('Remove background service')
+  .action(async () => {
+    const { runUninstall } = await import('./cli/install.js');
+    await runUninstall();
+  });
+
+// status command
+program
+  .command('status')
+  .description('Check klausbot status')
+  .action(async () => {
+    const { runStatus } = await import('./cli/install.js');
+    await runStatus();
+  });
+
+// restart command
+program
+  .command('restart')
+  .description('Restart background service')
+  .action(async () => {
+    const { runRestart } = await import('./cli/install.js');
+    await runRestart();
   });
 
 // cron command
@@ -243,9 +273,9 @@ pairing
   .description('Approve pairing request')
   .action(async (code: string) => {
     silenceLogs();
-    const { config } = await import('./config/index.js');
+    const { KLAUSBOT_HOME } = await import('./memory/home.js');
     const { initPairingStore } = await import('./pairing/index.js');
-    const store = initPairingStore(config.DATA_DIR);
+    const store = initPairingStore(KLAUSBOT_HOME);
 
     const result = store.approvePairing(code.toUpperCase());
     if (result) {
@@ -261,9 +291,9 @@ pairing
   .description('Reject pairing request')
   .action(async (code: string) => {
     silenceLogs();
-    const { config } = await import('./config/index.js');
+    const { KLAUSBOT_HOME } = await import('./memory/home.js');
     const { initPairingStore } = await import('./pairing/index.js');
-    const store = initPairingStore(config.DATA_DIR);
+    const store = initPairingStore(KLAUSBOT_HOME);
 
     const rejected = store.rejectPairing(code.toUpperCase());
     if (rejected) {
@@ -279,9 +309,9 @@ pairing
   .description('List pending and approved users')
   .action(async () => {
     silenceLogs();
-    const { config } = await import('./config/index.js');
+    const { KLAUSBOT_HOME } = await import('./memory/home.js');
     const { initPairingStore } = await import('./pairing/index.js');
-    const store = initPairingStore(config.DATA_DIR);
+    const store = initPairingStore(KLAUSBOT_HOME);
 
     const pending = store.listPending();
     const approved = store.listApproved();
@@ -319,9 +349,9 @@ pairing
   .option('-f, --force', 'Skip confirmation prompt')
   .action(async (chatIdStr: string, options: { force?: boolean }) => {
     silenceLogs();
-    const { config } = await import('./config/index.js');
+    const { KLAUSBOT_HOME } = await import('./memory/home.js');
     const { initPairingStore } = await import('./pairing/index.js');
-    const store = initPairingStore(config.DATA_DIR);
+    const store = initPairingStore(KLAUSBOT_HOME);
 
     const chatId = parseInt(chatIdStr, 10);
     if (isNaN(chatId)) {

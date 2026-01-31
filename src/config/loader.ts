@@ -16,7 +16,7 @@ export function loadConfig(): Config {
 
     throw new Error(
       `Configuration validation failed:\n${issues.join('\n')}\n\n` +
-        `Ensure required environment variables are set in .env or environment.`
+        `Ensure required environment variables are set in ~/.klausbot/.env or environment.`
     );
   }
 

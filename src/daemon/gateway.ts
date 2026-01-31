@@ -7,7 +7,7 @@ import {
   handleStartCommand,
   getPairingStore,
 } from '../pairing/index.js';
-import { config } from '../config/index.js';
+import { KLAUSBOT_HOME } from '../memory/home.js';
 import { createChildLogger, sendLongMessage } from '../utils/index.js';
 import { autoCommitChanges } from '../utils/git.js';
 import {
@@ -206,9 +206,9 @@ export async function startGateway(): Promise<void> {
   log.info({ skills: getInstalledSkillNames() }, 'Registered skill commands');
 
   // Initialize data directory and components
-  ensureDataDir(config.DATA_DIR);
-  queue = new MessageQueue(config.DATA_DIR);
-  initPairingStore(config.DATA_DIR);
+  ensureDataDir(KLAUSBOT_HOME);
+  queue = new MessageQueue(KLAUSBOT_HOME);
+  initPairingStore(KLAUSBOT_HOME);
 
   // Log startup stats
   const stats = queue.getStats();
