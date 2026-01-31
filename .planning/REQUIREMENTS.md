@@ -122,16 +122,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | Phase 9 | Pending |
-| PLAT-02 | Phase 9 | Pending |
-| PLAT-03 | Phase 9 | Pending |
-| PLAT-05 | Phase 9 | Pending |
-| PLAT-06 | Phase 9 | Pending |
-| DTCT-01 | Phase 9 | Pending |
-| DTCT-02 | Phase 9 | Pending |
-| DTCT-03 | Phase 9 | Pending |
-| DTCT-04 | Phase 9 | Pending |
-| DTCT-05 | Phase 9 | Pending |
+| PLAT-01 | Phase 9 | Complete |
+| PLAT-02 | Phase 9 | Complete |
+| PLAT-03 | Phase 9 | Complete |
+| PLAT-05 | Phase 9 | Complete |
+| PLAT-06 | Phase 9 | Complete |
+| DTCT-01 | Phase 9 | Complete |
+| DTCT-02 | Phase 9 | Complete |
+| DTCT-03 | Phase 9 | Complete |
+| DTCT-04 | Phase 9 | Complete |
+| DTCT-05 | Phase 9 | Complete |
 | DOCT-01 | Phase 10 | Pending |
 | DOCT-02 | Phase 10 | Pending |
 | DOCT-03 | Phase 10 | Pending |
