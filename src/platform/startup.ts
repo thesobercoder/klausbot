@@ -109,6 +109,9 @@ export async function validateRequiredCapabilities(): Promise<void> {
     theme.blank();
     theme.muted('  Run `klausbot doctor` for detailed diagnostics');
     theme.blank();
-    process.exit(1);
+    // Use setImmediate to allow pino logger to flush before exit
+    setImmediate(() => process.exit(1));
+    // Return a never-resolving promise to prevent further execution
+    await new Promise(() => {});
   }
 }
