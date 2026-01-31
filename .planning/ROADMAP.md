@@ -276,10 +276,12 @@ Plans:
 3. Different data types (lists, tables, confirmations, errors) have distinct but cohesive styling
 4. Existing CLI commands migrated to use theme helpers
 5. Theme easily customizable via single configuration point
-**Plans**: (created by /gsd:plan-phase)
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 8 to break down)
+- [ ] 08-01-PLAN.md — Create theme module with muted color helpers
+- [ ] 08-02-PLAN.md — Migrate CLI files to use theme
+- [ ] 08-03-PLAN.md — End-to-end verification (human checkpoint)
 
 ## Progress
 
@@ -300,7 +302,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 7. Resilience    | 4/4            | Complete    | 2026-01-30 |
 | 7.1 Memory Search| 3/3            | Complete    | 2026-01-30 |
 | 7.2 Continuity   | 5/5            | Complete    | 2026-01-31 |
-| 8. CLI Theme     | 0/?            | Not started | -          |
+| 8. CLI Theme     | 0/3            | Not started | -          |
 
 ---
 
