@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-evolving personal assistant that communicates via Telegram, backed by Claude Code running in a VM. Uses file-based memory and identity system inspired by the Recursive Language Model paper and Moltbot's architecture. Fully autonomous and self-servicing — can update its own files, create skills, and improve over time.
+A self-evolving personal assistant based on Claude Code with persistent memory, scheduled tasks, and multimodal input. Uses file-based identity system and SQLite storage for conversations and embeddings. Fully autonomous and self-servicing — can update its own files, create skills, and improve over time.
 
 ## Core Value
 
@@ -12,75 +12,70 @@ A self-evolving personal assistant that communicates via Telegram, backed by Cla
 
 ### Validated
 
-(None yet — ship to validate)
+- INFRA-01 through INFRA-05 — v1.0 (gateway, spawner, security, graceful restart)
+- COMM-01 through COMM-06 — v1.0 (text, voice, images, thinking indicator, errors)
+- MEM-01 through MEM-07 — v1.0 (SQLite storage, hybrid context, semantic search)
+- IDEN-01 through IDEN-06 — v1.0 (identity files, bootstrap, persistence)
+- CRON-01 through CRON-05 — v1.0 (persistent crons, natural language, notifications)
+- SKILL-01, SKILL-03, SKILL-05 — v1.0 (skill folder, pre-installed, standard format)
+- EVOL-01 through EVOL-04 — v1.0 (learnings, consults, modifies, git)
 
 ### Active
 
-- [ ] Telegram bot interface — send message, get response
-- [ ] Wrapper process — runs 24/7, polls Telegram, spawns Claude Code sessions per message
-- [ ] Conversation persistence — all conversations saved to SQLite or file
-- [ ] Identity files — SOUL.md, IDENTITY.md, USER.md with Claude-writable access
-- [ ] Bootstrap flow — onboarding conversation creates identity files on first run
-- [ ] Context restoration — each session reads memory files + conversation history agentic-ally
-- [ ] Cron system — scheduled tasks from plaintext instructions, stored and executed
-- [ ] Skills system — reusable capabilities in folder, Claude selects based on task
-- [ ] Proactive skill creation — Claude asks "should I create a skill for this?" when patterns emerge
-- [ ] Self-improvement — learnings and mistakes written to files, consulted in future sessions
+(None — run `/gsd:new-milestone` to define v1.1 requirements)
 
 ### Out of Scope
 
 - Multi-user support — personal assistant, single user only
-- Web UI — Telegram is the interface
+- Web UI — Telegram is the interface (extensible to other channels)
 - Sandbox/restrictions — runs in VM, fully autonomous
 - Mobile app — Telegram handles mobile access
+- OAuth for external services — deferred to v2
 
 ## Context
 
-**Architecture (RLM-inspired):**
+**Current State (v1.0):**
 
-- Don't stuff everything into context window
-- Claude uses tools to agentic-ally read conversation history and identity files
-- New session each message, but full context reconstructed from files
-- Infinite conversation without context loss
+- 7,359 LOC TypeScript across 59 source files
+- Tech stack: Node.js, grammY, better-sqlite3, sqlite-vec, Drizzle ORM
+- MCP tools: create_cron, list_crons, update_cron, delete_cron, search_memories, get_conversation
+- Database: SQLite with WAL, FTS5, sqlite-vec for vectors
+- Claude Code hooks: SessionStart, PreCompact, SessionEnd
 
-**Identity system (Moltbot-inspired):**
+**Architecture:**
 
-- `BOOTSTRAP.md` — onboarding conversation, creates other files, self-deletes
-- `IDENTITY.md` — surface attributes: name, vibe, emoji
-- `SOUL.md` — constitution: core truths, boundaries, values
-- `USER.md` — info about user: preferences, context
-- `LEARNINGS.md` — mistakes and insights, consulted to avoid repeating errors
+- Gateway daemon polls Telegram, spawns Claude Code per message
+- Stateless sessions with file-based state reconstruction
+- Identity files (SOUL.md, IDENTITY.md, USER.md) stuffed in context
+- Conversations stored in SQLite with AI-generated summaries
+- Embeddings via text-embedding-3-small, stored in sqlite-vec
 
-**Wrapper process:**
+**Tech Debt (v1.0):**
 
-- Python/Node script runs continuously
-- Polls Telegram for new messages
-- On message: invokes Claude Code with message + file references
-- Sends Claude's response back via Telegram
-- Handles cron scheduling separately
-
-**References:**
-
-- RLM paper: https://arxiv.org/html/2512.24601v1
-- Moltbot: https://github.com/moltbot/moltbot
-- Moltbot docs: https://docs.molt.bot/reference/templates/BOOTSTRAP
+- SKILL-02/04: Skill selection depends on Claude Code native Skill tool
+- EVOL-05: Proactive suggestions rely on Claude inference, no automation
+- ASCII art aesthetics (functional but improvable)
 
 ## Constraints
 
 - **Backend**: Claude Code — the assistant IS Claude Code, not a separate LLM
 - **Environment**: VM — no sandbox needed, fully autonomous
-- **Interface**: Telegram only
+- **Interface**: Telegram primary (extensible)
 - **User**: Single user (personal software)
 
 ## Key Decisions
 
-| Decision                          | Rationale                                                    | Outcome   |
-| --------------------------------- | ------------------------------------------------------------ | --------- |
-| Claude Code as backend            | User wants Claude's full agentic capabilities, not just chat | — Pending |
-| File-based memory over embeddings | RLM approach: agentic file reading vs vector search          | — Pending |
-| Self-writable identity files      | Enables self-improvement and evolution                       | — Pending |
-| Skill-based task execution        | Reusable, composable, Claude can create new ones             | — Pending |
+| Decision                          | Rationale                                              | Outcome     |
+| --------------------------------- | ------------------------------------------------------ | ----------- |
+| Claude Code as backend            | Full agentic capabilities, not just chat               | Good        |
+| File-based memory + agentic read  | RLM approach: Claude reads what it needs               | Good        |
+| Self-writable identity files      | Enables self-improvement and evolution                 | Good        |
+| SQLite for embeddings             | Replaced JSON file, enables MCP tool access            | Good        |
+| MCP tools for cron/memory         | Typed operations, self-describing                      | Good        |
+| Claude Code hooks                 | Session continuity without full history in context     | Good        |
+| Drizzle ORM                       | Schema migrations, type safety                         | Good        |
+| CLI spawner + MCP (not Agent SDK) | Agent SDK query() hung; CLI + MCP reliable             | Good        |
 
 ---
 
-_Last updated: 2025-01-28 after initialization_
+*Last updated: 2026-01-31 after v1.0 milestone*
