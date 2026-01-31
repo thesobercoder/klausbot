@@ -8,7 +8,15 @@ import { getDrizzle } from './db.js';
 import { conversations } from './schema.js';
 import OpenAI from 'openai';
 
-const openai = new OpenAI();
+/** Lazy-initialized OpenAI client */
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI | null {
+  if (openaiClient !== null) return openaiClient;
+  if (!process.env.OPENAI_API_KEY) return null;
+  openaiClient = new OpenAI();
+  return openaiClient;
+}
 
 /** Conversation record for storage */
 export interface ConversationRecord {
@@ -88,6 +96,13 @@ export async function generateSummary(conversationText: string): Promise<string>
   // Skip if conversation is very short
   if (conversationText.length < 100) {
     return 'Brief conversation.';
+  }
+
+  // Skip if no OpenAI API key
+  const openai = getOpenAIClient();
+  if (!openai) {
+    const preview = conversationText.slice(0, 200).replace(/\n/g, ' ');
+    return `${preview}...`;
   }
 
   // Truncate very long conversations for summarization
