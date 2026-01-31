@@ -156,6 +156,10 @@ export async function queryClaudeCode(
     // Write MCP config to temp file for Claude CLI
     const mcpConfigPath = writeMcpConfigFile();
 
+    // Build hooks settings JSON
+    const hooksSettings = getHooksConfig();
+    const settingsJson = JSON.stringify(hooksSettings);
+
     // Build command arguments
     const args = [
       '--dangerously-skip-permissions',
@@ -163,6 +167,7 @@ export async function queryClaudeCode(
       '--output-format', 'json',
       '--append-system-prompt', systemPrompt,
       '--mcp-config', mcpConfigPath,
+      '--settings', settingsJson,
     ];
     if (options.model) {
       args.push('--model', options.model);
