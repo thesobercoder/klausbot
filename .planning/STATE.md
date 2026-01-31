@@ -5,32 +5,41 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** v1.0 complete — ready for next milestone
+**Current focus:** v1.1 Production Ready — defining requirements
 
 ## Current Position
 
-Phase: v1.0 COMPLETE
-Plan: N/A
-Status: SHIPPED
-Last activity: 2026-01-31 — v1.0 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-01-31 — Milestone v1.1 started
 
-Progress: [##########] 100% (46/46 plans complete)
+Progress: [░░░░░░░░░░] 0%
 
 ## Milestone Summary
 
-**v1.0 MVP shipped:**
-- 12 phases (including 4 decimal insertions)
-- 46 plans executed
-- 3 days from start to ship
-- 7,359 LOC TypeScript
-
-See `.planning/MILESTONES.md` for full details.
+**v1.1 scope:**
+- Onboard wizard + JSON config + encrypted pairing
+- Service management (launchd/systemd)
+- Telegram streaming + threading
+- Security hardening
+- Cross-platform (Mac/Linux/WSL2/Docker)
+- Feature detection + graceful degradation
+- Doctor command
+- Heartbeat.md system
+- Testing framework
+- Release docs
 
 ## Accumulated Context
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table.
+- Windows: WSL2 only (same as OpenClaw), no native Windows service
+- Streaming: OpenClaw-style draft streaming for Telegram
+- Config: JSON format
+- Testing: Unit + E2E ("tests pass = app works")
+- Docker: Single container, identical behavior everywhere
+- 12-factor: Never ask for secrets, read from env vars
 
 ### Roadmap Evolution
 
@@ -47,17 +56,16 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: v1.0 milestone complete
+Stopped at: Defining v1.1 requirements
 Resume file: None
 
 ## Next Steps
 
-Run `/gsd:new-milestone` to:
-1. Define v1.1 scope and requirements
-2. Create fresh ROADMAP.md
-3. Create fresh REQUIREMENTS.md
-4. Begin next development cycle
+1. Research (optional) for new features
+2. Define REQUIREMENTS.md
+3. Create ROADMAP.md
+4. Begin `/gsd:plan-phase [N]`
 
 ---
 *State updated: 2026-01-31*
-*v1.0 SHIPPED*
+*v1.1 in progress*

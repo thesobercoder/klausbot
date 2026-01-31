@@ -22,7 +22,21 @@ A self-evolving personal assistant based on Claude Code with persistent memory, 
 
 ### Active
 
-(None — run `/gsd:new-milestone` to define v1.1 requirements)
+**Current Milestone: v1.1 — Production Ready**
+
+**Goal:** Polish klausbot for release with proper setup, cross-platform support, streaming, and comprehensive testing.
+
+**Target features:**
+- Onboard wizard with JSON config, encrypted pairing, gateway guards
+- Service management (launchd/systemd) via CLI
+- Telegram draft streaming and thread support
+- Security hardening (prompt sanitization)
+- Cross-platform (Mac/Linux/WSL2/Docker), execPath detection
+- Feature detection via env vars, graceful degradation, 12-factor compliance
+- Doctor command for prerequisite checks
+- Heartbeat.md periodic awareness system (OpenClaw-inspired)
+- Complete testing framework (unit + E2E)
+- Release docs and README
 
 ### Out of Scope
 
@@ -78,4 +92,4 @@ A self-evolving personal assistant based on Claude Code with persistent memory, 
 
 ---
 
-*Last updated: 2026-01-31 after v1.0 milestone*
+*Last updated: 2026-01-31 after v1.1 milestone started*
