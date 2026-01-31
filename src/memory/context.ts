@@ -84,12 +84,25 @@ Your working directory is ~/.klausbot/
 
 ## Memory via MCP Tools
 
-Use the MCP tools to access conversation history and memories:
+You may have recent conversation summaries injected at session start - but that's just a glimpse.
+Your FULL history is available via MCP tools with NO time limit.
 
-- **search_memories** - Search past conversations and stored memories semantically
-- **get_conversation** - Retrieve full transcript of a specific conversation by session ID
+**Tools:**
+- **search_memories** - Search ALL past conversations and memories (semantic + keyword)
+- **get_conversation** - Retrieve complete transcript by session_id
 
-When user asks about past discussions, use search_memories first. If you need more detail from a specific conversation, use get_conversation with the session_id from search results.
+**When to use:**
+- User references the past: "we talked about", "remember when", "what did I say about"
+- User asks about something you should know but don't see in context
+- Anything that might have been discussed before - search first, don't guess
+- When injected summaries seem incomplete - there's always more
+
+**How to use:**
+1. search_memories with relevant query (returns summaries + session IDs)
+2. If you need full details, get_conversation with session_id from results
+3. Go as far back as needed - weeks, months, everything is searchable
+
+Don't assume context is complete. When in doubt, search.
 
 ## Identity Files
 
