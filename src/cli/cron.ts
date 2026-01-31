@@ -3,7 +3,6 @@
  * Used by Claude to create/list/delete cron jobs via bash commands
  */
 
-import pc from 'picocolors';
 import {
   createCronJob,
   listCronJobs,
@@ -14,6 +13,7 @@ import {
 } from '../cron/index.js';
 import { initializeHome } from '../memory/home.js';
 import { createChildLogger } from '../utils/logger.js';
+import { theme } from './theme.js';
 
 const log = createChildLogger('cron-cli');
 
@@ -83,14 +83,14 @@ async function handleAdd(args: string[]): Promise<void> {
   const opts = parseArgs(args);
 
   if (!opts.name || !opts.schedule || !opts.instruction || !opts.chatId) {
-    console.error('Error: Missing required arguments');
-    console.log('Usage: klausbot cron add --name <name> --schedule <schedule> --instruction <instruction> --chatId <chatId>');
+    theme.error('Missing required arguments');
+    theme.info('Usage: klausbot cron add --name <name> --schedule <schedule> --instruction <instruction> --chatId <chatId>');
     process.exit(1);
   }
 
   const parsed = parseSchedule(opts.schedule);
   if (!parsed) {
-    console.error(`Error: Could not parse schedule: "${opts.schedule}"`);
+    theme.error(`Could not parse schedule: "${opts.schedule}"`);
     process.exit(1);
   }
 
@@ -120,24 +120,25 @@ function handleList(args: string[]): void {
   const jobs = listCronJobs(chatId);
 
   if (jobs.length === 0) {
-    console.log('No cron jobs found.');
+    theme.info('No cron jobs found.');
     return;
   }
 
-  console.log(pc.cyan(`=== Cron Jobs (${jobs.length}) ===\n`));
+  theme.header(`Cron Jobs (${jobs.length})`);
+  theme.blank();
   for (const job of jobs) {
-    const status = job.enabled ? '✓' : '○';
+    const status = job.enabled ? theme.colors.green('\u2713') : theme.colors.dim('\u25CB');
     const nextRun = job.nextRunAtMs
       ? new Date(job.nextRunAtMs).toLocaleString()
       : 'N/A';
     const lastStatus = job.lastStatus ?? 'never run';
 
-    console.log(`${status} ${job.name}`);
-    console.log(`  ID:       ${job.id}`);
-    console.log(`  Schedule: ${job.humanSchedule}`);
-    console.log(`  Next run: ${nextRun}`);
-    console.log(`  Last:     ${lastStatus}`);
-    console.log('');
+    theme.text(`${status} ${job.name}`);
+    theme.keyValue('ID', job.id, { keyWidth: 10 });
+    theme.keyValue('Schedule', job.humanSchedule, { keyWidth: 10 });
+    theme.keyValue('Next run', nextRun, { keyWidth: 10 });
+    theme.keyValue('Last', lastStatus, { keyWidth: 10 });
+    theme.blank();
   }
 }
 
@@ -145,7 +146,7 @@ function handleGet(args: string[]): void {
   const opts = parseArgs(args);
 
   if (!opts.id) {
-    console.error('Error: Missing --id argument');
+    theme.error('Missing --id argument');
     process.exit(1);
   }
 
@@ -162,7 +163,7 @@ async function handleDelete(args: string[]): Promise<void> {
   const opts = parseArgs(args);
 
   if (!opts.id) {
-    console.error('Error: Missing --id argument');
+    theme.error('Missing --id argument');
     process.exit(1);
   }
 
@@ -174,7 +175,7 @@ async function handleDelete(args: string[]): Promise<void> {
       default: false,
     });
     if (!confirmed) {
-      console.log('Aborted.');
+      theme.info('Aborted.');
       return;
     }
   }
@@ -187,7 +188,7 @@ function handleUpdate(args: string[]): void {
   const opts = parseArgs(args);
 
   if (!opts.id) {
-    console.error('Error: Missing --id argument');
+    theme.error('Missing --id argument');
     process.exit(1);
   }
 
@@ -200,7 +201,7 @@ function handleUpdate(args: string[]): void {
   if (opts.schedule) {
     const parsed = parseSchedule(opts.schedule);
     if (!parsed) {
-      console.error(`Error: Could not parse schedule: "${opts.schedule}"`);
+      theme.error(`Could not parse schedule: "${opts.schedule}"`);
       process.exit(1);
     }
     updates.schedule = parsed.schedule;

@@ -2,6 +2,7 @@ import { existsSync, readFileSync, renameSync } from 'fs';
 import { getHomePath } from './home.js';
 import { getDb } from './db.js';
 import type { EmbeddingEntry } from './embeddings.js';
+import { theme } from '../cli/theme.js';
 
 /** Legacy embeddings file format */
 interface EmbeddingsFile {
@@ -34,7 +35,7 @@ export async function migrateEmbeddings(): Promise<number> {
     const content = readFileSync(jsonPath, 'utf-8');
     data = JSON.parse(content) as EmbeddingsFile;
   } catch (err) {
-    console.warn(`[migrate] Failed to read embeddings.json: ${err}`);
+    theme.warn(`Migration: Failed to read embeddings.json: ${err}`);
     return 0;
   }
 
@@ -42,7 +43,7 @@ export async function migrateEmbeddings(): Promise<number> {
   if (entries.length === 0) {
     // Empty file - just rename it
     renameSync(jsonPath, jsonPath + '.migrated');
-    console.log('[migrate] Empty embeddings.json renamed to .migrated');
+    theme.info('Migration: Empty embeddings.json archived');
     return 0;
   }
 
@@ -87,7 +88,7 @@ export async function migrateEmbeddings(): Promise<number> {
 
   // Rename JSON file to mark migration complete
   renameSync(jsonPath, jsonPath + '.migrated');
-  console.log(`[migrate] Migrated ${migrated} embeddings from JSON to SQLite`);
+  theme.success(`Migration: ${migrated} embeddings moved to SQLite`);
 
   return migrated;
 }
