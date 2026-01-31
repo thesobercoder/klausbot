@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** Phase 7.2 - Conversation Continuity (Claude Code hooks) - COMPLETE
+**Current focus:** Phase 7.2 - Conversation Continuity (Claude Code hooks)
 
 ## Current Position
 
 Phase: 7.2 of 7.2 (Conversation Continuity)
-Plan: 3 of 3 in Phase 7.2
-Status: Phase complete
-Last activity: 2026-01-31 - Completed 07.2-03-PLAN.md (Hooks Integration)
+Plan: 4 of 5 in Phase 7.2
+Status: In progress
+Last activity: 2026-01-31 - Completed 07.2-04-PLAN.md (MCP Conversation Tools)
 
-Progress: [██████████] 100% (41/41 plans complete)
+Progress: [██████████] 98% (42/43 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 41
+- Total plans completed: 42
 - Average duration: ~4.4 min (excluding human verification time)
-- Total execution time: ~181 min
+- Total execution time: ~185 min
 
 **By Phase:**
 
@@ -37,11 +37,11 @@ Progress: [██████████] 100% (41/41 plans complete)
 | 06-multimodal | 5/5 | ~11 min | 2.2 min |
 | 07-resilience-tooling | 4/4 | ~52 min | 13 min |
 | 07.1-memory-search-mcp | 3/3 | 16 min | 5.3 min |
-| 07.2-conversation-continuity | 3/3 | 8 min | 2.7 min |
+| 07.2-conversation-continuity | 4/5 | 12 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 07.1-03 (2 min), 07.2-01 (2 min), 07.2-02 (4 min), 07.2-03 (2 min)
-- Trend: Phase 7.2 complete - Conversation continuity with Claude Code hooks
+- Last 5 plans: 07.2-01 (2 min), 07.2-02 (4 min), 07.2-03 (2 min), 07.2-04 (4 min)
+- Trend: Phase 7.2 MCP conversation tools complete
 
 *Updated after each plan completion*
 
@@ -126,6 +126,9 @@ Recent decisions affecting current work:
 - 07.2-03: Quotes around paths handle spaces in node/script paths
 - 07.2-03: SessionStart matcher 'startup|resume' (skip clear/compact restarts)
 - 07.2-03: Hook timeouts: 10s start, 30s compact, 60s end (allows API calls)
+- 07.2-04: Keyword search for conversations (semantic search planned for future)
+- 07.2-04: Session ID in search results for drill-down workflow
+- 07.2-04: include_conversations param defaults to true
 
 ### Roadmap Evolution
 
@@ -145,8 +148,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-31T05:17:00Z
-Stopped at: Completed 07.2-03-PLAN.md (Hooks Integration) - Phase 7.2 COMPLETE
+Last session: 2026-01-31T05:18:00Z
+Stopped at: Completed 07.2-04-PLAN.md (MCP Conversation Tools)
 Resume file: None
 
 ---
