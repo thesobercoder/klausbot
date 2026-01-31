@@ -260,25 +260,23 @@ function boxed(content: string | string[], opts: BoxOptions = {}): void {
 
 /**
  * Output klausbot ASCII art branding
+ * Clean, modern design inspired by professional CLIs
  */
 function asciiArt(): void {
-  const art = [
+  // Simple geometric logo with clean typography
+  const lines = [
     '',
-    '  klausbot',
-    '  Telegram x Claude Code',
+    '   ▄█▀▀█▄',
+    '   █    █   klausbot',
+    '   █ ◈  █   ─────────────────────',
+    '   █    █   Telegram × Claude Code',
+    '   ▀█▄▄█▀',
     '',
   ];
 
-  const width = 27;
-  const topLine = `${box.topLeft}${box.horizontal.repeat(width)}${box.topRight}`;
-  const bottomLine = `${box.bottomLeft}${box.horizontal.repeat(width)}${box.bottomRight}`;
-
-  console.log(colors.cyan(topLine));
-  for (const line of art) {
-    const padded = line.padEnd(width);
-    console.log(colors.cyan(`${box.vertical}${padded}${box.vertical}`));
+  for (const line of lines) {
+    console.log(colors.cyan(line));
   }
-  console.log(colors.cyan(bottomLine));
 }
 
 /**
