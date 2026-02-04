@@ -39,6 +39,19 @@ cp .env.example .env
 npm run dev
 ```
 
+### Global Installation (Optional)
+
+To run `klausbot` from anywhere:
+
+```bash
+npm link
+mkdir -p ~/.klausbot
+cp .env.example ~/.klausbot/.env
+# Edit ~/.klausbot/.env with your TELEGRAM_BOT_TOKEN
+```
+
+Then run with `klausbot` instead of `npm run dev`.
+
 ### Pairing Your Telegram Account
 
 1. Find your bot on Telegram (the username you created with @BotFather)
