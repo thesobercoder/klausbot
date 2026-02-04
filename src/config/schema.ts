@@ -26,19 +26,8 @@ export type EnvConfig = z.infer<typeof envSchema>;
  * Uses strict mode - unknown keys cause validation failure
  */
 export const jsonConfigSchema = z.object({
-  /** AI model to use for responses */
-  model: z.string().default('claude-sonnet-4-20250514'),
-
-  /** Logging verbosity level */
-  logVerbosity: z.enum(['minimal', 'normal', 'verbose']).default('normal'),
-
-  /** User preferences */
-  preferences: z.object({
-    /** Timezone for date/time formatting */
-    timezone: z.string().optional(),
-    /** Preferred language code */
-    language: z.string().default('en'),
-  }).default({ language: 'en' }),
+  /** AI model to use for responses (opus, sonnet, haiku) */
+  model: z.string().optional(),
 }).strict(); // Fail on unknown keys
 
 /** Inferred JSON config type */
