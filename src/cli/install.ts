@@ -84,7 +84,7 @@ function generateSystemdService(): string {
   const claudeDir = claudePath ? dirname(claudePath) : '';
   const pathLine = claudeDir ? `Environment="PATH=${claudeDir}"\n` : '';
   return `[Unit]
-Description=Klausbot Telegram Gateway
+Description=Klausbot
 After=network.target
 
 [Service]

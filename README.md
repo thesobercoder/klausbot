@@ -1,4 +1,4 @@
-# klausbot
+# Klausbot
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -6,18 +6,18 @@
 
 ## Why I Built It
 
-I wanted to use [OpenClaw](https://github.com/openclaw/openclaw) — a Telegram bot that lets you chat with Claude — but couldn't due to Anthropic Terms of Service restrictions. So I built klausbot as an alternative approach.
+I wanted to use [OpenClaw](https://github.com/openclaw/openclaw) — a Telegram bot that lets you chat with Claude — but couldn't due to Anthropic Terms of Service restrictions. So I built Klausbot as an alternative approach.
 
-klausbot is a thin wrapper around [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that connects it to Telegram. This lets you use your existing Claude Code subscription rather than paying for API credits separately.
+Klausbot is a thin wrapper around [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that connects it to Telegram. This lets you use your existing Claude Code subscription rather than paying for API credits separately.
 
 ## What It Does
 
-klausbot connects Telegram to Claude through Claude Code. Send a message, get a response. It runs on your own machine and maintains conversation history across sessions.
+Klausbot connects Telegram to Claude through Claude Code. Send a message, get a response. It runs on your own machine and maintains conversation history across sessions.
 
 - **24/7 Claude-powered Telegram assistant** - Send messages anytime, get thoughtful responses from Claude
 - **Persistent memory** - Conversations are stored and searchable; Claude can recall what you discussed weeks ago
 - **Scheduled tasks** - Create reminders and recurring tasks using natural language ("remind me every Monday at 9am to review expenses")
-- **Voice transcription** - Send voice messages; klausbot transcribes and processes them automatically
+- **Voice transcription** - Send voice messages; Klausbot transcribes and processes them automatically
 - **Semantic search** - Find past conversations by meaning, not just keywords (requires OpenAI API key)
 
 ## Installation
@@ -120,7 +120,7 @@ cp klausbot.json.example ~/.klausbot/config/klausbot.json
 |-----|---------|-------------|
 | `model` | (inherited) | AI model: `opus`, `sonnet`, or `haiku` |
 
-If `model` is not set, klausbot uses your Claude Code default.
+If `model` is not set, Klausbot uses your Claude Code default.
 
 ## Troubleshooting
 
