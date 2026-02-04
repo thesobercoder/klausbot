@@ -111,19 +111,17 @@ cp .env.example .env
 
 Optional configuration in `~/.klausbot/config/klausbot.json`:
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `model` | `claude-sonnet-4-20250514` | AI model for responses |
-| `logVerbosity` | `normal` | Logging detail (minimal/normal/verbose) |
-
-Example:
-
 ```json
 {
-  "model": "claude-sonnet-4-20250514",
   "logVerbosity": "normal"
 }
 ```
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `logVerbosity` | `normal` | Logging detail (minimal/normal/verbose) |
+
+The AI model is inherited from your Claude Code configuration.
 
 ## Troubleshooting
 
