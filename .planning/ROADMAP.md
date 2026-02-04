@@ -166,8 +166,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 17-01-PLAN.md — Documentation files (LICENSE, .env.example, README.md)
-- [ ] 17-02-PLAN.md — User review checkpoint (fill story, add screenshots)
+- [x] 17-01-PLAN.md — Documentation files (LICENSE, .env.example, README.md)
+- [x] 17-02-PLAN.md — User review checkpoint (fill story, add screenshots)
 
 #### Phase 18: Testing Framework
 **Goal**: Comprehensive tests ensure "tests pass = app works" confidence
@@ -201,7 +201,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12 → 13 → 14 → 15 →
 | 14. Telegram Streaming | v1.1 | 0/2 | Not started | - |
 | 15. Telegram Threading | v1.1 | 0/1 | Not started | - |
 | 16. Heartbeat System | v1.1 | 0/3 | Not started | - |
-| 17. Docker & Release | v1.1 | 0/2 | Planned | - |
+| 17. Docker & Release | v1.1 | 2/2 | ✓ Complete | 2026-02-05 |
 | 18. Testing Framework | v1.1 | 0/4 | Not started | - |
 
 ---

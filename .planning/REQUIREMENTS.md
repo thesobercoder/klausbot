@@ -87,11 +87,11 @@ Requirements for v1.1 Production Ready release.
 
 ### Release
 
-- [ ] **RLSE-01**: README with step-by-step installation guide
-- [ ] **RLSE-02**: README includes "Why I built it" section
-- [ ] **RLSE-03**: Complete documentation for all commands
-- [ ] **RLSE-04**: Configuration reference documentation
-- [ ] **RLSE-05**: Troubleshooting guide
+- [x] **RLSE-01**: README with step-by-step installation guide
+- [x] **RLSE-02**: README includes "Why I built it" section
+- [x] **RLSE-03**: Complete documentation for all commands
+- [x] **RLSE-04**: Configuration reference documentation
+- [x] **RLSE-05**: Troubleshooting guide
 
 ## Future Requirements
 
@@ -167,11 +167,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HRTB-05 | Phase 16 | Pending |
 | HRTB-06 | Phase 16 | Pending |
 | PLAT-04 | - | DEFERRED |
-| RLSE-01 | Phase 17 | Pending |
-| RLSE-02 | Phase 17 | Pending |
-| RLSE-03 | Phase 17 | Pending |
-| RLSE-04 | Phase 17 | Pending |
-| RLSE-05 | Phase 17 | Pending |
+| RLSE-01 | Phase 17 | Complete |
+| RLSE-02 | Phase 17 | Complete |
+| RLSE-03 | Phase 17 | Complete |
+| RLSE-04 | Phase 17 | Complete |
+| RLSE-05 | Phase 17 | Complete |
 | TEST-01 | Phase 18 | Pending |
 | TEST-02 | Phase 18 | Pending |
 | TEST-03 | Phase 18 | Pending |
@@ -184,4 +184,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-31*
-*Last updated: 2026-02-04 - PLAT-04 marked DEFERRED per user decision*
+*Last updated: 2026-02-05 - Phase 17 requirements (RLSE-01 to RLSE-05) marked Complete*

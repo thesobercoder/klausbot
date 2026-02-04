@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** v1.1 Production Ready — Phase 10 (Doctor Command)
+**Current focus:** v1.1 Production Ready — Phase 18 (Testing Framework)
 
 ## Current Position
 
-Phase: 17 of 18 (Docker & Release)
-Plan: 01 of 01 complete
-Status: Phase 17-01 documentation complete
-Last activity: 2026-02-04 — Completed 17-01-PLAN.md (project documentation)
+Phase: 17 of 18 (Docker & Release) — COMPLETE
+Plan: 2/2 complete
+Status: Phase 17 complete, ready for Phase 18
+Last activity: 2026-02-05 — Completed phase 17 (documentation and release)
 
-Progress: [████████░░] 80% (estimated, phases 9-12 + 17-01 complete)
+Progress: [█████████░] 90% (phases 9-12 + 17 complete)
 
 ## Milestone Summary
 
@@ -37,16 +37,16 @@ Progress: [████████░░] 80% (estimated, phases 9-12 + 17-01 c
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (v1.1)
-- Average duration: 3m 18s
-- Total execution time: 13m 10s
+- Total plans completed: 5 (v1.1)
+- Average duration: 3m 03s
+- Total execution time: 15m 16s
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 09-platform-foundation | 3/3 | 11m 14s | 3m 45s |
-| 17-docker-release | 1/1 | 1m 56s | 1m 56s |
+| 17-docker-release | 2/2 | 4m 02s | 2m 01s |
 
 *Updated after each plan completion*
 
@@ -73,7 +73,9 @@ Progress: [████████░░] 80% (estimated, phases 9-12 + 17-01 c
 - Service commands: setup/status/restart/uninstall (no separate service subcommand)
 - MIT license for klausbot open source
 - Single README file (no docs/ folder)
-- Docker "Coming Soon" in documentation
+- Local dev only (not published npm package) — use `npm run dev`
+- .env reads from both project folder and ~/.klausbot/.env
+- Screenshots skipped — text descriptions sufficient
 
 ### Pending Todos
 
@@ -85,17 +87,15 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-04
-Stopped at: Completed 17-01-PLAN.md (project documentation)
+Last session: 2026-02-05
+Stopped at: Phase 17 complete (documentation and release)
 Resume file: None
 
 ## Next Steps
 
-1. User: Add personal narrative to README "Why I Built It" section
-2. User: Add Telegram interaction screenshots to README
-3. `/gsd:plan-phase 13` — Plan security hardening (prompt sanitization)
-4. Or `/gsd:plan-phase 14` — Plan Telegram streaming
+1. `/gsd:plan-phase 18` — Plan testing framework
+2. Or `/gsd:plan-phase 13` — Plan security hardening
 
 ---
-*State updated: 2026-02-04*
+*State updated: 2026-02-05*
 *v1.1 in progress*
