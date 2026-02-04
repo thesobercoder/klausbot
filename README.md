@@ -115,19 +115,13 @@ Optional configuration in `~/.klausbot/config/klausbot.json`:
 |-----|---------|-------------|
 | `model` | `claude-sonnet-4-20250514` | AI model for responses |
 | `logVerbosity` | `normal` | Logging detail (minimal/normal/verbose) |
-| `preferences.timezone` | - | Timezone for date/time formatting |
-| `preferences.language` | `en` | Preferred language code |
 
 Example:
 
 ```json
 {
   "model": "claude-sonnet-4-20250514",
-  "logVerbosity": "normal",
-  "preferences": {
-    "timezone": "America/New_York",
-    "language": "en"
-  }
+  "logVerbosity": "normal"
 }
 ```
 
