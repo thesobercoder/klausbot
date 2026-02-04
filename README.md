@@ -120,7 +120,7 @@ Optional configuration in `~/.klausbot/config/klausbot.json`:
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `model` | (inherited) | AI model: `opus` or `sonnet` |
+| `model` | (inherited) | AI model: `opus`, `sonnet`, or `haiku` |
 | `logVerbosity` | `normal` | Logging detail (minimal/normal/verbose) |
 
 If `model` is not set, klausbot uses your Claude Code default.
