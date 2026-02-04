@@ -8,7 +8,7 @@
 
 I wanted to use [OpenClaw](https://github.com/openclaw/openclaw) — a Telegram bot that lets you chat with Claude — but couldn't due to Anthropic Terms of Service restrictions. So I built klausbot as an alternative approach.
 
-Instead of calling the Anthropic API directly, klausbot is a thin wrapper around [Claude Code](https://docs.anthropic.com/en/docs/claude-code). There's nothing fancy here: Claude Code is the agent harness, and klausbot just connects it to Telegram. This lets you reuse your existing Claude Code subscription rather than paying for API credits separately.
+klausbot is a thin wrapper around [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that connects it to Telegram. This lets you use your existing Claude Code subscription rather than paying for API credits separately.
 
 ## What It Does
 
