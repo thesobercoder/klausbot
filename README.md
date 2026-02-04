@@ -31,9 +31,10 @@ klausbot connects Telegram to Claude through Claude Code. Send a message, get a 
 ```bash
 git clone https://github.com/yourusername/klausbot.git
 cd klausbot
-cp .env.example .env
-# Edit .env with your TELEGRAM_BOT_TOKEN
 npm install
+mkdir -p ~/.klausbot
+cp .env.example ~/.klausbot/.env
+# Edit ~/.klausbot/.env with your TELEGRAM_BOT_TOKEN
 npm run dev
 ```
 
@@ -81,10 +82,10 @@ Run commands with `npm run dev --`:
 
 ### Environment Variables
 
-Create `.env` from the example:
+Environment variables are loaded from `~/.klausbot/.env`:
 
 ```bash
-cp .env.example .env
+cp .env.example ~/.klausbot/.env
 ```
 
 | Variable | Required | Default | Description |
@@ -95,7 +96,7 @@ cp .env.example .env
 
 ### JSON Configuration
 
-Optional configuration in `config/klausbot.json`:
+Optional configuration in `~/.klausbot/config/klausbot.json`:
 
 | Key | Default | Description |
 |-----|---------|-------------|
@@ -127,7 +128,7 @@ Example:
 
 ### Memory search not working?
 
-Semantic search requires an OpenAI API key. Add to `.env`:
+Semantic search requires an OpenAI API key. Add to `~/.klausbot/.env`:
 
 ```bash
 OPENAI_API_KEY=sk-your-key-here
