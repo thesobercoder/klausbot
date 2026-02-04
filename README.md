@@ -66,18 +66,21 @@ Only approved users can interact with the bot.
 
 ### CLI Commands
 
-Run commands with `npm run dev --`:
+```bash
+# Start the bot
+npm run dev
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start the bot |
-| `npm run dev -- cron list` | List scheduled jobs |
-| `npm run dev -- cron enable <id>` | Enable a cron job |
-| `npm run dev -- cron disable <id>` | Disable a cron job |
-| `npm run dev -- pairing list` | List pending/approved users |
-| `npm run dev -- pairing approve <code>` | Approve pairing request |
-| `npm run dev -- pairing reject <code>` | Reject pairing request |
-| `npm run dev -- pairing revoke <chatId>` | Revoke user access |
+# Cron jobs
+npm run dev -- cron list
+npm run dev -- cron enable <id>
+npm run dev -- cron disable <id>
+
+# Pairing
+npm run dev -- pairing list
+npm run dev -- pairing approve <code>
+npm run dev -- pairing reject <code>
+npm run dev -- pairing revoke <chatId>
+```
 
 ### Telegram Commands
 
