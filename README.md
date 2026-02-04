@@ -2,26 +2,15 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[Screenshot placeholder - klausbot Telegram interaction]
-
 ## Why I Built It
 
-<!--
-USER: Fill in your personal narrative here.
-- What problem were you trying to solve?
-- What's your background/journey?
-- What vision does klausbot represent?
--->
+I wanted to use [OpenClaw](https://github.com/openclaw/openclaw) — a Telegram bot that lets you chat with Claude — but couldn't due to Anthropic API restrictions in my region. So I built klausbot as an alternative approach.
 
-[Personal narrative to be added]
+Instead of calling the Anthropic API directly, klausbot is a thin wrapper around [Claude Code](https://docs.anthropic.com/en/docs/claude-code). There's nothing fancy here: Claude Code is the agent harness, and klausbot just connects it to Telegram. This lets you reuse your existing Claude Code subscription rather than paying for API credits separately.
 
 ## What It Does
 
-klausbot is a Telegram gateway that connects you to Claude, Anthropic's AI assistant, through a persistent conversational interface. It runs 24/7 on your own infrastructure, giving you a private AI assistant that never forgets your context and learns from every interaction.
-
-Unlike web-based chat interfaces that reset with each session, klausbot maintains continuous memory of your conversations. It stores transcripts, learns your preferences, and can recall relevant context from past discussions. This creates a truly personal assistant that grows more helpful over time.
-
-The bot integrates with Claude's MCP (Model Context Protocol) tools, enabling capabilities beyond simple chat:
+klausbot connects Telegram to Claude through Claude Code. Send a message, get a response. It runs on your own machine and maintains conversation history across sessions.
 
 - **24/7 Claude-powered Telegram assistant** - Send messages anytime, get thoughtful responses from Claude
 - **Persistent memory** - Conversations are stored and searchable; Claude can recall what you discussed weeks ago
@@ -33,59 +22,50 @@ The bot integrates with Claude's MCP (Model Context Protocol) tools, enabling ca
 
 ### Prerequisites
 
-- **Node.js 20+** - JavaScript runtime
-- **Telegram bot token** - Create a bot via [@BotFather](https://t.me/BotFather) on Telegram
-- **Claude CLI** - Install and authenticate: `npm install -g @anthropic-ai/claude-code`
+- **Node.js 20+**
+- **Telegram bot token** — Create via [@BotFather](https://t.me/BotFather)
+- **Claude Code** — Install and authenticate: `npm install -g @anthropic-ai/claude-code && claude auth login`
 
 ### Quick Start
 
 ```bash
-npm install -g klausbot
-klausbot setup
+git clone https://github.com/yourusername/klausbot.git
+cd klausbot
+cp .env.example .env
+# Edit .env with your TELEGRAM_BOT_TOKEN
+npm install
+npm run dev
 ```
-
-The setup wizard guides you through:
-1. Configuring your Telegram bot token
-2. Initializing the data directory (~/.klausbot/)
-3. Installing the background service (launchd on macOS, systemd on Linux)
 
 ### Pairing Your Telegram Account
 
-After installation, you need to pair your Telegram account with klausbot:
-
-1. Open Telegram and find your bot (search for the username you created with @BotFather)
-2. Send `/start` to the bot
-3. The bot displays a 6-character pairing code
-4. On your server, approve the pairing:
+1. Find your bot on Telegram (the username you created with @BotFather)
+2. Send `/start` — the bot displays a 6-character pairing code
+3. In another terminal, approve the pairing:
    ```bash
-   klausbot pairing approve XXXXXX
+   npm run dev -- pairing approve XXXXXX
    ```
-5. You're connected! Send any message to start chatting with Claude.
+4. You're connected! Send any message to chat with Claude.
 
-Only approved users can interact with the bot, keeping your instance private.
-
-### Docker (Coming Soon)
-
-Docker support is planned for a future release. For now, use the native installation above.
+Only approved users can interact with the bot.
 
 ## Usage
 
 ### CLI Commands
 
+Run commands with `npm run dev --`:
+
 | Command | Description |
 |---------|-------------|
-| `klausbot setup` | First-time setup wizard |
-| `klausbot daemon` | Start the gateway daemon |
-| `klausbot status` | Check service and config status |
-| `klausbot restart` | Restart background service |
-| `klausbot uninstall` | Remove background service |
-| `klausbot init` | Reset ~/.klausbot/ directory |
-| `klausbot cron [action] [id]` | Manage scheduled jobs (list/enable/disable/delete) |
-| `klausbot config validate` | Validate environment and config |
-| `klausbot pairing list` | List pending/approved users |
-| `klausbot pairing approve <code>` | Approve pairing request |
-| `klausbot pairing reject <code>` | Reject pairing request |
-| `klausbot pairing revoke <chatId>` | Revoke user access |
+| `npm run dev` | Start the bot |
+| `npm run dev -- status` | Check config status |
+| `npm run dev -- cron list` | List scheduled jobs |
+| `npm run dev -- cron enable <id>` | Enable a cron job |
+| `npm run dev -- cron disable <id>` | Disable a cron job |
+| `npm run dev -- pairing list` | List pending/approved users |
+| `npm run dev -- pairing approve <code>` | Approve pairing request |
+| `npm run dev -- pairing reject <code>` | Reject pairing request |
+| `npm run dev -- pairing revoke <chatId>` | Revoke user access |
 
 ### Telegram Commands
 
@@ -101,7 +81,11 @@ Docker support is planned for a future release. For now, use the native installa
 
 ### Environment Variables
 
-Environment variables are loaded from `~/.klausbot/.env`:
+Create `.env` from the example:
+
+```bash
+cp .env.example .env
+```
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -109,16 +93,9 @@ Environment variables are loaded from `~/.klausbot/.env`:
 | `OPENAI_API_KEY` | No | - | OpenAI API key for semantic memory search |
 | `LOG_LEVEL` | No | `info` | Log level (silent/trace/debug/info/warn/error/fatal) |
 
-Copy `.env.example` to get started:
-
-```bash
-cp .env.example ~/.klausbot/.env
-# Edit ~/.klausbot/.env with your values
-```
-
 ### JSON Configuration
 
-Optional configuration in `~/.klausbot/config/klausbot.json`:
+Optional configuration in `config/klausbot.json`:
 
 | Key | Default | Description |
 |-----|---------|-------------|
@@ -144,81 +121,36 @@ Example:
 
 ### Bot not responding?
 
-1. Check service status:
-   ```bash
-   klausbot status
-   ```
-
-2. Verify your bot token format: `123456789:ABC-DEF...`
-
-3. Make sure the bot is running:
-   - macOS: `launchctl list | grep klausbot`
-   - Linux: `systemctl --user status klausbot`
-
-4. Check logs via `klausbot status` for detailed diagnostics.
+1. Check the terminal running `npm run dev` for errors
+2. Verify bot token format: `123456789:ABC-DEF...`
+3. Run `npm run dev -- status` to check config
 
 ### Memory search not working?
 
-Semantic memory search requires an OpenAI API key for embeddings.
-
-1. Check if configured:
-   ```bash
-   klausbot status
-   ```
-   Look for "OpenAI API Key: configured"
-
-2. If not configured, add to `~/.klausbot/.env`:
-   ```bash
-   OPENAI_API_KEY=sk-your-key-here
-   ```
-
-3. Restart the service:
-   ```bash
-   klausbot restart
-   ```
-
-### How do I restart after config changes?
+Semantic search requires an OpenAI API key. Add to `.env`:
 
 ```bash
-klausbot restart
+OPENAI_API_KEY=sk-your-key-here
 ```
 
-### Where are logs?
-
-Run `klausbot status` for diagnostics including log locations and recent errors.
+Then restart the bot.
 
 ### Pairing code not working?
 
-1. Ensure you're using the exact code displayed (case-insensitive)
-2. Codes expire after 15 minutes; send `/start` again to get a new one
-3. Check pending requests:
-   ```bash
-   klausbot pairing list
-   ```
+1. Codes are case-insensitive but must match exactly
+2. Codes expire after 15 minutes — send `/start` again for a new one
+3. Check pending requests: `npm run dev -- pairing list`
 
-### Claude CLI not authenticated?
+### Claude Code not authenticated?
 
-klausbot requires an authenticated Claude CLI installation:
-
-1. Install Claude CLI:
-   ```bash
-   npm install -g @anthropic-ai/claude-code
-   ```
-
-2. Authenticate:
-   ```bash
-   claude auth login
-   ```
-
-3. Verify authentication:
-   ```bash
-   klausbot status
-   ```
-   Look for "Claude CLI: authenticated"
+```bash
+npm install -g @anthropic-ai/claude-code
+claude auth login
+```
 
 ### Need more help?
 
-Open an issue on [GitHub Issues](https://github.com/klausbot/klausbot/issues).
+Open an issue on [GitHub Issues](https://github.com/yourusername/klausbot/issues).
 
 ## License
 
