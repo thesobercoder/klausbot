@@ -45,6 +45,8 @@ export type EnvConfig = z.infer<typeof envSchema>;
  * JSON config schema for klausbot (non-secrets)
  * Loaded from ~/.klausbot/config/klausbot.json
  * Uses strict mode - unknown keys cause validation failure
+ *
+ * Includes: model, streaming, heartbeat settings
  */
 export const jsonConfigSchema = z
   .object({
@@ -59,6 +61,15 @@ export const jsonConfigSchema = z
         throttleMs: z.number().min(100).max(2000).default(500),
       })
       .default({ enabled: true, throttleMs: 500 }),
+    /** Heartbeat configuration for periodic awareness checks */
+    heartbeat: z
+      .object({
+        /** Enable heartbeat checks (default: true) */
+        enabled: z.boolean().default(true),
+        /** Interval between checks in ms (min 60000, default 1800000 = 30 min) */
+        intervalMs: z.number().min(60000).default(1800000),
+      })
+      .default({ enabled: true, intervalMs: 1800000 }),
   })
   .strict(); // Fail on unknown keys
 
