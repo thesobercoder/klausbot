@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 10 of 14 (Telegram Streaming) — IN PROGRESS
-Plan: 1/3 complete
-Status: Plan 01 complete, ready for Plan 02
-Last activity: 2026-02-05 — Streaming infrastructure with throttler and Claude CLI spawner
+Plan: 2/3 complete
+Status: Plan 02 complete, ready for Plan 03
+Last activity: 2026-02-05 — Gateway streaming integration with draft updates and fallback
 
-Progress: [█████████░] 87% (phases 9 + 13 complete, 10-01 done, 10-02/03 + 11-12 + 14 remaining)
+Progress: [█████████░] 89% (phases 9 + 13 complete, 10-01/02 done, 10-03 + 11-12 + 14 remaining)
 
 ## Milestone Summary
 
@@ -41,16 +41,16 @@ Progress: [█████████░] 87% (phases 9 + 13 complete, 10-01 do
 
 **Velocity:**
 
-- Total plans completed: 6 (v1.1)
-- Average duration: 3m 03s
-- Total execution time: 18m 16s
+- Total plans completed: 7 (v1.1)
+- Average duration: 3m 10s
+- Total execution time: 22m 16s
 
 **By Phase:**
 
 | Phase                  | Plans | Total   | Avg/Plan |
 | ---------------------- | ----- | ------- | -------- |
 | 09-platform-foundation | 3/3   | 11m 14s | 3m 45s   |
-| 10-telegram-streaming  | 1/3   | 3m 00s  | 3m 00s   |
+| 10-telegram-streaming  | 2/3   | 7m 00s  | 3m 30s   |
 | 13-docker-release      | 2/2   | 4m 02s  | 2m 01s   |
 
 _Updated after each plan completion_
@@ -86,6 +86,8 @@ _Updated after each plan completion_
 - Streaming: Callback pattern over generator for return value access
 - Streaming: No MCP/hooks (SessionStart/End don't apply to streams)
 - Throttler: minTime 100ms allows fast drafts, lets Telegram reject if needed
+- Gateway streaming: Skip streaming during bootstrap mode (identity files must exist first)
+- Timeout: 5 minute streaming timeout matches batch spawner, returns partial on timeout
 
 ### Pending Todos
 
@@ -98,15 +100,15 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 10-01-PLAN.md (Streaming Infrastructure)
+Stopped at: Completed 10-02-PLAN.md (Gateway Integration)
 Resume file: None
 
 ## Next Steps
 
-1. `/gsd:execute-phase 10` — Continue with Plan 02 (Gateway Integration)
+1. `/gsd:execute-phase 10` — Continue with Plan 03 (Streaming Polish)
 2. Or plan remaining phases (11-12, 14)
 
 ---
 
-_State updated: 2026-02-05_
+_State updated: 2026-02-05 (10-02 complete)_
 _v1.1 in progress_
