@@ -23,6 +23,7 @@ export {
 export {
   loadIdentity,
   getRetrievalInstructions,
+  getOrchestrationInstructions,
   buildSystemPrompt,
   invalidateIdentityCache,
   reloadIdentity,

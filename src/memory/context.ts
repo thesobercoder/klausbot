@@ -260,6 +260,48 @@ When user wants to create an agent, write the file to ~/.claude/agents/{name}.md
 }
 
 /**
+ * Get orchestration instructions for subagent spawning
+ * Tells Claude how to use Task tool for parallel work
+ *
+ * @returns Orchestration instructions wrapped in XML tags
+ */
+export function getOrchestrationInstructions(): string {
+  return `<subagent-orchestration>
+## Spawning Subagents
+
+You can delegate work to subagents using the Task tool.
+
+### When to use:
+- Parallel research (spawn multiple, synthesize results)
+- Context isolation (keep verbose output out of main context)
+- Specialized tasks (use Explore for codebase analysis)
+- Long-running operations that benefit from focused attention
+
+### Task tool parameters:
+- subagent_type: "Explore" | "Plan" | "general-purpose" | custom agent name
+- description: Brief task description (3-5 words)
+- prompt: Full instructions (include all needed context)
+- run_in_background: true for async, false for blocking
+- model: "haiku" (fast/cheap), "sonnet" (balanced), "opus" (capable)
+
+### Example - parallel research:
+<invoke name="Task">
+  <parameter name="subagent_type">Explore</parameter>
+  <parameter name="description">Analyze auth module</parameter>
+  <parameter name="prompt">Search for authentication patterns in the codebase. Return: key files, patterns used, potential issues. Max 300 words.</parameter>
+  <parameter name="run_in_background">true</parameter>
+  <parameter name="model">haiku</parameter>
+</invoke>
+
+### Important constraints:
+- Subagents start fresh (pass all context via prompt)
+- Single level only (subagents cannot spawn subagents)
+- Background agents cannot ask questions (provide complete instructions)
+- Instruct agents to return concise summaries to avoid context pollution
+</subagent-orchestration>`;
+}
+
+/**
  * Build the complete system prompt for Claude sessions
  * Combines skill reminder + agent reminder + identity files + retrieval instructions
  *
