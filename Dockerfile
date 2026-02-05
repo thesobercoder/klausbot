@@ -1,10 +1,26 @@
 FROM node:22-slim
 
-# Install dependencies for Claude Code CLI
-RUN apt-get update && apt-get install -y \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (Claude Code CLI + agent tools)
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      curl \
+      git \
+      ca-certificates \
+      gnupg \
+      python3 \
+      python3-pip \
+      poppler-utils \
+      ffmpeg \
+      libavcodec-extra \
+      libavformat-dev \
+      ripgrep \
+      jq \
+      imagemagick \
+      pandoc \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Enable pnpm via corepack (built into Node 22)
+RUN corepack enable pnpm
 
 # Create non-root user first (Claude Code installs to ~/.local/bin)
 RUN useradd -m -s /bin/bash klausbot
@@ -16,7 +32,10 @@ WORKDIR /home/klausbot
 # Install Claude Code CLI (native installer)
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-# Add Claude Code to PATH
+# Install uv (fast Python package manager)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add tools to PATH (~/.local/bin for Claude Code and uv)
 ENV PATH="/home/klausbot/.local/bin:${PATH}"
 
 # Install skills
