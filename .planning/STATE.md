@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** v1.1 Production Ready — Phase 11 (Telegram Threading)
+**Current focus:** v1.1 Production Ready — Phase 12 (Heartbeat System)
 
 ## Current Position
 
-Phase: 11 of 14 (Telegram Threading)
-Plan: 1/1 complete
-Status: Phase 11 complete
-Last activity: 2026-02-05 — Threading support for forum topics and reply linking
+Phase: 12 of 14 (Heartbeat System)
+Plan: 1/2 complete
+Status: In progress
+Last activity: 2026-02-05 — Heartbeat core infrastructure (config, scheduler, executor)
 
-Progress: [██████████░] 55% (phases 9, 10, 11, 13 complete; 12, 14 remaining)
+Progress: [███████████░] 60% (phases 9, 10, 11, 13 complete; 12 in progress, 14 remaining)
 
 ## Milestone Summary
 
@@ -41,9 +41,9 @@ Progress: [██████████░] 55% (phases 9, 10, 11, 13 complete
 
 **Velocity:**
 
-- Total plans completed: 8 (v1.1)
-- Average duration: 3m 21s
-- Total execution time: 26m 45s
+- Total plans completed: 9 (v1.1)
+- Average duration: 3m 23s
+- Total execution time: 30m 30s
 
 **By Phase:**
 
@@ -53,6 +53,7 @@ Progress: [██████████░] 55% (phases 9, 10, 11, 13 complete
 | 10-telegram-streaming  | 2/2   | 7m 29s  | 3m 45s   |
 | 11-telegram-threading  | 1/1   | 4m 00s  | 4m 00s   |
 | 13-docker-release      | 2/2   | 4m 02s  | 2m 01s   |
+| 12-heartbeat-system    | 1/2   | 3m 45s  | 3m 45s   |
 
 _Updated after each plan completion_
 
@@ -93,6 +94,9 @@ _Updated after each plan completion_
 - Drafts show raw markdown during streaming (preview), final message is formatted HTML
 - Threading: First chunk replies to user message; subsequent chunks in-thread only
 - Threading: Optional chaining for ctx.msg access (TypeScript null safety)
+- Heartbeat: No immediate tick on startup (waits for first interval)
+- Heartbeat: HEARTBEAT_OK exact match suppresses notification
+- Heartbeat: Hot reload via config re-check on each tick
 
 ### Pending Todos
 
@@ -105,15 +109,15 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 11-01-PLAN.md (Threading Support)
+Stopped at: Completed 12-01-PLAN.md (Heartbeat Core)
 Resume file: None
 
 ## Next Steps
 
-1. `/gsd:plan-phase 12` — Plan heartbeat system
+1. `/gsd:execute-plan 12-02` — Gateway integration for heartbeat
 2. Or `/gsd:plan-phase 14` — Plan testing framework
 
 ---
 
-_State updated: 2026-02-05 (Phase 11 complete)_
+_State updated: 2026-02-05 (Phase 12 plan 01 complete)_
 _v1.1 in progress_
