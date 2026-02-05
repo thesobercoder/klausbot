@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 Phase: 16 of 17 (Docker & Release) — COMPLETE
 Plan: 2/2 complete
 Status: Phase 16 complete, ready for Phase 17
-Last activity: 2026-02-05 — Removed Phase 13, renumbered phases, fixed XML input wrapping
+Last activity: 2026-02-05 — Fixed Dockerfile to install Claude Code CLI
 
 Progress: [█████████░] 90% (phases 9-12 + 16 complete)
 
@@ -78,6 +78,7 @@ Progress: [█████████░] 90% (phases 9-12 + 16 complete)
 - Screenshots skipped — text descriptions sufficient
 - XML input wrapping: User messages wrapped in `<user_message>` tags before passing to Claude CLI (security fix)
 - Phase 13 removed: Claude Code handles prompt injection; only needed XML escaping
+- Dockerfile: Uses native Claude Code installer (curl), runs as non-root klausbot user
 
 ### Pending Todos
 
@@ -90,7 +91,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Removed Phase 13, added XML input wrapping, renumbered phases
+Stopped at: Fixed Dockerfile to install Claude Code CLI
 Resume file: None
 
 ## Next Steps
