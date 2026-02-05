@@ -8,6 +8,12 @@
 
 Klausbot is an [OpenClaw](https://github.com/openclaw/openclaw) clone built as a thin wrapper around [Claude Code](https://docs.anthropic.com/en/docs/claude-code). This lets you use your existing Claude Code subscription rather than paying for API credits separately.
 
+## Philosophy
+
+Klausbot is designed to be **forked and self-hosted**. You clone the repo, configure your tokens, and run it on your own VM or in Docker. There's no npm package to install globally, no setup wizards, no service management commands — just a simple daemon that starts up and works.
+
+The daemon auto-creates `~/.klausbot/` on first run. If something's misconfigured, it fails with a clear error message.
+
 ## What It Does
 
 Klausbot connects Telegram to Claude through Claude Code. Send a message, get a response. It runs on your own machine and maintains conversation history across sessions.
@@ -38,21 +44,22 @@ cd klausbot
 npm install
 cp .env.example .env
 # Edit .env with your TELEGRAM_BOT_TOKEN
-npm run dev
+npm run build
+npm run dev -- daemon
 ```
 
-### Global Installation (Optional)
-
-To run `klausbot` from anywhere:
+### Docker
 
 ```bash
-npm link
-mkdir -p ~/.klausbot
-cp .env.example ~/.klausbot/.env
-# Edit ~/.klausbot/.env with your TELEGRAM_BOT_TOKEN
+docker build -t klausbot .
+docker run -d \
+  -e TELEGRAM_BOT_TOKEN=your-token \
+  -e ANTHROPIC_API_KEY=your-key \
+  -v klausbot-data:/home/klausbot/.klausbot \
+  klausbot
 ```
 
-Then run with `klausbot` instead of `npm run dev`.
+Note: You'll need to run `claude login` inside the container on first run, or mount your Claude credentials.
 
 ### Pairing Your Telegram Account
 
@@ -73,21 +80,6 @@ Only approved users can interact with the bot.
 Start the gateway:
 ```bash
 npm run dev -- daemon
-```
-
-List scheduled jobs:
-```bash
-npm run dev -- cron list
-```
-
-Enable a cron job:
-```bash
-npm run dev -- cron enable <id>
-```
-
-Disable a cron job:
-```bash
-npm run dev -- cron disable <id>
 ```
 
 List pending/approved users:
