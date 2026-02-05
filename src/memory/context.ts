@@ -390,11 +390,19 @@ model: inherit
 
 /**
  * Build the complete system prompt for Claude sessions
- * Combines skill reminder + agent reminder + identity files + retrieval instructions
+ *
+ * If BOOTSTRAP.md exists: returns its content as the entire system prompt
+ * Otherwise: combines skill reminder + agent reminder + identity files + retrieval instructions
  *
  * @returns Complete system prompt string
  */
 export function buildSystemPrompt(): string {
+  // Bootstrap mode: BOOTSTRAP.md IS the system prompt
+  const bootstrapPath = getHomePath("identity", "BOOTSTRAP.md");
+  if (existsSync(bootstrapPath)) {
+    return readFileSync(bootstrapPath, "utf-8");
+  }
+
   const skillReminder = getSkillReminder();
   const agentReminder = getAgentReminder();
   const identity = loadIdentity();

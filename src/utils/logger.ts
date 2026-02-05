@@ -32,6 +32,12 @@ function ensureLogsDir(): string {
  */
 function getLogger(): Logger {
   if (_logger === null) {
+    // Silent mode (CLI commands): no streams, no sonic-boom, no file I/O
+    if (config.LOG_LEVEL === "silent") {
+      _logger = pino({ level: "silent" });
+      return _logger;
+    }
+
     const isTTY = process.stdout.isTTY;
     const logsDir = ensureLogsDir();
     const logFile = join(logsDir, "app.log");

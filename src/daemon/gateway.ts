@@ -13,6 +13,8 @@ import {
   handleStartCommand,
   getPairingStore,
 } from "../pairing/index.js";
+import { existsSync, writeFileSync } from "fs";
+import { join } from "path";
 import { KLAUSBOT_HOME } from "../memory/home.js";
 import {
   createChildLogger,
@@ -29,7 +31,7 @@ import {
   runMigrations,
   getOrchestrationInstructions,
 } from "../memory/index.js";
-import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from "../bootstrap/index.js";
+import { needsBootstrap, DEFAULT_BOOTSTRAP_CONTENT } from "../bootstrap/index.js";
 import { validateRequiredCapabilities } from "../platform/index.js";
 import { startScheduler, stopScheduler, loadCronStore } from "../cron/index.js";
 import { startHeartbeat, stopHeartbeat, shouldCollectNote, getNoteCollectionInstructions } from "../heartbeat/index.js";
@@ -212,6 +214,16 @@ export async function startGateway(): Promise<void> {
   // Initialize ~/.klausbot/ data home (directories only)
   // NOTE: Do NOT call initializeIdentity() here - bootstrap flow creates identity files
   initializeHome(log);
+
+  // Create BOOTSTRAP.md if identity folder is empty (first-time setup)
+  const identityDir = join(KLAUSBOT_HOME, "identity");
+  const bootstrapPath = join(identityDir, "BOOTSTRAP.md");
+  const soulPath = join(identityDir, "SOUL.md");
+  if (!existsSync(bootstrapPath) && !existsSync(soulPath)) {
+    writeFileSync(bootstrapPath, DEFAULT_BOOTSTRAP_CONTENT);
+    log.info("Created BOOTSTRAP.md for first-time setup");
+  }
+
   initializeEmbeddings();
 
   // Run database migrations (creates tables if needed)
@@ -628,47 +640,48 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
       return;
     }
 
-    // Check if bootstrap needed BEFORE processing
+    // Check if bootstrap needed (BOOTSTRAP.md exists)
     const isBootstrap = needsBootstrap();
     if (isBootstrap) {
       log.info(
         { chatId: msg.chatId },
-        "Bootstrap mode: identity files missing",
+        "Bootstrap mode: BOOTSTRAP.md present",
       );
     }
 
-    // Build additional instructions
-    // Always include chatId context for cron and background tasks
-    const chatIdContext = `<session-context>
+    // Build additional instructions (skip everything during bootstrap — BOOTSTRAP.md is the system prompt)
+    let additionalInstructions = "";
+    const jsonConfig = getJsonConfig();
+    const subagentsEnabled = !isBootstrap && (jsonConfig.subagents?.enabled ?? true);
+    const subagentsPrefix = jsonConfig.subagents?.taskListIdPrefix ?? "klausbot";
+    let taskListId: string | undefined;
+
+    if (!isBootstrap) {
+      // Chat ID context for cron and background tasks
+      const chatIdContext = `<session-context>
 Current chat ID: ${msg.chatId}
 Use this chatId when creating cron jobs or background tasks.
 </session-context>`;
 
-    // Check for heartbeat note collection trigger (skip during bootstrap)
-    let noteInstructions = "";
-    if (!isBootstrap && shouldCollectNote(effectiveText)) {
-      noteInstructions = "\n\n" + getNoteCollectionInstructions(effectiveText);
-      log.info({ chatId: msg.chatId }, "Heartbeat note collection triggered");
+      // Heartbeat note collection
+      let noteInstructions = "";
+      if (shouldCollectNote(effectiveText)) {
+        noteInstructions = "\n\n" + getNoteCollectionInstructions(effectiveText);
+        log.info({ chatId: msg.chatId }, "Heartbeat note collection triggered");
+      }
+
+      // Subagent orchestration
+      taskListId = subagentsEnabled
+        ? `${subagentsPrefix}-${msg.chatId}-${Date.now()}`
+        : undefined;
+
+      let orchestrationInstructions = "";
+      if (subagentsEnabled) {
+        orchestrationInstructions = "\n\n" + getOrchestrationInstructions();
+      }
+
+      additionalInstructions = chatIdContext + noteInstructions + orchestrationInstructions;
     }
-
-    // Get config (must be before subagents/streaming checks that depend on it)
-    const jsonConfig = getJsonConfig();
-
-    // Get subagents config and generate task list ID
-    const subagentsConfig = jsonConfig.subagents ?? { enabled: true, taskListIdPrefix: "klausbot" };
-    const taskListId = subagentsConfig.enabled
-      ? `${subagentsConfig.taskListIdPrefix}-${msg.chatId}-${Date.now()}`
-      : undefined;
-
-    // Add orchestration instructions if subagents enabled (skip during bootstrap)
-    let orchestrationInstructions = "";
-    if (!isBootstrap && subagentsConfig.enabled) {
-      orchestrationInstructions = "\n\n" + getOrchestrationInstructions();
-    }
-
-    const additionalInstructions = isBootstrap
-      ? chatIdContext + "\n\n" + BOOTSTRAP_INSTRUCTIONS
-      : chatIdContext + noteInstructions + orchestrationInstructions;
 
     // Check streaming
     const streamingEnabled =
@@ -694,7 +707,7 @@ Use this chatId when creating cron jobs or background tasks.
             model: jsonConfig.model,
             additionalInstructions,
             messageThreadId: msg.threading?.messageThreadId,
-            enableSubagents: subagentsConfig.enabled,
+            enableSubagents: subagentsEnabled,
             taskListId,
           },
         );
@@ -763,7 +776,7 @@ Use this chatId when creating cron jobs or background tasks.
     const response = await queryClaudeCode(effectiveText, {
       additionalInstructions,
       model: jsonConfig.model,
-      enableSubagents: subagentsConfig.enabled,
+      enableSubagents: subagentsEnabled,
       taskListId,
     });
 
@@ -790,11 +803,20 @@ Use this chatId when creating cron jobs or background tasks.
       // Claude may have updated identity files during session
       invalidateIdentityCache();
 
-      const messages = await splitAndSend(msg.chatId, response.result, msg.threading);
-      log.debug(
-        { chatId: msg.chatId, chunks: messages },
-        "Sent response chunks",
-      );
+      if (response.result) {
+        const messages = await splitAndSend(msg.chatId, response.result, msg.threading);
+        log.debug(
+          { chatId: msg.chatId, chunks: messages },
+          "Sent response chunks",
+        );
+      } else {
+        await bot.api.sendMessage(msg.chatId, "[Empty response]", {
+          message_thread_id: msg.threading?.messageThreadId,
+          reply_parameters: msg.threading?.replyToMessageId
+            ? { message_id: msg.threading.replyToMessageId }
+            : undefined,
+        });
+      }
 
       // Notify user of non-fatal media errors
       if (mediaErrors.length > 0) {

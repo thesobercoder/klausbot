@@ -1,4 +1,10 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  statSync,
+} from "fs";
 import { dirname } from "path";
 import { randomBytes } from "crypto";
 import { Logger } from "pino";
@@ -39,6 +45,7 @@ export class PairingStore {
   private state: PairingState;
   private path: string;
   private logger: Logger;
+  private lastMtime: number = 0;
 
   constructor(_dataDir?: string) {
     // Use ~/.klausbot/config/ for pairing to persist across deployments
@@ -54,6 +61,7 @@ export class PairingStore {
       try {
         const data = readFileSync(this.path, "utf-8");
         this.state = JSON.parse(data);
+        this.lastMtime = statSync(this.path).mtimeMs;
         this.logger.info({ path: this.path }, "Loaded pairing state from disk");
       } catch (err) {
         this.logger.error(
@@ -67,6 +75,16 @@ export class PairingStore {
         { path: this.path },
         "No existing pairing state, starting fresh",
       );
+    }
+  }
+
+  /** Reload from disk if file changed (mtime-based hot reload) */
+  private reloadIfChanged(): void {
+    if (!existsSync(this.path)) return;
+    const currentMtime = statSync(this.path).mtimeMs;
+    if (currentMtime !== this.lastMtime) {
+      this.logger.info("Pairing state changed on disk, reloading");
+      this.load();
     }
   }
 
@@ -119,6 +137,7 @@ export class PairingStore {
     username?: string,
     firstName?: string,
   ): string {
+    this.reloadIfChanged();
     const chatIdKey = chatId.toString();
 
     // Already approved
@@ -156,6 +175,7 @@ export class PairingStore {
    * @returns approved user info or null if code not found
    */
   approvePairing(code: string): { chatId: number; username?: string } | null {
+    this.reloadIfChanged();
     const pending = this.state.pending[code];
     if (!pending) {
       this.logger.warn({ code }, "Pairing approval failed: code not found");
@@ -186,6 +206,7 @@ export class PairingStore {
    * @returns true if code was pending and removed
    */
   rejectPairing(code: string): boolean {
+    this.reloadIfChanged();
     if (!(code in this.state.pending)) {
       this.logger.warn({ code }, "Pairing rejection failed: code not found");
       return false;
@@ -203,6 +224,7 @@ export class PairingStore {
    * Check if a chat ID is approved
    */
   isApproved(chatId: number): boolean {
+    this.reloadIfChanged();
     return chatId.toString() in this.state.approved;
   }
 
@@ -215,6 +237,7 @@ export class PairingStore {
     username?: string;
     requestedAt: number;
   }> {
+    this.reloadIfChanged();
     return Object.entries(this.state.pending).map(([code, request]) => ({
       code,
       chatId: request.chatId,
@@ -231,6 +254,7 @@ export class PairingStore {
     username?: string;
     approvedAt: number;
   }> {
+    this.reloadIfChanged();
     return Object.entries(this.state.approved).map(([chatIdKey, user]) => ({
       chatId: parseInt(chatIdKey, 10),
       username: user.username,
@@ -243,6 +267,7 @@ export class PairingStore {
    * @returns true if user was approved and removed
    */
   revoke(chatId: number): boolean {
+    this.reloadIfChanged();
     const chatIdKey = chatId.toString();
     if (!(chatIdKey in this.state.approved)) {
       this.logger.warn({ chatId }, "Revocation failed: user not approved");

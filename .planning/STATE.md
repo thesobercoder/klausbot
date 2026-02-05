@@ -120,15 +120,16 @@ None. All TypeScript errors resolved (was: drizzle-orm type issue + others).
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Pre-Phase 14 hardening complete, manual Telegram verification pending
+Stopped at: Bug fixes done, bootstrap redesigned, testing new BOOTSTRAP.md flow
 Resume file: .planning/phases/13.2-subagent-orchestration/.continue-here.md
 
 ## Next Steps
 
-1. Deploy and test via Telegram (streaming, threading, heartbeat, subagents, 90s timeout)
-2. `/gsd:plan-phase 14` — Plan testing framework (final phase of v1.1)
+1. Test BOOTSTRAP.md flow via Telegram (container running with fresh volume)
+2. Test normal operation (streaming, threading, heartbeat, subagents, background tasks)
+3. `/gsd:plan-phase 14` — Plan testing framework (final phase of v1.1)
 
 ---
 
-_State updated: 2026-02-06 (pre-Phase 14 hardening session)_
+_State updated: 2026-02-06 (bug fix + bootstrap redesign session)_
 _v1.1 in progress_

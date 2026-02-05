@@ -240,8 +240,16 @@ pairing
         `Approved: chatId=${result.chatId}, username=${result.username ?? "N/A"}`,
       );
     } else {
-      theme.error(`Code "${code}" not found`);
-      process.exit(1);
+      // Code not in pending — check if already approved
+      const approved = store.listApproved();
+      if (approved.length > 0) {
+        theme.success("User is already paired");
+      } else {
+        theme.error(
+          `Code "${code}" not found. Ask the user to send /start to get a new code.`,
+        );
+        process.exit(1);
+      }
     }
   });
 
