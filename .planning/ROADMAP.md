@@ -77,11 +77,11 @@ Plans:
 
 1. Bot respects message_thread_id for threaded conversations
 2. Replies are properly threaded to maintain conversation context
-   **Plans**: TBD
+   **Plans**: 1 plan
 
 Plans:
 
-- [ ] 11-01: Thread support implementation
+- [ ] 11-01-PLAN.md - Thread context extraction and reply linking
 
 #### Phase 12: Heartbeat System
 
