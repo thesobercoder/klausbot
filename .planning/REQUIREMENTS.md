@@ -25,10 +25,10 @@ Requirements for v1.1 Production Ready release.
 
 ### Streaming
 
-- [ ] **STRM-01**: Telegram draft streaming via `sendMessageDraft` API
-- [ ] **STRM-02**: Streaming updates throttled to avoid API rate limits
-- [ ] **STRM-03**: Final message sent as normal message after streaming completes
-- [ ] **STRM-04**: Streaming configurable (can be disabled)
+- [x] **STRM-01**: Telegram draft streaming via `sendMessageDraft` API
+- [x] **STRM-02**: Streaming updates throttled to avoid API rate limits
+- [x] **STRM-03**: Final message sent as normal message after streaming completes
+- [x] **STRM-04**: Streaming configurable (can be disabled)
 
 ### Telegram
 
@@ -154,18 +154,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SECU-01     | Phase 13 | Pending  |
 | SECU-02     | Phase 13 | Pending  |
 | SECU-03     | Phase 13 | Pending  |
-| STRM-01     | Phase 14 | Pending  |
-| STRM-02     | Phase 14 | Pending  |
-| STRM-03     | Phase 14 | Pending  |
-| STRM-04     | Phase 14 | Pending  |
-| TELE-01     | Phase 15 | Pending  |
-| TELE-02     | Phase 15 | Pending  |
-| HRTB-01     | Phase 16 | Pending  |
-| HRTB-02     | Phase 16 | Pending  |
-| HRTB-03     | Phase 16 | Pending  |
-| HRTB-04     | Phase 16 | Pending  |
-| HRTB-05     | Phase 16 | Pending  |
-| HRTB-06     | Phase 16 | Pending  |
+| STRM-01     | Phase 10 | Complete |
+| STRM-02     | Phase 10 | Complete |
+| STRM-03     | Phase 10 | Complete |
+| STRM-04     | Phase 10 | Complete |
+| TELE-01     | Phase 11 | Pending  |
+| TELE-02     | Phase 11 | Pending  |
+| HRTB-01     | Phase 12 | Pending  |
+| HRTB-02     | Phase 12 | Pending  |
+| HRTB-03     | Phase 12 | Pending  |
+| HRTB-04     | Phase 12 | Pending  |
+| HRTB-05     | Phase 12 | Pending  |
+| HRTB-06     | Phase 12 | Pending  |
 | PLAT-04     | -        | DEFERRED |
 | RLSE-01     | Phase 17 | Complete |
 | RLSE-02     | Phase 17 | Complete |

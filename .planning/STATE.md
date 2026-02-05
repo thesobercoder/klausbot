@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** v1.1 Production Ready — Phase 14 (Testing Framework)
+**Current focus:** v1.1 Production Ready — Phase 11 (Telegram Threading)
 
 ## Current Position
 
-Phase: 10 of 14 (Telegram Streaming) — IN PROGRESS
-Plan: 2/3 complete
-Status: Plan 02 complete, ready for Plan 03
-Last activity: 2026-02-05 — Gateway streaming integration with draft updates and fallback
+Phase: 10 of 14 (Telegram Streaming) — COMPLETE
+Plan: 2/2 complete
+Status: Phase 10 complete, ready for Phase 11
+Last activity: 2026-02-05 — Streaming complete with markdown-to-HTML formatting
 
-Progress: [█████████░] 89% (phases 9 + 13 complete, 10-01/02 done, 10-03 + 11-12 + 14 remaining)
+Progress: [█████████░] 50% (phases 9, 10, 13 complete; 11, 12, 14 remaining)
 
 ## Milestone Summary
 
@@ -42,15 +42,15 @@ Progress: [█████████░] 89% (phases 9 + 13 complete, 10-01/02
 **Velocity:**
 
 - Total plans completed: 7 (v1.1)
-- Average duration: 3m 10s
-- Total execution time: 22m 16s
+- Average duration: 3m 15s
+- Total execution time: 22m 45s
 
 **By Phase:**
 
 | Phase                  | Plans | Total   | Avg/Plan |
 | ---------------------- | ----- | ------- | -------- |
 | 09-platform-foundation | 3/3   | 11m 14s | 3m 45s   |
-| 10-telegram-streaming  | 2/3   | 7m 00s  | 3m 30s   |
+| 10-telegram-streaming  | 2/2   | 7m 29s  | 3m 45s   |
 | 13-docker-release      | 2/2   | 4m 02s  | 2m 01s   |
 
 _Updated after each plan completion_
@@ -88,6 +88,8 @@ _Updated after each plan completion_
 - Throttler: minTime 100ms allows fast drafts, lets Telegram reject if needed
 - Gateway streaming: Skip streaming during bootstrap mode (identity files must exist first)
 - Timeout: 5 minute streaming timeout matches batch spawner, returns partial on timeout
+- Markdown to HTML: Convert Claude markdown to Telegram HTML for proper code blocks, bold, italic rendering
+- Drafts show raw markdown during streaming (preview), final message is formatted HTML
 
 ### Pending Todos
 
@@ -100,15 +102,16 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 10-02-PLAN.md (Gateway Integration)
+Stopped at: Phase 10 complete with markdown formatting
 Resume file: None
 
 ## Next Steps
 
-1. `/gsd:execute-phase 10` — Continue with Plan 03 (Streaming Polish)
-2. Or plan remaining phases (11-12, 14)
+1. `/gsd:plan-phase 11` — Plan Telegram threading
+2. Or `/gsd:plan-phase 12` — Plan heartbeat system
+3. Or `/gsd:plan-phase 14` — Plan testing framework
 
 ---
 
-_State updated: 2026-02-05 (10-02 complete)_
+_State updated: 2026-02-05 (Phase 10 complete)_
 _v1.1 in progress_

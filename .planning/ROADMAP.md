@@ -65,8 +65,8 @@ Plans:
 
 Plans:
 
-- [ ] 10-01-PLAN.md - Streaming infrastructure (config, throttler, Claude stream spawner)
-- [ ] 10-02-PLAN.md - Gateway integration and Telegram draft streaming
+- [x] 10-01-PLAN.md - Streaming infrastructure (config, throttler, Claude stream spawner)
+- [x] 10-02-PLAN.md - Gateway integration and Telegram draft streaming
 
 #### Phase 11: Telegram Threading
 
@@ -150,7 +150,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14
 | Phase                  | Milestone | Plans Complete | Status      | Completed  |
 | ---------------------- | --------- | -------------- | ----------- | ---------- |
 | 9. Platform Foundation | v1.1      | 3/3            | Complete    | 2026-01-31 |
-| 10. Telegram Streaming | v1.1      | 0/2            | Not started | -          |
+| 10. Telegram Streaming | v1.1      | 2/2            | Complete    | 2026-02-05 |
 | 11. Telegram Threading | v1.1      | 0/1            | Not started | -          |
 | 12. Heartbeat System   | v1.1      | 0/3            | Not started | -          |
 | 13. Docker & Release   | v1.1      | 2/2            | Complete    | 2026-02-05 |
