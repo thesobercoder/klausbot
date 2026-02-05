@@ -638,10 +638,10 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
     }
 
     // Build additional instructions
-    // Always include chatId context for cron management
+    // Always include chatId context for cron and background tasks
     const chatIdContext = `<session-context>
 Current chat ID: ${msg.chatId}
-Use this chatId when creating cron jobs.
+Use this chatId when creating cron jobs or background tasks.
 </session-context>`;
 
     // Check for heartbeat note collection trigger (skip during bootstrap)
