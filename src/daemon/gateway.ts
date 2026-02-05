@@ -1,4 +1,9 @@
 import type { MyContext } from "../telegram/index.js";
+import {
+  streamToTelegram,
+  canStreamToChat,
+  type StreamConfig,
+} from "../telegram/index.js";
 import { MessageQueue, queryClaudeCode, ensureDataDir } from "./index.js";
 import { getJsonConfig } from "../config/index.js";
 import type { QueuedMessage } from "./queue.js";
@@ -590,8 +595,86 @@ Use this chatId when creating cron jobs.
       ? chatIdContext + "\n\n" + BOOTSTRAP_INSTRUCTIONS
       : chatIdContext;
 
-    // Call Claude (with media-enriched prompt if applicable)
+    // Get config and check streaming
     const jsonConfig = getJsonConfig();
+    const streamingEnabled =
+      !isBootstrap && (jsonConfig.streaming?.enabled ?? true);
+    const canStream = streamingEnabled && (await canStreamToChat(bot, msg.chatId));
+
+    if (canStream) {
+      // === STREAMING PATH ===
+      log.info({ chatId: msg.chatId }, "Using streaming mode");
+
+      try {
+        const streamConfig: StreamConfig = jsonConfig.streaming ?? {
+          enabled: true,
+          throttleMs: 500,
+        };
+
+        const streamResult = await streamToTelegram(
+          bot,
+          msg.chatId,
+          effectiveText,
+          streamConfig,
+          {
+            model: jsonConfig.model,
+            additionalInstructions,
+          },
+        );
+
+        // Stop typing indicator
+        clearInterval(typingInterval);
+
+        // Mark as complete
+        queue.complete(msg.id);
+
+        // Send final message (replaces draft in UI)
+        if (streamResult.result) {
+          await splitAndSend(msg.chatId, streamResult.result);
+        } else {
+          await bot.api.sendMessage(msg.chatId, "[Empty response]");
+        }
+
+        // Invalidate identity cache
+        invalidateIdentityCache();
+
+        // Notify user of non-fatal media errors
+        if (mediaErrors.length > 0) {
+          await bot.api.sendMessage(
+            msg.chatId,
+            `Note: Some media could not be processed: ${mediaErrors.join(". ")}`,
+          );
+        }
+
+        const duration = Date.now() - startTime;
+        log.info(
+          {
+            chatId: msg.chatId,
+            queueId: msg.id,
+            duration,
+            cost: streamResult.cost_usd,
+            streaming: true,
+          },
+          "Message processed (streaming)",
+        );
+
+        // Auto-commit
+        const committed = await autoCommitChanges();
+        if (committed) {
+          log.info({ queueId: msg.id }, "Auto-committed Claude file changes");
+        }
+
+        return; // Exit early - streaming handled everything
+      } catch (err) {
+        // Streaming failed - fall through to batch mode
+        log.warn(
+          { err, chatId: msg.chatId },
+          "Streaming failed, falling back to batch",
+        );
+      }
+    }
+
+    // === BATCH PATH (existing code) ===
     const response = await queryClaudeCode(effectiveText, {
       additionalInstructions,
       model: jsonConfig.model,
