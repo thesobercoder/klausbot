@@ -234,6 +234,10 @@ export async function startGateway(): Promise<void> {
     "Cron scheduler initialized",
   );
 
+  // Initialize heartbeat system
+  startHeartbeat();
+  log.info("Heartbeat scheduler initialized");
+
   // Register skill commands in Telegram menu
   await registerSkillCommands(bot);
   log.info({ skills: getInstalledSkillNames() }, "Registered skill commands");
