@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** - Phases 1-8 (shipped 2026-01-31)
-- 🚧 **v1.1 Production Ready** - Phases 9-17 (in progress)
+- 🚧 **v1.1 Production Ready** - Phases 9-17 (in progress, was 9-18 before Phase 13 removed)
 
 ## Phases
 
@@ -94,22 +94,7 @@ Plans:
 - [ ] 12-02: launchd support (macOS)
 - [ ] 12-03: systemd support (Linux)
 
-#### Phase 13: Security Hardening
-**Goal**: User input is safely processed and sensitive data is protected
-**Depends on**: Phase 11 (needs encrypted storage)
-**Requirements**: SECU-01, SECU-02, SECU-03
-**Success Criteria** (what must be TRUE):
-  1. User prompts are sanitized before passing to Claude (injection prevention)
-  2. Input validation rejects malformed/malicious input with clear errors
-  3. Sensitive data (pairing codes, tokens) never appears in logs
-**Plans**: 3 plans
-
-Plans:
-- [ ] 13-01-PLAN.md - Security module with validation and injection detection (Wave 1)
-- [ ] 13-02-PLAN.md - Pino redaction for sensitive data (Wave 1)
-- [ ] 13-03-PLAN.md - Gateway validation integration (Wave 2)
-
-#### Phase 14: Telegram Streaming
+#### Phase 13: Telegram Streaming
 **Goal**: Users see real-time response generation in Telegram
 **Depends on**: Phase 9 (platform foundation)
 **Requirements**: STRM-01, STRM-02, STRM-03, STRM-04
@@ -121,12 +106,12 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 14-01: Telegram draft streaming
-- [ ] 14-02: Throttling and finalization
+- [ ] 13-01: Telegram draft streaming
+- [ ] 13-02: Throttling and finalization
 
-#### Phase 15: Telegram Threading
+#### Phase 14: Telegram Threading
 **Goal**: Conversations stay organized in threads
-**Depends on**: Phase 14
+**Depends on**: Phase 13
 **Requirements**: TELE-01, TELE-02
 **Success Criteria** (what must be TRUE):
   1. Bot respects message_thread_id for threaded conversations
@@ -134,9 +119,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 15-01: Thread support implementation
+- [ ] 14-01: Thread support implementation
 
-#### Phase 16: Heartbeat System
+#### Phase 15: Heartbeat System
 **Goal**: klausbot periodically checks in and can be reminded of things
 **Depends on**: Phase 9 (platform foundation)
 **Requirements**: HRTB-01, HRTB-02, HRTB-03, HRTB-04, HRTB-05, HRTB-06
@@ -149,13 +134,13 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 16-01: HEARTBEAT.md file support
-- [ ] 16-02: Periodic heartbeat scheduler
-- [ ] 16-03: User note saving
+- [ ] 15-01: HEARTBEAT.md file support
+- [ ] 15-02: Periodic heartbeat scheduler
+- [ ] 15-03: User note saving
 
-#### Phase 17: Docker & Release
+#### Phase 16: Docker & Release
 **Goal**: klausbot is documented for easy deployment (Docker marked "Coming Soon")
-**Depends on**: Phase 16 (all features implemented)
+**Depends on**: Phase 15 (all features implemented)
 **Requirements**: PLAT-04, RLSE-01, RLSE-02, RLSE-03, RLSE-04, RLSE-05
 **Success Criteria** (what must be TRUE):
   1. README includes step-by-step installation guide
@@ -166,12 +151,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [x] 17-01-PLAN.md — Documentation files (LICENSE, .env.example, README.md)
-- [x] 17-02-PLAN.md — User review checkpoint (fill story, add screenshots)
+- [x] 16-01-PLAN.md — Documentation files (LICENSE, .env.example, README.md)
+- [x] 16-02-PLAN.md — User review checkpoint (fill story, add screenshots)
 
-#### Phase 18: Testing Framework
+#### Phase 17: Testing Framework
 **Goal**: Comprehensive tests ensure "tests pass = app works" confidence
-**Depends on**: Phase 17 (all features and docs complete)
+**Depends on**: Phase 16 (all features and docs complete)
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
 **Success Criteria** (what must be TRUE):
   1. Unit tests exist for core modules (gateway, spawner, memory, cron)
@@ -181,15 +166,15 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 18-01: Test infrastructure setup
-- [ ] 18-02: Unit test suite
-- [ ] 18-03: E2E test suite
-- [ ] 18-04: CI/CD integration
+- [ ] 17-01: Test infrastructure setup
+- [ ] 17-02: Unit test suite
+- [ ] 17-03: E2E test suite
+- [ ] 17-04: CI/CD integration
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18
+Phases execute in numeric order: 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -197,13 +182,12 @@ Phases execute in numeric order: 9 → 10 → 11 → 12 → 13 → 14 → 15 →
 | 10. Doctor Command | v1.1 | 0/2 | Not started | - |
 | 11. Setup & Onboarding | v1.1 | 0/3 | Not started | - |
 | 12. Service Management | v1.1 | 0/3 | Not started | - |
-| 13. Security Hardening | v1.1 | 0/3 | Planned | - |
-| 14. Telegram Streaming | v1.1 | 0/2 | Not started | - |
-| 15. Telegram Threading | v1.1 | 0/1 | Not started | - |
-| 16. Heartbeat System | v1.1 | 0/3 | Not started | - |
-| 17. Docker & Release | v1.1 | 2/2 | ✓ Complete | 2026-02-05 |
-| 18. Testing Framework | v1.1 | 0/4 | Not started | - |
+| 13. Telegram Streaming | v1.1 | 0/2 | Not started | - |
+| 14. Telegram Threading | v1.1 | 0/1 | Not started | - |
+| 15. Heartbeat System | v1.1 | 0/3 | Not started | - |
+| 16. Docker & Release | v1.1 | 2/2 | ✓ Complete | 2026-02-05 |
+| 17. Testing Framework | v1.1 | 0/4 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-31*
-*v1.1 milestone: 10 phases, 26 plans, 49 requirements*
+*v1.1 milestone: 9 phases, 23 plans (after Phase 13 removal)*

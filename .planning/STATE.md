@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** v1.1 Production Ready — Phase 18 (Testing Framework)
+**Current focus:** v1.1 Production Ready — Phase 17 (Testing Framework)
 
 ## Current Position
 
-Phase: 17 of 18 (Docker & Release) — COMPLETE
+Phase: 16 of 17 (Docker & Release) — COMPLETE
 Plan: 2/2 complete
-Status: Phase 17 complete, ready for Phase 18
-Last activity: 2026-02-05 — Completed phase 17 (documentation and release)
+Status: Phase 16 complete, ready for Phase 17
+Last activity: 2026-02-05 — Removed Phase 13, renumbered phases, fixed XML input wrapping
 
-Progress: [█████████░] 90% (phases 9-12 + 17 complete)
+Progress: [█████████░] 90% (phases 9-12 + 16 complete)
 
 ## Milestone Summary
 
 **v1.1 Production Ready:**
-- 10 phases (9-18)
-- 28 planned plans
-- 49 requirements mapped
+- 9 phases (9-17, Phase 13 Security removed)
+- 23 planned plans
+- 46 requirements mapped
 
 **Scope:**
 - Platform detection + 12-factor compliance
@@ -46,7 +46,7 @@ Progress: [█████████░] 90% (phases 9-12 + 17 complete)
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 09-platform-foundation | 3/3 | 11m 14s | 3m 45s |
-| 17-docker-release | 2/2 | 4m 02s | 2m 01s |
+| 16-docker-release | 2/2 | 4m 02s | 2m 01s |
 
 *Updated after each plan completion*
 
@@ -76,6 +76,8 @@ Progress: [█████████░] 90% (phases 9-12 + 17 complete)
 - Local dev only (not published npm package) — use `npm run dev`
 - .env reads from both project folder and ~/.klausbot/.env
 - Screenshots skipped — text descriptions sufficient
+- XML input wrapping: User messages wrapped in `<user_message>` tags before passing to Claude CLI (security fix)
+- Phase 13 removed: Claude Code handles prompt injection; only needed XML escaping
 
 ### Pending Todos
 
@@ -88,13 +90,13 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Phase 17 complete (documentation and release)
+Stopped at: Removed Phase 13, added XML input wrapping, renumbered phases
 Resume file: None
 
 ## Next Steps
 
-1. `/gsd:plan-phase 18` — Plan testing framework
-2. Or `/gsd:plan-phase 13` — Plan security hardening
+1. `/gsd:plan-phase 17` — Plan testing framework
+2. Or continue with other unplanned phases (10-15)
 
 ---
 *State updated: 2026-02-05*

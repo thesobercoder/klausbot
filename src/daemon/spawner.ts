@@ -160,10 +160,14 @@ export async function queryClaudeCode(
     const hooksSettings = getHooksConfig();
     const settingsJson = JSON.stringify(hooksSettings);
 
+    // Wrap user prompt in XML tags for security
+    // Prevents shell injection and prompt injection from Telegram input
+    const wrappedPrompt = `<user_message>\n${prompt}\n</user_message>`;
+
     // Build command arguments
     const args = [
       '--dangerously-skip-permissions',
-      '-p', prompt,
+      '-p', wrappedPrompt,
       '--output-format', 'json',
       '--append-system-prompt', systemPrompt,
       '--mcp-config', mcpConfigPath,
