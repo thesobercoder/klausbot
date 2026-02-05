@@ -520,6 +520,9 @@ export async function stopGateway(): Promise<void> {
   // Stop cron scheduler
   stopScheduler();
 
+  // Stop heartbeat scheduler
+  stopHeartbeat();
+
   // Close database connection
   closeDb();
 
