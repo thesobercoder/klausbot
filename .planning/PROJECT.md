@@ -27,6 +27,7 @@ A self-evolving personal assistant based on Claude Code with persistent memory, 
 **Goal:** Polish klausbot for release with proper setup, cross-platform support, streaming, and comprehensive testing.
 
 **Target features:**
+
 - Onboard wizard with JSON config, encrypted pairing, gateway guards
 - Service management (launchd/systemd) via CLI
 - Telegram draft streaming and thread support
@@ -79,17 +80,17 @@ A self-evolving personal assistant based on Claude Code with persistent memory, 
 
 ## Key Decisions
 
-| Decision                          | Rationale                                              | Outcome     |
-| --------------------------------- | ------------------------------------------------------ | ----------- |
-| Claude Code as backend            | Full agentic capabilities, not just chat               | Good        |
-| File-based memory + agentic read  | RLM approach: Claude reads what it needs               | Good        |
-| Self-writable identity files      | Enables self-improvement and evolution                 | Good        |
-| SQLite for embeddings             | Replaced JSON file, enables MCP tool access            | Good        |
-| MCP tools for cron/memory         | Typed operations, self-describing                      | Good        |
-| Claude Code hooks                 | Session continuity without full history in context     | Good        |
-| Drizzle ORM                       | Schema migrations, type safety                         | Good        |
-| CLI spawner + MCP (not Agent SDK) | Agent SDK query() hung; CLI + MCP reliable             | Good        |
+| Decision                          | Rationale                                          | Outcome |
+| --------------------------------- | -------------------------------------------------- | ------- |
+| Claude Code as backend            | Full agentic capabilities, not just chat           | Good    |
+| File-based memory + agentic read  | RLM approach: Claude reads what it needs           | Good    |
+| Self-writable identity files      | Enables self-improvement and evolution             | Good    |
+| SQLite for embeddings             | Replaced JSON file, enables MCP tool access        | Good    |
+| MCP tools for cron/memory         | Typed operations, self-describing                  | Good    |
+| Claude Code hooks                 | Session continuity without full history in context | Good    |
+| Drizzle ORM                       | Schema migrations, type safety                     | Good    |
+| CLI spawner + MCP (not Agent SDK) | Agent SDK query() hung; CLI + MCP reliable         | Good    |
 
 ---
 
-*Last updated: 2026-01-31 after v1.1 milestone started*
+_Last updated: 2026-01-31 after v1.1 milestone started_

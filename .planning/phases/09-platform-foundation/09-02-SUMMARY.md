@@ -58,6 +58,7 @@ completed: 2026-01-31
 - **Files modified:** 4
 
 ## Accomplishments
+
 - Capability checker with telegram, claude, openai definitions
 - Color-coded startup checklist (green check, red X, yellow warning)
 - Fail-fast validation in gateway startup
@@ -72,12 +73,14 @@ Each task was committed atomically:
 3. **Task 3: Integrate into gateway startup** - `e60b18d` (feat)
 
 ## Files Created/Modified
+
 - `src/platform/capabilities.ts` - Capability types and checker function
 - `src/platform/startup.ts` - Startup checklist display and validation
 - `src/platform/index.ts` - Re-exports for capabilities and startup modules
 - `src/daemon/gateway.ts` - Integration of validation at startup
 
 ## Decisions Made
+
 - 5s timeout on `claude auth status` execSync to prevent hanging
 - Three visual states: enabled (green), disabled (red), degraded (yellow)
 - Required capabilities (telegram, claude) block startup; optional (openai) warn only
@@ -95,10 +98,12 @@ None.
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Capability checking foundation ready for doctor command
 - Doctor command can reuse checkAllCapabilities() and extend with additional checks
 - Config validation (09-03) can build on same pattern
 
 ---
-*Phase: 09-platform-foundation*
-*Completed: 2026-01-31*
+
+_Phase: 09-platform-foundation_
+_Completed: 2026-01-31_

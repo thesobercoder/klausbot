@@ -100,5 +100,6 @@ None - no external service configuration required.
 - Spawner tested and working with Claude CLI
 
 ---
-*Phase: 01-foundation*
-*Completed: 2026-01-28*
+
+_Phase: 01-foundation_
+_Completed: 2026-01-28_

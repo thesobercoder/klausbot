@@ -1,4 +1,4 @@
-import type { MyContext } from '../telegram/bot.js';
+import type { MyContext } from "../telegram/bot.js";
 
 /** Telegram message character limit */
 const MAX_LENGTH = 4096;
@@ -19,11 +19,11 @@ export function splitMessage(text: string): string[] {
 
   while (remaining.length > MAX_LENGTH) {
     // Try to split at sentence boundary (". ")
-    let splitIdx = remaining.lastIndexOf('. ', MAX_LENGTH - 1);
+    let splitIdx = remaining.lastIndexOf(". ", MAX_LENGTH - 1);
 
     // If no good sentence boundary (too early or not found), try word boundary
     if (splitIdx === -1 || splitIdx < MAX_LENGTH / 2) {
-      splitIdx = remaining.lastIndexOf(' ', MAX_LENGTH - 1);
+      splitIdx = remaining.lastIndexOf(" ", MAX_LENGTH - 1);
     }
 
     // Hard split if no boundary found
@@ -51,7 +51,10 @@ export function splitMessage(text: string): string[] {
  * @param ctx - grammY context
  * @param text - Message text (can exceed 4096 chars)
  */
-export async function sendLongMessage(ctx: MyContext, text: string): Promise<void> {
+export async function sendLongMessage(
+  ctx: MyContext,
+  text: string,
+): Promise<void> {
   const chunks = splitMessage(text);
 
   for (const chunk of chunks) {

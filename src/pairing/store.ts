@@ -1,9 +1,9 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
-import { randomBytes } from 'crypto';
-import { Logger } from 'pino';
-import { createChildLogger } from '../utils/index.js';
-import { getHomePath } from '../memory/index.js';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import { dirname } from "path";
+import { randomBytes } from "crypto";
+import { Logger } from "pino";
+import { createChildLogger } from "../utils/index.js";
+import { getHomePath } from "../memory/index.js";
 
 /** Approved user record */
 export interface ApprovedUser {
@@ -29,7 +29,7 @@ export interface PairingState {
 }
 
 /** Special return value indicating user is already approved */
-export const ALREADY_APPROVED = 'ALREADY_APPROVED';
+export const ALREADY_APPROVED = "ALREADY_APPROVED";
 
 /**
  * Pairing store with JSON file persistence
@@ -42,8 +42,8 @@ export class PairingStore {
 
   constructor(_dataDir?: string) {
     // Use ~/.klausbot/config/ for pairing to persist across deployments
-    this.path = getHomePath('config', 'pairing.json');
-    this.logger = createChildLogger('pairing');
+    this.path = getHomePath("config", "pairing.json");
+    this.logger = createChildLogger("pairing");
     this.state = { approved: {}, pending: {} };
     this.load();
   }
@@ -52,15 +52,21 @@ export class PairingStore {
   private load(): void {
     if (existsSync(this.path)) {
       try {
-        const data = readFileSync(this.path, 'utf-8');
+        const data = readFileSync(this.path, "utf-8");
         this.state = JSON.parse(data);
-        this.logger.info({ path: this.path }, 'Loaded pairing state from disk');
+        this.logger.info({ path: this.path }, "Loaded pairing state from disk");
       } catch (err) {
-        this.logger.error({ err, path: this.path }, 'Failed to load pairing state, starting fresh');
+        this.logger.error(
+          { err, path: this.path },
+          "Failed to load pairing state, starting fresh",
+        );
         this.state = { approved: {}, pending: {} };
       }
     } else {
-      this.logger.info({ path: this.path }, 'No existing pairing state, starting fresh');
+      this.logger.info(
+        { path: this.path },
+        "No existing pairing state, starting fresh",
+      );
     }
   }
 
@@ -74,7 +80,10 @@ export class PairingStore {
       }
       writeFileSync(this.path, JSON.stringify(this.state, null, 2));
     } catch (err) {
-      this.logger.error({ err, path: this.path }, 'Failed to persist pairing state');
+      this.logger.error(
+        { err, path: this.path },
+        "Failed to persist pairing state",
+      );
       throw err;
     }
   }
@@ -89,10 +98,12 @@ export class PairingStore {
     const maxAttempts = 10;
 
     do {
-      code = randomBytes(3).toString('hex').toUpperCase();
+      code = randomBytes(3).toString("hex").toUpperCase();
       attempts++;
       if (attempts > maxAttempts) {
-        throw new Error('Failed to generate unique pairing code after max attempts');
+        throw new Error(
+          "Failed to generate unique pairing code after max attempts",
+        );
       }
     } while (code in this.state.pending);
 
@@ -103,19 +114,26 @@ export class PairingStore {
    * Request pairing for a chat
    * @returns pairing code or ALREADY_APPROVED if already paired
    */
-  requestPairing(chatId: number, username?: string, firstName?: string): string {
+  requestPairing(
+    chatId: number,
+    username?: string,
+    firstName?: string,
+  ): string {
     const chatIdKey = chatId.toString();
 
     // Already approved
     if (chatIdKey in this.state.approved) {
-      this.logger.info({ chatId, username }, 'User already approved');
+      this.logger.info({ chatId, username }, "User already approved");
       return ALREADY_APPROVED;
     }
 
     // Check if already pending - return existing code
     for (const [code, request] of Object.entries(this.state.pending)) {
       if (request.chatId === chatId) {
-        this.logger.info({ code, chatId, username }, 'Returning existing pairing code');
+        this.logger.info(
+          { code, chatId, username },
+          "Returning existing pairing code",
+        );
         return code;
       }
     }
@@ -129,7 +147,7 @@ export class PairingStore {
       firstName,
     };
     this.persist();
-    this.logger.info({ code, chatId, username }, 'Pairing requested');
+    this.logger.info({ code, chatId, username }, "Pairing requested");
     return code;
   }
 
@@ -140,7 +158,7 @@ export class PairingStore {
   approvePairing(code: string): { chatId: number; username?: string } | null {
     const pending = this.state.pending[code];
     if (!pending) {
-      this.logger.warn({ code }, 'Pairing approval failed: code not found');
+      this.logger.warn({ code }, "Pairing approval failed: code not found");
       return null;
     }
 
@@ -156,7 +174,10 @@ export class PairingStore {
     delete this.state.pending[code];
     this.persist();
 
-    this.logger.info({ code, chatId: pending.chatId, username: pending.username }, 'Pairing approved');
+    this.logger.info(
+      { code, chatId: pending.chatId, username: pending.username },
+      "Pairing approved",
+    );
     return { chatId: pending.chatId, username: pending.username };
   }
 
@@ -166,7 +187,7 @@ export class PairingStore {
    */
   rejectPairing(code: string): boolean {
     if (!(code in this.state.pending)) {
-      this.logger.warn({ code }, 'Pairing rejection failed: code not found');
+      this.logger.warn({ code }, "Pairing rejection failed: code not found");
       return false;
     }
 
@@ -174,7 +195,7 @@ export class PairingStore {
     delete this.state.pending[code];
     this.persist();
 
-    this.logger.info({ code, chatId: pending.chatId }, 'Pairing rejected');
+    this.logger.info({ code, chatId: pending.chatId }, "Pairing rejected");
     return true;
   }
 
@@ -188,7 +209,12 @@ export class PairingStore {
   /**
    * List all pending pairing requests
    */
-  listPending(): Array<{ code: string; chatId: number; username?: string; requestedAt: number }> {
+  listPending(): Array<{
+    code: string;
+    chatId: number;
+    username?: string;
+    requestedAt: number;
+  }> {
     return Object.entries(this.state.pending).map(([code, request]) => ({
       code,
       chatId: request.chatId,
@@ -200,7 +226,11 @@ export class PairingStore {
   /**
    * List all approved users
    */
-  listApproved(): Array<{ chatId: number; username?: string; approvedAt: number }> {
+  listApproved(): Array<{
+    chatId: number;
+    username?: string;
+    approvedAt: number;
+  }> {
     return Object.entries(this.state.approved).map(([chatIdKey, user]) => ({
       chatId: parseInt(chatIdKey, 10),
       username: user.username,
@@ -215,14 +245,14 @@ export class PairingStore {
   revoke(chatId: number): boolean {
     const chatIdKey = chatId.toString();
     if (!(chatIdKey in this.state.approved)) {
-      this.logger.warn({ chatId }, 'Revocation failed: user not approved');
+      this.logger.warn({ chatId }, "Revocation failed: user not approved");
       return false;
     }
 
     delete this.state.approved[chatIdKey];
     this.persist();
 
-    this.logger.info({ chatId }, 'Pairing revoked');
+    this.logger.info({ chatId }, "Pairing revoked");
     return true;
   }
 }

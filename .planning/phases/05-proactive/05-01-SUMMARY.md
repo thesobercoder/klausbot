@@ -44,29 +44,35 @@ metrics:
 ## What Was Built
 
 ### Task 1: Types and Store
+
 Created type definitions for cron jobs and JSON persistence layer.
 
 **Types (src/cron/types.ts):**
+
 - `ScheduleKind`: `'at' | 'every' | 'cron'` discriminator
 - `CronSchedule`: schedule config with kind-specific fields
 - `CronJob`: full job definition (id, name, schedule, instruction, chatId, timestamps, status)
 - `CronStoreFile`: versioned store format `{ version: 1, jobs: CronJob[] }`
 
 **Store (src/cron/store.ts):**
+
 - `STORE_PATH`: `~/.klausbot/cron/jobs.json`
 - `loadCronStore()`: returns empty store if missing
 - `saveCronStore()`: atomic write via temp file + rename
 
 ### Task 2: Parse and Schedule
+
 Created schedule parsing from user input and next-run calculation.
 
 **Parse (src/cron/parse.ts):**
+
 - Pattern 1: `"every X (second|minute|hour|day|week)s?"` -> everyMs schedule
-- Pattern 2: Cron expression (starts with digit/*) -> croner validation
+- Pattern 2: Cron expression (starts with digit/\*) -> croner validation
 - Pattern 3: Natural language date -> chrono-node parsing
 - Returns `{ schedule, humanReadable, nextRun }`
 
 **Schedule (src/cron/schedule.ts):**
+
 - `computeNextRunAtMs()` handles all three schedule kinds
 - 'at': returns atMs if future, null if past
 - 'every': calculates next interval from anchor
@@ -77,25 +83,25 @@ All types and functions exported for module consumers.
 
 ## Technical Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
+| Decision       | Choice        | Rationale                                       |
+| -------------- | ------------- | ----------------------------------------------- |
 | Schedule kinds | at/every/cron | Covers one-shot, interval, expression use cases |
-| Cron library | croner | Zero deps, TS native, timezone support |
-| NLP library | chrono-node | Multi-locale, TypeScript rewrite |
-| Persistence | JSON file | Claude-accessible, no DB dependency |
-| Write safety | temp+rename | Prevents corruption on crash |
+| Cron library   | croner        | Zero deps, TS native, timezone support          |
+| NLP library    | chrono-node   | Multi-locale, TypeScript rewrite                |
+| Persistence    | JSON file     | Claude-accessible, no DB dependency             |
+| Write safety   | temp+rename   | Prevents corruption on crash                    |
 
 ## Verification Results
 
-| Check | Status |
-|-------|--------|
-| npm run build | Pass |
-| types.ts compiles | Pass |
-| store.ts atomic writes | Pass |
-| parseSchedule("every 5 minutes") | Pass |
-| parseSchedule("0 9 * * *") | Pass |
-| parseSchedule("tomorrow at 9am") | Pass |
-| computeNextRunAtMs returns future timestamps | Pass |
+| Check                                        | Status |
+| -------------------------------------------- | ------ |
+| npm run build                                | Pass   |
+| types.ts compiles                            | Pass   |
+| store.ts atomic writes                       | Pass   |
+| parseSchedule("every 5 minutes")             | Pass   |
+| parseSchedule("0 9 \* \* \*")                | Pass   |
+| parseSchedule("tomorrow at 9am")             | Pass   |
+| computeNextRunAtMs returns future timestamps | Pass   |
 
 ## Deviations from Plan
 
@@ -103,18 +109,19 @@ None - plan executed exactly as written.
 
 ## Files Changed
 
-| File | Change | Lines |
-|------|--------|-------|
-| src/cron/types.ts | Created | 65 |
-| src/cron/store.ts | Created | 46 |
-| src/cron/parse.ts | Created | 91 |
-| src/cron/schedule.ts | Created | 56 |
-| src/cron/index.ts | Created | 28 |
-| package.json | Updated | +2 deps |
+| File                 | Change  | Lines   |
+| -------------------- | ------- | ------- |
+| src/cron/types.ts    | Created | 65      |
+| src/cron/store.ts    | Created | 46      |
+| src/cron/parse.ts    | Created | 91      |
+| src/cron/schedule.ts | Created | 56      |
+| src/cron/index.ts    | Created | 28      |
+| package.json         | Updated | +2 deps |
 
 ## Next Phase Readiness
 
 **Ready for Plan 05-02:**
+
 - Types exported for service layer
 - Store functions ready for CRUD operations
 - parseSchedule ready for job creation

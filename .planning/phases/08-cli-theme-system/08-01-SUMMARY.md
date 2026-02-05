@@ -102,5 +102,6 @@ None.
 - Plan 03 can add spinners/progress bars building on this foundation
 
 ---
-*Phase: 08-cli-theme-system*
-*Completed: 2026-01-31*
+
+_Phase: 08-cli-theme-system_
+_Completed: 2026-01-31_

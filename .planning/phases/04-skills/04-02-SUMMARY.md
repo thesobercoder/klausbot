@@ -40,24 +40,27 @@ metrics:
 ## What Was Built
 
 ### Skills CLI (`src/cli/skills.ts`)
+
 - `ensureSkillCreator()` - auto-installs skill-creator if missing
 - `runSkillsCLI()` - interactive menu to install curated skills
 - `installSkillFolder()` - recursive GitHub API download (handles subdirs)
 - `getInstalledSkills()` - lists installed skills from `~/.claude/skills/`
 
 ### CLI Integration
+
 - Added `klausbot skills` command to main CLI
 - Exports from `src/cli/index.ts`: `runSkillsCLI`, `ensureSkillCreator`
 
 ### Gateway Integration
+
 - `ensureSkillCreator()` called on gateway startup
 - `registerSkillCommands()` registers skills in Telegram menu
 
 ## Commits
 
-| Hash | Type | Description |
-|------|------|-------------|
-| 9055422 | feat | Create skills CLI module |
+| Hash    | Type | Description                       |
+| ------- | ---- | --------------------------------- |
+| 9055422 | feat | Create skills CLI module          |
 | bc36f3b | feat | Wire CLI and gateway auto-install |
 
 ## Deviations from Plan
@@ -65,6 +68,7 @@ metrics:
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] BotCommand type import error**
+
 - **Found during:** Task 1 verification
 - **Issue:** `src/telegram/skills.ts` imported non-existent `BotCommand` from grammy
 - **Fix:** Defined local `BotCommand` interface
@@ -73,16 +77,17 @@ metrics:
 
 ## Verification Results
 
-| Check | Status |
-|-------|--------|
-| `npx tsc --noEmit` | PASS |
-| `klausbot skills` shows menu | PASS |
-| skill-creator auto-installed | PASS |
-| Full folder with all files | PASS (SKILL.md, references/, scripts/) |
+| Check                        | Status                                 |
+| ---------------------------- | -------------------------------------- |
+| `npx tsc --noEmit`           | PASS                                   |
+| `klausbot skills` shows menu | PASS                                   |
+| skill-creator auto-installed | PASS                                   |
+| Full folder with all files   | PASS (SKILL.md, references/, scripts/) |
 
 ## Key Technical Details
 
 ### GitHub API Recursive Download
+
 ```typescript
 // Fetches folder contents from GitHub API
 const res = await fetch(`${GITHUB_API}/${name}`);
@@ -96,6 +101,7 @@ for (const item of contents) {
 ```
 
 ### Auto-install Flow
+
 1. Gateway starts
 2. `ensureSkillCreator()` checks `~/.claude/skills/skill-creator/SKILL.md`
 3. If missing, downloads entire folder from GitHub
@@ -104,6 +110,7 @@ for (const item of contents) {
 ## Next Phase Readiness
 
 Ready for 04-03 (skill invocation):
+
 - Skills installed to `~/.claude/skills/`
 - Full folder structure preserved (SKILL.md, references/, scripts/)
 - `getInstalledSkillNames()` available for listing

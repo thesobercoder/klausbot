@@ -45,6 +45,7 @@ RUN mkdir -p /home/klausbot/.klausbot && chown -R klausbot:klausbot /home/klausb
 # Environment
 ENV NODE_ENV=production
 ENV KLAUSBOT_HOME=/home/klausbot/.klausbot
+ENV KLAUSBOT_CONTAINER=1
 
 # Switch to non-root user
 USER klausbot

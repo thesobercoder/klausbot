@@ -1,16 +1,16 @@
-import type { MyContext } from '../telegram/index.js';
-import { MessageQueue, queryClaudeCode, ensureDataDir } from './index.js';
-import { getJsonConfig } from '../config/index.js';
-import type { QueuedMessage } from './queue.js';
+import type { MyContext } from "../telegram/index.js";
+import { MessageQueue, queryClaudeCode, ensureDataDir } from "./index.js";
+import { getJsonConfig } from "../config/index.js";
+import type { QueuedMessage } from "./queue.js";
 import {
   initPairingStore,
   createPairingMiddleware,
   handleStartCommand,
   getPairingStore,
-} from '../pairing/index.js';
-import { KLAUSBOT_HOME } from '../memory/home.js';
-import { createChildLogger, sendLongMessage } from '../utils/index.js';
-import { autoCommitChanges } from '../utils/git.js';
+} from "../pairing/index.js";
+import { KLAUSBOT_HOME } from "../memory/home.js";
+import { createChildLogger, sendLongMessage } from "../utils/index.js";
+import { autoCommitChanges } from "../utils/git.js";
 import {
   initializeHome,
   initializeEmbeddings,
@@ -18,10 +18,10 @@ import {
   closeDb,
   invalidateIdentityCache,
   runMigrations,
-} from '../memory/index.js';
-import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from '../bootstrap/index.js';
-import { validateRequiredCapabilities } from '../platform/index.js';
-import { startScheduler, stopScheduler, loadCronStore } from '../cron/index.js';
+} from "../memory/index.js";
+import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from "../bootstrap/index.js";
+import { validateRequiredCapabilities } from "../platform/index.js";
+import { startScheduler, stopScheduler, loadCronStore } from "../cron/index.js";
 import {
   MediaAttachment,
   transcribeAudio,
@@ -29,12 +29,12 @@ import {
   saveImage,
   withRetry,
   downloadFile,
-} from '../media/index.js';
-import { unlinkSync } from 'fs';
-import os from 'os';
-import path from 'path';
+} from "../media/index.js";
+import { unlinkSync } from "fs";
+import os from "os";
+import path from "path";
 
-const log = createChildLogger('gateway');
+const log = createChildLogger("gateway");
 
 /** Module state */
 let queue: MessageQueue;
@@ -42,7 +42,7 @@ let isProcessing = false;
 let shouldStop = false;
 
 /** Bot instance (loaded dynamically after config validation) */
-let bot: Awaited<typeof import('../telegram/index.js')>['bot'];
+let bot: Awaited<typeof import("../telegram/index.js")>["bot"];
 
 /**
  * Pre-process media attachments before Claude query
@@ -52,7 +52,7 @@ let bot: Awaited<typeof import('../telegram/index.js')>['bot'];
  * @returns Processed attachments with transcripts/paths filled in
  */
 async function processMedia(
-  attachments: MediaAttachment[]
+  attachments: MediaAttachment[],
 ): Promise<{ processed: MediaAttachment[]; errors: string[] }> {
   const processed: MediaAttachment[] = [];
   const errors: string[] = [];
@@ -60,20 +60,24 @@ async function processMedia(
   for (const attachment of attachments) {
     const startTime = Date.now();
 
-    if (attachment.type === 'voice') {
+    if (attachment.type === "voice") {
       // Transcribe voice
       if (!isTranscriptionAvailable()) {
-        errors.push('Voice transcription not available (OPENAI_API_KEY missing)');
+        errors.push(
+          "Voice transcription not available (OPENAI_API_KEY missing)",
+        );
         continue;
       }
 
       if (!attachment.localPath) {
-        errors.push('Voice file not downloaded');
+        errors.push("Voice file not downloaded");
         continue;
       }
 
       try {
-        const result = await withRetry(() => transcribeAudio(attachment.localPath!));
+        const result = await withRetry(() =>
+          transcribeAudio(attachment.localPath!),
+        );
 
         // Delete audio file after transcription (per CONTEXT.md)
         try {
@@ -90,18 +94,25 @@ async function processMedia(
         });
 
         log.info(
-          { type: 'voice', transcriptLength: result.text.length, durationMs: result.durationMs },
-          'Transcribed voice message'
+          {
+            type: "voice",
+            transcriptLength: result.text.length,
+            durationMs: result.durationMs,
+          },
+          "Transcribed voice message",
         );
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Transcription failed: ${msg}`);
-        log.error({ err, localPath: attachment.localPath }, 'Voice transcription failed');
+        log.error(
+          { err, localPath: attachment.localPath },
+          "Voice transcription failed",
+        );
       }
-    } else if (attachment.type === 'photo') {
+    } else if (attachment.type === "photo") {
       // Save image
       if (!attachment.localPath) {
-        errors.push('Image file not downloaded');
+        errors.push("Image file not downloaded");
         continue;
       }
 
@@ -114,11 +125,14 @@ async function processMedia(
           processingTimeMs: Date.now() - startTime,
         });
 
-        log.info({ type: 'photo', savedPath }, 'Saved image');
+        log.info({ type: "photo", savedPath }, "Saved image");
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Failed to save image: ${msg}`);
-        log.error({ err, localPath: attachment.localPath }, 'Image save failed');
+        log.error(
+          { err, localPath: attachment.localPath },
+          "Image save failed",
+        );
       }
     }
   }
@@ -129,35 +143,32 @@ async function processMedia(
 /**
  * Build prompt text incorporating media context
  */
-function buildPromptWithMedia(
-  text: string,
-  media: MediaAttachment[]
-): string {
+function buildPromptWithMedia(text: string, media: MediaAttachment[]): string {
   const voiceTranscripts = media
-    .filter(m => m.type === 'voice' && m.transcript)
-    .map(m => m.transcript);
+    .filter((m) => m.type === "voice" && m.transcript)
+    .map((m) => m.transcript);
 
   const imagePaths = media
-    .filter(m => m.type === 'photo' && m.localPath)
-    .map(m => m.localPath!);
+    .filter((m) => m.type === "photo" && m.localPath)
+    .map((m) => m.localPath!);
 
   let prompt = text;
 
   // If voice-only (no text), use transcript as prompt
   if (!text.trim() && voiceTranscripts.length > 0) {
-    prompt = voiceTranscripts.join('\n');
+    prompt = voiceTranscripts.join("\n");
   } else if (voiceTranscripts.length > 0) {
     // Text + voice: prepend transcript context
-    prompt = `[Voice message transcript: ${voiceTranscripts.join(' ')}]\n\n${text}`;
+    prompt = `[Voice message transcript: ${voiceTranscripts.join(" ")}]\n\n${text}`;
   }
 
   // Add image references for Claude to read
   if (imagePaths.length > 0) {
     const imageInstructions = imagePaths
       .map((p, i) => `Image ${i + 1}: ${p}`)
-      .join('\n');
+      .join("\n");
 
-    prompt = `The user sent ${imagePaths.length} image(s). Read and analyze them using your Read tool:\n${imageInstructions}\n\n${prompt || '(no text, just the image(s))'}`;
+    prompt = `The user sent ${imagePaths.length} image(s). Read and analyze them using your Read tool:\n${imageInstructions}\n\n${prompt || "(no text, just the image(s))"}`;
   }
 
   return prompt;
@@ -174,11 +185,16 @@ export async function startGateway(): Promise<void> {
 
   // Dynamic import telegram module AFTER validation passes
   // This prevents bot.ts from loading config before we verify it exists
-  const telegram = await import('../telegram/index.js');
+  const telegram = await import("../telegram/index.js");
   bot = telegram.bot;
-  const { createRunner, registerSkillCommands, getInstalledSkillNames, translateSkillCommand } = telegram;
+  const {
+    createRunner,
+    registerSkillCommands,
+    getInstalledSkillNames,
+    translateSkillCommand,
+  } = telegram;
 
-  log.info('Starting gateway...');
+  log.info("Starting gateway...");
 
   // Initialize ~/.klausbot/ data home (directories only)
   // NOTE: Do NOT call initializeIdentity() here - bootstrap flow creates identity files
@@ -187,24 +203,30 @@ export async function startGateway(): Promise<void> {
 
   // Run database migrations (creates tables if needed)
   runMigrations();
-  log.info('Database migrations complete');
+  log.info("Database migrations complete");
 
   // Migrate embeddings from JSON to SQLite (idempotent)
   await migrateEmbeddings();
 
   // Log media capabilities
-  log.info({
-    voiceTranscription: isTranscriptionAvailable(),
-    imageAnalysis: true,  // Always available (Claude vision)
-  }, 'Media capabilities');
+  log.info(
+    {
+      voiceTranscription: isTranscriptionAvailable(),
+      imageAnalysis: true, // Always available (Claude vision)
+    },
+    "Media capabilities",
+  );
 
   // Initialize cron system
   startScheduler();
-  log.info({ jobs: loadCronStore().jobs.filter(j => j.enabled).length }, 'Cron scheduler initialized');
+  log.info(
+    { jobs: loadCronStore().jobs.filter((j) => j.enabled).length },
+    "Cron scheduler initialized",
+  );
 
   // Register skill commands in Telegram menu
   await registerSkillCommands(bot);
-  log.info({ skills: getInstalledSkillNames() }, 'Registered skill commands');
+  log.info({ skills: getInstalledSkillNames() }, "Registered skill commands");
 
   // Initialize data directory and components
   ensureDataDir(KLAUSBOT_HOME);
@@ -224,7 +246,7 @@ export async function startGateway(): Promise<void> {
       approvedUsers: approvedCount,
       pendingPairings: pendingCount,
     },
-    'Gateway initialized'
+    "Gateway initialized",
   );
 
   // Setup middleware - ORDER MATTERS
@@ -232,13 +254,15 @@ export async function startGateway(): Promise<void> {
   bot.use(createPairingMiddleware());
 
   // 2. Commands
-  bot.command('start', handleStartCommand);
+  bot.command("start", handleStartCommand);
 
-  bot.command('model', async (ctx: MyContext) => {
-    await ctx.reply('Current model: default\nModel switching coming in Phase 2');
+  bot.command("model", async (ctx: MyContext) => {
+    await ctx.reply(
+      "Current model: default\nModel switching coming in Phase 2",
+    );
   });
 
-  bot.command('status', async (ctx: MyContext) => {
+  bot.command("status", async (ctx: MyContext) => {
     const chatId = ctx.chat?.id;
     if (!chatId) return;
 
@@ -247,39 +271,39 @@ export async function startGateway(): Promise<void> {
     const isApproved = store.isApproved(chatId);
 
     const statusMsg = [
-      '*Queue Status*',
+      "*Queue Status*",
       `Pending: ${queueStats.pending}`,
       `Processing: ${queueStats.processing}`,
       `Failed: ${queueStats.failed}`,
-      '',
+      "",
       `*Your Status*`,
-      `Approved: ${isApproved ? 'Yes' : 'No'}`,
-    ].join('\n');
+      `Approved: ${isApproved ? "Yes" : "No"}`,
+    ].join("\n");
 
-    await ctx.reply(statusMsg, { parse_mode: 'Markdown' });
+    await ctx.reply(statusMsg, { parse_mode: "Markdown" });
   });
 
-  bot.command('help', async (ctx: MyContext) => {
+  bot.command("help", async (ctx: MyContext) => {
     const helpMsg = [
-      '*Available Commands*',
-      '/start - Request pairing or check status',
-      '/status - Show queue and approval status',
-      '/model - Show current model info',
-      '/crons - List scheduled tasks',
-      '/help - Show this help message',
-      '',
-      'Send any message to chat with Claude.',
-    ].join('\n');
+      "*Available Commands*",
+      "/start - Request pairing or check status",
+      "/status - Show queue and approval status",
+      "/model - Show current model info",
+      "/crons - List scheduled tasks",
+      "/help - Show this help message",
+      "",
+      "Send any message to chat with Claude.",
+    ].join("\n");
 
-    await ctx.reply(helpMsg, { parse_mode: 'Markdown' });
+    await ctx.reply(helpMsg, { parse_mode: "Markdown" });
   });
 
   // 3. Message handler
-  bot.on('message:text', async (ctx: MyContext) => {
+  bot.on("message:text", async (ctx: MyContext) => {
     const chatId = ctx.chat?.id;
     if (!chatId) return;
 
-    const rawText = ctx.message?.text ?? '';
+    const rawText = ctx.message?.text ?? "";
 
     // Skip empty messages
     if (!rawText.trim()) return;
@@ -289,23 +313,29 @@ export async function startGateway(): Promise<void> {
 
     // Add to queue - typing indicator shown by autoChatAction middleware
     const queueId = queue.add(chatId, text);
-    log.info({ chatId, queueId, translated: text !== rawText }, 'Message queued');
+    log.info(
+      { chatId, queueId, translated: text !== rawText },
+      "Message queued",
+    );
 
     // Trigger processing (non-blocking)
     processQueue().catch((err) => {
-      log.error({ err }, 'Queue processing error');
+      log.error({ err }, "Queue processing error");
     });
   });
 
   // Voice message handler
-  bot.on('message:voice', async (ctx: MyContext) => {
+  bot.on("message:voice", async (ctx: MyContext) => {
     const chatId = ctx.chat?.id;
     if (!chatId) return;
 
     const voice = ctx.message?.voice;
     if (!voice) return;
 
-    log.info({ chatId, fileId: voice.file_id, duration: voice.duration }, 'Received voice message');
+    log.info(
+      { chatId, fileId: voice.file_id, duration: voice.duration },
+      "Received voice message",
+    );
 
     // Download voice file to temp location
     const tempPath = path.join(os.tmpdir(), `klausbot-voice-${Date.now()}.ogg`);
@@ -313,31 +343,33 @@ export async function startGateway(): Promise<void> {
     try {
       await downloadFile(bot, voice.file_id, tempPath);
 
-      const media: MediaAttachment[] = [{
-        type: 'voice',
-        fileId: voice.file_id,
-        localPath: tempPath,
-        mimeType: voice.mime_type,
-      }];
+      const media: MediaAttachment[] = [
+        {
+          type: "voice",
+          fileId: voice.file_id,
+          localPath: tempPath,
+          mimeType: voice.mime_type,
+        },
+      ];
 
       // Voice messages don't have captions in Telegram
-      const text = '';
+      const text = "";
 
       const queueId = queue.add(chatId, text, media);
-      log.info({ chatId, queueId, mediaCount: 1 }, 'Voice message queued');
+      log.info({ chatId, queueId, mediaCount: 1 }, "Voice message queued");
 
       processQueue().catch((err) => {
-        log.error({ err }, 'Queue processing error');
+        log.error({ err }, "Queue processing error");
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      log.error({ err, chatId }, 'Failed to download voice message');
+      log.error({ err, chatId }, "Failed to download voice message");
       await ctx.reply(`Failed to process voice message: ${msg}`);
     }
   });
 
   // Photo message handler
-  bot.on('message:photo', async (ctx: MyContext) => {
+  bot.on("message:photo", async (ctx: MyContext) => {
     const chatId = ctx.chat?.id;
     if (!chatId) return;
 
@@ -347,12 +379,15 @@ export async function startGateway(): Promise<void> {
     // Get largest photo (last in array)
     const largest = photos[photos.length - 1];
 
-    log.info({
-      chatId,
-      fileId: largest.file_id,
-      width: largest.width,
-      height: largest.height
-    }, 'Received photo message');
+    log.info(
+      {
+        chatId,
+        fileId: largest.file_id,
+        width: largest.width,
+        height: largest.height,
+      },
+      "Received photo message",
+    );
 
     // Download photo to temp location
     const tempPath = path.join(os.tmpdir(), `klausbot-photo-${Date.now()}.jpg`);
@@ -360,24 +395,29 @@ export async function startGateway(): Promise<void> {
     try {
       await downloadFile(bot, largest.file_id, tempPath);
 
-      const media: MediaAttachment[] = [{
-        type: 'photo',
-        fileId: largest.file_id,
-        localPath: tempPath,
-      }];
+      const media: MediaAttachment[] = [
+        {
+          type: "photo",
+          fileId: largest.file_id,
+          localPath: tempPath,
+        },
+      ];
 
       // Get caption if any
-      const text = ctx.message?.caption ?? '';
+      const text = ctx.message?.caption ?? "";
 
       const queueId = queue.add(chatId, text, media);
-      log.info({ chatId, queueId, mediaCount: 1, hasCaption: !!text }, 'Photo message queued');
+      log.info(
+        { chatId, queueId, mediaCount: 1, hasCaption: !!text },
+        "Photo message queued",
+      );
 
       processQueue().catch((err) => {
-        log.error({ err }, 'Queue processing error');
+        log.error({ err }, "Queue processing error");
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      log.error({ err, chatId }, 'Failed to download photo');
+      log.error({ err, chatId }, "Failed to download photo");
       await ctx.reply(`Failed to process photo: ${msg}`);
     }
   });
@@ -388,40 +428,51 @@ export async function startGateway(): Promise<void> {
   // Future enhancement: collect media groups using message.media_group_id
 
   // Catch-all for unsupported message types
-  bot.on('message', async (ctx: MyContext) => {
+  bot.on("message", async (ctx: MyContext) => {
     const chatId = ctx.chat?.id;
     if (!chatId) return;
 
     const messageType = Object.keys(ctx.message ?? {}).find(
-      (key) => !['message_id', 'from', 'chat', 'date', 'text', 'voice', 'photo', 'caption', 'entities'].includes(key)
+      (key) =>
+        ![
+          "message_id",
+          "from",
+          "chat",
+          "date",
+          "text",
+          "voice",
+          "photo",
+          "caption",
+          "entities",
+        ].includes(key),
     );
 
-    log.info({ chatId, messageType }, 'Received unsupported message type');
+    log.info({ chatId, messageType }, "Received unsupported message type");
 
     await ctx.reply(
-      'I can process text, voice messages, and photos. Other message types are not yet supported.'
+      "I can process text, voice messages, and photos. Other message types are not yet supported.",
     );
   });
 
   // Start processing loop in background
   processQueue().catch((err) => {
-    log.error({ err }, 'Initial queue processing error');
+    log.error({ err }, "Initial queue processing error");
   });
 
   // Create runner
   const runner = createRunner();
-  log.info('Gateway running');
+  log.info("Gateway running");
 
   // Set up shutdown handlers
   const shutdown = async () => {
-    log.info('Shutdown signal received');
+    log.info("Shutdown signal received");
     await stopGateway();
     await runner.stop();
     process.exit(0);
   };
 
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 
   // Wait for runner to stop (blocks until shutdown signal)
   await runner.task();
@@ -431,7 +482,7 @@ export async function startGateway(): Promise<void> {
  * Stop the gateway gracefully
  */
 export async function stopGateway(): Promise<void> {
-  log.info('Stopping gateway...');
+  log.info("Stopping gateway...");
   shouldStop = true;
 
   // Stop cron scheduler
@@ -448,10 +499,10 @@ export async function stopGateway(): Promise<void> {
   }
 
   if (isProcessing) {
-    log.warn('Timed out waiting for processing to complete');
+    log.warn("Timed out waiting for processing to complete");
   }
 
-  log.info('Gateway stopped');
+  log.info("Gateway stopped");
 }
 
 /**
@@ -487,7 +538,7 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
   // Send typing indicator continuously while processing
   // Telegram typing indicator lasts ~5 seconds, so refresh every 4
   const sendTyping = () => {
-    bot.api.sendChatAction(msg.chatId, 'typing').catch(() => {
+    bot.api.sendChatAction(msg.chatId, "typing").catch(() => {
       // Ignore errors - chat may be unavailable
     });
   };
@@ -511,10 +562,10 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
     // If all media failed and no text, send error and return
     if (mediaErrors.length > 0 && !effectiveText.trim()) {
       clearInterval(typingInterval);
-      queue.fail(msg.id, mediaErrors.join('; '));
+      queue.fail(msg.id, mediaErrors.join("; "));
       await bot.api.sendMessage(
         msg.chatId,
-        `Could not process media: ${mediaErrors.join('. ')}`
+        `Could not process media: ${mediaErrors.join(". ")}`,
       );
       return;
     }
@@ -522,7 +573,10 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
     // Check if bootstrap needed BEFORE processing
     const isBootstrap = needsBootstrap();
     if (isBootstrap) {
-      log.info({ chatId: msg.chatId }, 'Bootstrap mode: identity files missing');
+      log.info(
+        { chatId: msg.chatId },
+        "Bootstrap mode: identity files missing",
+      );
     }
 
     // Build additional instructions
@@ -533,7 +587,7 @@ Use this chatId when creating cron jobs.
 </session-context>`;
 
     const additionalInstructions = isBootstrap
-      ? chatIdContext + '\n\n' + BOOTSTRAP_INSTRUCTIONS
+      ? chatIdContext + "\n\n" + BOOTSTRAP_INSTRUCTIONS
       : chatIdContext;
 
     // Call Claude (with media-enriched prompt if applicable)
@@ -553,7 +607,7 @@ Use this chatId when creating cron jobs.
     if (response.is_error) {
       await bot.api.sendMessage(
         msg.chatId,
-        `Error (Claude): ${response.result}`
+        `Error (Claude): ${response.result}`,
       );
     } else {
       // Invalidate identity cache after Claude response
@@ -561,27 +615,35 @@ Use this chatId when creating cron jobs.
       invalidateIdentityCache();
 
       const messages = await splitAndSend(msg.chatId, response.result);
-      log.debug({ chatId: msg.chatId, chunks: messages }, 'Sent response chunks');
+      log.debug(
+        { chatId: msg.chatId, chunks: messages },
+        "Sent response chunks",
+      );
 
       // Notify user of non-fatal media errors
       if (mediaErrors.length > 0) {
         await bot.api.sendMessage(
           msg.chatId,
-          `Note: Some media could not be processed: ${mediaErrors.join('. ')}`
+          `Note: Some media could not be processed: ${mediaErrors.join(". ")}`,
         );
       }
     }
 
     const duration = Date.now() - startTime;
     log.info(
-      { chatId: msg.chatId, queueId: msg.id, duration, cost: response.cost_usd },
-      'Message processed'
+      {
+        chatId: msg.chatId,
+        queueId: msg.id,
+        duration,
+        cost: response.cost_usd,
+      },
+      "Message processed",
     );
 
     // Auto-commit any file changes Claude made
     const committed = await autoCommitChanges();
     if (committed) {
-      log.info({ queueId: msg.id }, 'Auto-committed Claude file changes');
+      log.info({ queueId: msg.id }, "Auto-committed Claude file changes");
     }
   } catch (err) {
     // Stop typing indicator
@@ -600,7 +662,7 @@ Use this chatId when creating cron jobs.
 
     log.error(
       { chatId: msg.chatId, queueId: msg.id, error: error.message, category },
-      'Message failed'
+      "Message failed",
     );
   }
 }
@@ -620,10 +682,10 @@ async function splitAndSend(chatId: number, text: string): Promise<number> {
     }
 
     // Try to split at sentence boundary
-    let splitPoint = remaining.lastIndexOf('. ', MAX_LENGTH);
+    let splitPoint = remaining.lastIndexOf(". ", MAX_LENGTH);
     if (splitPoint === -1 || splitPoint < MAX_LENGTH * 0.5) {
       // Try word boundary
-      splitPoint = remaining.lastIndexOf(' ', MAX_LENGTH);
+      splitPoint = remaining.lastIndexOf(" ", MAX_LENGTH);
     }
     if (splitPoint === -1 || splitPoint < MAX_LENGTH * 0.5) {
       // Hard split
@@ -651,20 +713,20 @@ async function splitAndSend(chatId: number, text: string): Promise<number> {
 function categorizeError(error: Error): string {
   const msg = error.message.toLowerCase();
 
-  if (msg.includes('timeout') || msg.includes('timed out')) {
-    return 'timeout';
+  if (msg.includes("timeout") || msg.includes("timed out")) {
+    return "timeout";
   }
-  if (msg.includes('spawn') || msg.includes('failed to start')) {
-    return 'spawn';
+  if (msg.includes("spawn") || msg.includes("failed to start")) {
+    return "spawn";
   }
-  if (msg.includes('parse') || msg.includes('json')) {
-    return 'parse';
+  if (msg.includes("parse") || msg.includes("json")) {
+    return "parse";
   }
-  if (msg.includes('exit')) {
-    return 'process';
+  if (msg.includes("exit")) {
+    return "process";
   }
 
-  return 'unknown';
+  return "unknown";
 }
 
 /**
@@ -675,7 +737,7 @@ function getBriefDescription(error: Error): string {
 
   // Truncate long messages
   if (msg.length > 200) {
-    return msg.slice(0, 200) + '...';
+    return msg.slice(0, 200) + "...";
   }
 
   return msg;

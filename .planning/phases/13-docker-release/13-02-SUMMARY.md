@@ -8,6 +8,7 @@
 ## What Was Built
 
 README.md updated with user-provided content:
+
 - Personal narrative explaining OpenClaw motivation and Claude Code wrapper approach
 - Simplified installation for local development (`npm run dev`)
 - Removed npm package installation commands (not published)
@@ -16,15 +17,15 @@ README.md updated with user-provided content:
 
 ## Commits
 
-| Hash | Description |
-|------|-------------|
+| Hash      | Description                                      |
+| --------- | ------------------------------------------------ |
 | `4661048` | docs(17-02): update README for local development |
 | `7ef49b9` | fix(17-02): correct config paths to ~/.klausbot/ |
 
 ## Files Modified
 
-| File | Change |
-|------|--------|
+| File      | Change                                              |
+| --------- | --------------------------------------------------- |
 | README.md | Updated narrative, simplified to local dev workflow |
 
 ## Deviations

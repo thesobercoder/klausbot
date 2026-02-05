@@ -3,14 +3,20 @@
  * Jobs persist to ~/.klausbot/cron/jobs.json
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs';
-import { dirname } from 'path';
-import { randomUUID } from 'crypto';
-import { getHomePath } from '../memory/index.js';
-import type { CronStoreFile } from './types.js';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  renameSync,
+} from "fs";
+import { dirname } from "path";
+import { randomUUID } from "crypto";
+import { getHomePath } from "../memory/index.js";
+import type { CronStoreFile } from "./types.js";
 
 /** Path to cron jobs JSON file */
-export const STORE_PATH = getHomePath('cron', 'jobs.json');
+export const STORE_PATH = getHomePath("cron", "jobs.json");
 
 /**
  * Load cron store from disk
@@ -22,7 +28,7 @@ export function loadCronStore(): CronStoreFile {
   }
 
   try {
-    const data = readFileSync(STORE_PATH, 'utf-8');
+    const data = readFileSync(STORE_PATH, "utf-8");
     return JSON.parse(data) as CronStoreFile;
   } catch {
     // Corrupted file - return empty store

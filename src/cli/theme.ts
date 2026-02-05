@@ -5,7 +5,7 @@
  * Respects NO_COLOR environment variable for accessibility.
  */
 
-import pc from 'picocolors';
+import pc from "picocolors";
 
 // Check NO_COLOR at module load (picocolors handles this, but be explicit)
 const noColor = Boolean(process.env.NO_COLOR);
@@ -22,7 +22,9 @@ const colors = {
   dim: noColor ? (s: string) => s : pc.dim,
   bold: noColor ? (s: string) => s : pc.bold,
   boldGreen: noColor ? (s: string) => s : (s: string) => pc.bold(pc.green(s)),
-  boldMagenta: noColor ? (s: string) => s : (s: string) => pc.bold(pc.magenta(s)),
+  boldMagenta: noColor
+    ? (s: string) => s
+    : (s: string) => pc.bold(pc.magenta(s)),
   boldYellow: noColor ? (s: string) => s : (s: string) => pc.bold(pc.yellow(s)),
 };
 
@@ -30,30 +32,30 @@ const colors = {
  * Unicode symbols for output - modern minimal style
  */
 const symbols = {
-  check: '\u2713',   // ✓ checkmark
-  cross: '\u2717',   // ✗ x mark
-  warning: '\u26A0', // ⚠ warning triangle
-  info: '\u2139',    // ℹ info circle
-  bullet: '\u2022',  // • bullet point
-  arrow: '\u2192',   // → right arrow
-  pointer: '\u25B8', // ▸ right pointer (modern header icon)
+  check: "\u2713", // ✓ checkmark
+  cross: "\u2717", // ✗ x mark
+  warning: "\u26A0", // ⚠ warning triangle
+  info: "\u2139", // ℹ info circle
+  bullet: "\u2022", // • bullet point
+  arrow: "\u2192", // → right arrow
+  pointer: "\u25B8", // ▸ right pointer (modern header icon)
 };
 
 /**
  * Box drawing characters for tables and boxes
  */
 const box = {
-  topLeft: '\u250C',     // ┌
-  topRight: '\u2510',    // ┐
-  bottomLeft: '\u2514',  // └
-  bottomRight: '\u2518', // ┘
-  horizontal: '\u2500',  // ─
-  vertical: '\u2502',    // │
-  leftT: '\u251C',       // ├
-  rightT: '\u2524',      // ┤
-  topT: '\u252C',        // ┬
-  bottomT: '\u2534',     // ┴
-  cross: '\u253C',       // ┼
+  topLeft: "\u250C", // ┌
+  topRight: "\u2510", // ┐
+  bottomLeft: "\u2514", // └
+  bottomRight: "\u2518", // ┘
+  horizontal: "\u2500", // ─
+  vertical: "\u2502", // │
+  leftT: "\u251C", // ├
+  rightT: "\u2524", // ┤
+  topT: "\u252C", // ┬
+  bottomT: "\u2534", // ┴
+  cross: "\u253C", // ┼
 };
 
 /**
@@ -93,10 +95,12 @@ function info(msg: string): void {
  * Uses magenta equal sign lines (top/bottom) + pointer icon + bold magenta title
  */
 function header(title: string, lineWidth = 23): void {
-  const equalLine = '\u2550'.repeat(lineWidth); // ═ double horizontal
-  console.log(''); // blank line before for separation
+  const equalLine = "\u2550".repeat(lineWidth); // ═ double horizontal
+  console.log(""); // blank line before for separation
   console.log(colors.magenta(equalLine));
-  console.log(`${colors.boldMagenta(symbols.pointer)} ${colors.boldMagenta(title)}`);
+  console.log(
+    `${colors.boldMagenta(symbols.pointer)} ${colors.boldMagenta(title)}`,
+  );
   console.log(colors.magenta(equalLine));
 }
 
@@ -104,7 +108,7 @@ function header(title: string, lineWidth = 23): void {
  * Output blank line
  */
 function blank(): void {
-  console.log('');
+  console.log("");
 }
 
 /**
@@ -124,7 +128,7 @@ interface ListOptions {
  */
 function list(items: string[], opts: ListOptions = {}): void {
   const { indent = 0, bullet = symbols.bullet } = opts;
-  const prefix = ' '.repeat(indent);
+  const prefix = " ".repeat(indent);
   for (const item of items) {
     console.log(`${prefix}${colors.dim(bullet)} ${item}`);
   }
@@ -138,8 +142,12 @@ interface KeyValueOptions {
 /**
  * Output aligned key-value pair
  */
-function keyValue(key: string, value: string, opts: KeyValueOptions = {}): void {
-  const { keyWidth = 12, separator = ':' } = opts;
+function keyValue(
+  key: string,
+  value: string,
+  opts: KeyValueOptions = {},
+): void {
+  const { keyWidth = 12, separator = ":" } = opts;
   const paddedKey = key.padEnd(keyWidth);
   console.log(`${colors.dim(paddedKey)}${separator} ${value}`);
 }
@@ -152,10 +160,7 @@ interface TableOptions {
 /**
  * Calculate column widths from data
  */
-function calculateColumnWidths(
-  rows: string[][],
-  headers?: string[]
-): number[] {
+function calculateColumnWidths(rows: string[][], headers?: string[]): number[] {
   const allRows = headers ? [headers, ...rows] : rows;
   if (allRows.length === 0) return [];
 
@@ -164,7 +169,7 @@ function calculateColumnWidths(
 
   for (const row of allRows) {
     for (let i = 0; i < row.length; i++) {
-      widths[i] = Math.max(widths[i], String(row[i] || '').length);
+      widths[i] = Math.max(widths[i], String(row[i] || "").length);
     }
   }
 
@@ -185,7 +190,7 @@ function table(rows: string[][], opts: TableOptions = {}): void {
   // Build row formatter
   const formatRow = (cells: string[]): string => {
     const formatted = columnWidths!.map((w, i) => {
-      const cell = String(cells[i] || '').padEnd(w);
+      const cell = String(cells[i] || "").padEnd(w);
       return cell;
     });
     return `${box.vertical} ${formatted.join(` ${box.vertical} `)} ${box.vertical}`;
@@ -229,7 +234,7 @@ interface BoxOptions {
  */
 function boxed(content: string | string[], opts: BoxOptions = {}): void {
   const { title, padding = 1, width: fixedWidth } = opts;
-  const lines = Array.isArray(content) ? content : content.split('\n');
+  const lines = Array.isArray(content) ? content : content.split("\n");
 
   // Calculate width
   const contentWidth = Math.max(...lines.map((l) => l.length));
@@ -239,7 +244,7 @@ function boxed(content: string | string[], opts: BoxOptions = {}): void {
     : Math.max(contentWidth, titleWidth) + padding * 2;
 
   // Horizontal padding
-  const hPad = ' '.repeat(padding);
+  const hPad = " ".repeat(padding);
 
   // Top border with optional title
   let topLine: string;
@@ -271,14 +276,14 @@ function boxed(content: string | string[], opts: BoxOptions = {}): void {
  */
 function asciiArt(): void {
   const lines = [
-    '',
-    '██╗  ██╗██╗      █████╗ ██╗   ██╗███████╗██████╗  ██████╗ ████████╗',
-    '██║ ██╔╝██║     ██╔══██╗██║   ██║██╔════╝██╔══██╗██╔═══██╗╚══██╔══╝',
-    '█████╔╝ ██║     ███████║██║   ██║███████╗██████╔╝██║   ██║   ██║   ',
-    '██╔═██╗ ██║     ██╔══██║██║   ██║╚════██║██╔══██╗██║   ██║   ██║   ',
-    '██║  ██╗███████╗██║  ██║╚██████╔╝███████║██████╔╝╚██████╔╝   ██║   ',
-    '╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═════╝  ╚═════╝    ╚═╝   ',
-    '',
+    "",
+    "██╗  ██╗██╗      █████╗ ██╗   ██╗███████╗██████╗  ██████╗ ████████╗",
+    "██║ ██╔╝██║     ██╔══██╗██║   ██║██╔════╝██╔══██╗██╔═══██╗╚══██╔══╝",
+    "█████╔╝ ██║     ███████║██║   ██║███████╗██████╔╝██║   ██║   ██║   ",
+    "██╔═██╗ ██║     ██╔══██║██║   ██║╚════██║██╔══██╗██║   ██║   ██║   ",
+    "██║  ██╗███████╗██║  ██║╚██████╔╝███████║██████╔╝╚██████╔╝   ██║   ",
+    "╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═════╝  ╚═════╝    ╚═╝   ",
+    "",
   ];
 
   for (const line of lines) {

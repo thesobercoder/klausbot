@@ -1,8 +1,8 @@
-import { existsSync, readFileSync, renameSync } from 'fs';
-import { getHomePath } from './home.js';
-import { getDb } from './db.js';
-import type { EmbeddingEntry } from './embeddings.js';
-import { theme } from '../cli/theme.js';
+import { existsSync, readFileSync, renameSync } from "fs";
+import { getHomePath } from "./home.js";
+import { getDb } from "./db.js";
+import type { EmbeddingEntry } from "./embeddings.js";
+import { theme } from "../cli/theme.js";
 
 /** Legacy embeddings file format */
 interface EmbeddingsFile {
@@ -22,7 +22,7 @@ interface EmbeddingsFile {
  * @returns Number of entries migrated (0 if already migrated or no data)
  */
 export async function migrateEmbeddings(): Promise<number> {
-  const jsonPath = getHomePath('embeddings.json');
+  const jsonPath = getHomePath("embeddings.json");
 
   // Check if JSON file exists
   if (!existsSync(jsonPath)) {
@@ -32,7 +32,7 @@ export async function migrateEmbeddings(): Promise<number> {
   // Read JSON file
   let data: EmbeddingsFile;
   try {
-    const content = readFileSync(jsonPath, 'utf-8');
+    const content = readFileSync(jsonPath, "utf-8");
     data = JSON.parse(content) as EmbeddingsFile;
   } catch (err) {
     theme.warn(`Migration: Failed to read embeddings.json: ${err}`);
@@ -42,8 +42,8 @@ export async function migrateEmbeddings(): Promise<number> {
   const entries = data.entries || [];
   if (entries.length === 0) {
     // Empty file - just rename it
-    renameSync(jsonPath, jsonPath + '.migrated');
-    theme.info('Migration: Empty embeddings.json archived');
+    renameSync(jsonPath, jsonPath + ".migrated");
+    theme.info("Migration: Empty embeddings.json archived");
     return 0;
   }
 
@@ -87,7 +87,7 @@ export async function migrateEmbeddings(): Promise<number> {
   transaction();
 
   // Rename JSON file to mark migration complete
-  renameSync(jsonPath, jsonPath + '.migrated');
+  renameSync(jsonPath, jsonPath + ".migrated");
   theme.success(`Migration: ${migrated} embeddings moved to SQLite`);
 
   return migrated;

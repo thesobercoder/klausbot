@@ -1,8 +1,8 @@
-import Database from 'better-sqlite3';
-import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import * as sqliteVec from 'sqlite-vec';
-import { getHomePath } from './home.js';
-import * as schema from './schema.js';
+import Database from "better-sqlite3";
+import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import * as sqliteVec from "sqlite-vec";
+import { getHomePath } from "./home.js";
+import * as schema from "./schema.js";
 
 /** Lazy-initialized database instances */
 let sqliteDb: Database.Database | null = null;
@@ -19,11 +19,11 @@ export function getDb(): Database.Database {
     return sqliteDb;
   }
 
-  const dbPath = getHomePath('klausbot.db');
+  const dbPath = getHomePath("klausbot.db");
   sqliteDb = new Database(dbPath);
 
   // Enable WAL mode for concurrent reads
-  sqliteDb.pragma('journal_mode = WAL');
+  sqliteDb.pragma("journal_mode = WAL");
 
   // Load sqlite-vec extension
   sqliteVec.load(sqliteDb);

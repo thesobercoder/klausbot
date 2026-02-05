@@ -77,7 +77,8 @@ completed: 2026-01-29
 
 ## Test Results
 
-All IDEN-* requirements verified:
+All IDEN-\* requirements verified:
+
 - [x] Bootstrap creates identity through conversation (IDEN-04)
 - [x] SOUL.md defines values and boundaries (IDEN-01)
 - [x] IDENTITY.md defines name, style, personality (IDEN-02)
@@ -88,6 +89,7 @@ All IDEN-* requirements verified:
 ## Deviations from Plan
 
 Multiple iterations on bootstrap prompt based on user feedback:
+
 - Reduced from "comprehensive onboarding" to "minimal bootstrap"
 - Added rules against exposing internal details
 - Added rules against proactive interrogation
@@ -101,5 +103,6 @@ All resolved during testing session.
 None - system works out of the box after `npm run build`.
 
 ---
-*Phase: 03-identity*
-*Completed: 2026-01-29*
+
+_Phase: 03-identity_
+_Completed: 2026-01-29_

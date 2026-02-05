@@ -3,22 +3,22 @@
  * Kept for reference only. Will be removed in future cleanup.
  */
 
-import { appendFileSync, existsSync, mkdirSync } from 'fs';
-import { KLAUSBOT_HOME, getHomePath } from './home.js';
-import { storeEmbedding } from './embeddings.js';
+import { appendFileSync, existsSync, mkdirSync } from "fs";
+import { KLAUSBOT_HOME, getHomePath } from "./home.js";
+import { storeEmbedding } from "./embeddings.js";
 
 /**
  * Get today's date in YYYY-MM-DD format (local timezone)
  */
 function getToday(): string {
-  return new Date().toLocaleDateString('en-CA');
+  return new Date().toLocaleDateString("en-CA");
 }
 
 /**
  * Get current time in HH:MM:SS format (local timezone)
  */
 function getTime(): string {
-  return new Date().toLocaleTimeString('en-GB');
+  return new Date().toLocaleTimeString("en-GB");
 }
 
 /**
@@ -27,7 +27,7 @@ function getTime(): string {
  * @returns Path to conversations/{YYYY-MM-DD}.md
  */
 export function getConversationPath(): string {
-  return getHomePath('conversations', `${getToday()}.md`);
+  return getHomePath("conversations", `${getToday()}.md`);
 }
 
 /**
@@ -37,7 +37,7 @@ export function getConversationPath(): string {
  * @returns Path to the conversation file
  */
 export function ensureConversationFile(): string {
-  const convDir = getHomePath('conversations');
+  const convDir = getHomePath("conversations");
   if (!existsSync(convDir)) {
     mkdirSync(convDir, { recursive: true });
   }
@@ -88,5 +88,5 @@ export function logAssistantMessage(content: string): void {
   appendFileSync(path, entry);
 
   // Fire-and-forget embedding storage (don't block message flow)
-  storeEmbedding(content, 'assistant-' + getToday()).catch(() => {});
+  storeEmbedding(content, "assistant-" + getToday()).catch(() => {});
 }

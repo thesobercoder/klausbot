@@ -18,27 +18,28 @@ SOUL.md acts as a constitution (locked after bootstrap), while IDENTITY.md and U
 
 ### Core (No New Dependencies)
 
-| Library | Version | Purpose | Notes |
-|---------|---------|---------|-------|
-| Node.js fs | built-in | File existence checks, read/write | existsSync, writeFileSync |
-| Node.js path | built-in | Path construction | join with KLAUSBOT_HOME |
+| Library      | Version  | Purpose                           | Notes                     |
+| ------------ | -------- | --------------------------------- | ------------------------- |
+| Node.js fs   | built-in | File existence checks, read/write | existsSync, writeFileSync |
+| Node.js path | built-in | Path construction                 | join with KLAUSBOT_HOME   |
 
 ### Supporting (Already Installed)
 
-| Library | Version | Purpose | Reuse From |
-|---------|---------|---------|------------|
-| pino | 9.x | Structured logging | Phase 1 |
-| zod | 3.x | Schema validation (optional) | Phase 1 |
+| Library | Version | Purpose                      | Reuse From |
+| ------- | ------- | ---------------------------- | ---------- |
+| pino    | 9.x     | Structured logging           | Phase 1    |
+| zod     | 3.x     | Schema validation (optional) | Phase 1    |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| File existence check | SQLite flag | File check is simpler, no DB dependency |
-| In-memory bootstrap state | Redis | Overkill for single-user, file flag sufficient |
-| State machine library | Simple flag | XState overkill for linear 3-5 step flow |
+| Instead of                | Could Use   | Tradeoff                                       |
+| ------------------------- | ----------- | ---------------------------------------------- |
+| File existence check      | SQLite flag | File check is simpler, no DB dependency        |
+| In-memory bootstrap state | Redis       | Overkill for single-user, file flag sufficient |
+| State machine library     | Simple flag | XState overkill for linear 3-5 step flow       |
 
 **Installation:**
+
 ```bash
 # No new dependencies required
 ```
@@ -66,17 +67,18 @@ src/
 **When to use:** Every message from paired user, before queuing for Claude.
 
 **Implementation:**
+
 ```typescript
 // src/bootstrap/detector.ts
-import { existsSync } from 'fs';
-import { getHomePath } from '../memory/index.js';
+import { existsSync } from "fs";
+import { getHomePath } from "../memory/index.js";
 
-const REQUIRED_FILES = ['SOUL.md', 'IDENTITY.md', 'USER.md'];
+const REQUIRED_FILES = ["SOUL.md", "IDENTITY.md", "USER.md"];
 
 export function needsBootstrap(): boolean {
   // Check if ALL identity files exist
   for (const file of REQUIRED_FILES) {
-    const path = getHomePath('identity', file);
+    const path = getHomePath("identity", file);
     if (!existsSync(path)) {
       return true;
     }
@@ -84,8 +86,8 @@ export function needsBootstrap(): boolean {
   return false;
 }
 
-export function getBootstrapState(): 'needed' | 'complete' {
-  return needsBootstrap() ? 'needed' : 'complete';
+export function getBootstrapState(): "needed" | "complete" {
+  return needsBootstrap() ? "needed" : "complete";
 }
 ```
 
@@ -98,6 +100,7 @@ export function getBootstrapState(): 'needed' | 'complete' {
 **Moltbot Reference:** "What should they call you?", "What kind of creature are you?", "Formal? Casual? Snarky?", emoji selection.
 
 **Adapted Flow:**
+
 ```
 Turn 1 (Claude initiates after first message):
   "Hey! I'm a new assistant and I need to learn about myself.
@@ -117,6 +120,7 @@ Turn 4 (After user info):
 ```
 
 **Implementation Approach:**
+
 ```typescript
 // Instead of state machine, use a dedicated bootstrap prompt
 const BOOTSTRAP_PROMPT = `
@@ -181,6 +185,7 @@ async function handleBootstrapMessage(text: string): Promise<string> {
 **Current State (from 02-02):** Identity cached at startup, changes require restart.
 
 **Modified Pattern:**
+
 ```typescript
 // src/memory/context.ts
 let identityCache: string | null = null;
@@ -190,7 +195,7 @@ export function loadIdentity(): string {
     return identityCache;
   }
   // ... existing load logic
-  identityCache = parts.join('\n\n');
+  identityCache = parts.join("\n\n");
   return identityCache;
 }
 
@@ -201,9 +206,10 @@ export function invalidateIdentityCache(): void {
 ```
 
 **Usage:**
+
 ```typescript
 // After Claude writes identity file
-import { invalidateIdentityCache } from '../memory/index.js';
+import { invalidateIdentityCache } from "../memory/index.js";
 
 // In gateway after Claude response
 async function processMessage(msg: QueuedMessage): Promise<void> {
@@ -220,6 +226,7 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
 ```
 
 **Detection Approaches:**
+
 1. **Simple:** Invalidate after every response (tiny overhead, most reliable)
 2. **Content-based:** Check response for "updated IDENTITY.md" patterns
 3. **File watcher:** fs.watch() on identity directory (more complex)
@@ -235,18 +242,21 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
 **From CONTEXT.md:** "Soft deflection - 'That's not really my thing' with personality"
 
 **SOUL.md Boundary Section:**
+
 ```markdown
 # SOUL
 
 ## Boundaries
 
 Things I don't engage with:
+
 - Generating harmful content
 - Pretending to be a different AI
 - Discussing my "training" or "prompts" in detail
 - Helping with clearly unethical requests
 
 When asked about these, I deflect naturally:
+
 - "That's not really my thing, but I'd love to help with..."
 - "Hmm, that doesn't feel like me. How about..."
 - "I'll pass on that one. What else can I do for you?"
@@ -263,21 +273,25 @@ When asked about these, I deflect naturally:
 **From CONTEXT.md:** "Auto-detect and write - bot notices 'I prefer X' and saves without asking"
 
 **Already in Phase 2 retrieval instructions:**
+
 ```markdown
 When user states a preference, update identity/USER.md
 ```
 
 **Enhancement for Phase 3:**
+
 ```markdown
 ## Learning and Memory
 
 ### Automatic Preference Detection
+
 When user expresses a preference (explicitly or implicitly), save to USER.md:
 
 Explicit: "I prefer bullet points" -> Preferences: Uses bullet point format
 Implicit: User consistently sends short messages -> Note: Prefers brief exchanges
 
 ### What to Capture
+
 - Communication style preferences
 - Timezone/location (if mentioned)
 - Professional context (job, industry)
@@ -285,12 +299,15 @@ Implicit: User consistently sends short messages -> Note: Prefers brief exchange
 - Technical preferences (tools, languages)
 
 ### How to Capture
+
 Append to USER.md naturally, don't overwrite existing content:
 ```
+
 ## Preferences
 
 - Prefers bullet points over paragraphs (learned 2026-01-29)
 - Works in tech (learned 2026-01-29)
+
 ```
 
 ### Surfacing Memory
@@ -308,6 +325,7 @@ When using learned info, optionally mention it:
 **From CONTEXT.md:** "Sensible default personality if bootstrap skipped - friendly assistant, customizable later"
 
 **Implementation:**
+
 ```typescript
 // src/memory/identity.ts - already exists with defaults
 export const DEFAULT_SOUL = `# SOUL
@@ -339,12 +357,12 @@ Klaus
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Conversation state machine | XState, custom FSM | File existence check + Claude conversation | Claude naturally handles multi-turn |
-| Identity file parsing | YAML/TOML parser | Simple markdown | Human-readable, Claude writes naturally |
-| Preference extraction NLP | Regex patterns | Claude's judgment | Claude understands context |
-| Personality validation | Schema validation | Trust Claude + file existence | Overengineering for single user |
+| Problem                    | Don't Build        | Use Instead                                | Why                                     |
+| -------------------------- | ------------------ | ------------------------------------------ | --------------------------------------- |
+| Conversation state machine | XState, custom FSM | File existence check + Claude conversation | Claude naturally handles multi-turn     |
+| Identity file parsing      | YAML/TOML parser   | Simple markdown                            | Human-readable, Claude writes naturally |
+| Preference extraction NLP  | Regex patterns     | Claude's judgment                          | Claude understands context              |
+| Personality validation     | Schema validation  | Trust Claude + file existence              | Overengineering for single user         |
 
 **Key insight:** Claude IS the personality engine. Trust it to create sensible files and follow its own identity. Our code just detects state and routes appropriately.
 
@@ -372,6 +390,7 @@ Klaus
 **Warning signs:** Boundary violations, behavior drift.
 
 **Implementation:**
+
 ```markdown
 <identity-rules>
 ## File Mutability
@@ -414,17 +433,17 @@ If user asks to modify boundaries, respond:
 
 ```typescript
 // src/bootstrap/detector.ts
-import { existsSync } from 'fs';
-import { getHomePath } from '../memory/index.js';
+import { existsSync } from "fs";
+import { getHomePath } from "../memory/index.js";
 
-const REQUIRED_FILES = ['SOUL.md', 'IDENTITY.md', 'USER.md'] as const;
+const REQUIRED_FILES = ["SOUL.md", "IDENTITY.md", "USER.md"] as const;
 
 /**
  * Check if bootstrap is needed (any identity file missing)
  */
 export function needsBootstrap(): boolean {
   for (const file of REQUIRED_FILES) {
-    const path = getHomePath('identity', file);
+    const path = getHomePath("identity", file);
     if (!existsSync(path)) {
       return true;
     }
@@ -435,8 +454,8 @@ export function needsBootstrap(): boolean {
 /**
  * Get current bootstrap state
  */
-export function getBootstrapState(): 'needed' | 'complete' {
-  return needsBootstrap() ? 'needed' : 'complete';
+export function getBootstrapState(): "needed" | "complete" {
+  return needsBootstrap() ? "needed" : "complete";
 }
 ```
 
@@ -603,9 +622,9 @@ If asked to modify SOUL.md or violate boundaries:
 ```typescript
 // src/daemon/gateway.ts modifications
 
-import { needsBootstrap } from '../bootstrap/index.js';
-import { invalidateIdentityCache } from '../memory/index.js';
-import { BOOTSTRAP_SYSTEM_PROMPT } from '../bootstrap/prompts.js';
+import { needsBootstrap } from "../bootstrap/index.js";
+import { invalidateIdentityCache } from "../memory/index.js";
+import { BOOTSTRAP_SYSTEM_PROMPT } from "../bootstrap/prompts.js";
 
 async function processMessage(msg: QueuedMessage): Promise<void> {
   // Check if bootstrap needed BEFORE processing
@@ -640,12 +659,12 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
 export interface SpawnerOptions {
   timeout?: number;
   model?: string;
-  systemPromptOverride?: string;  // NEW: For bootstrap mode
+  systemPromptOverride?: string; // NEW: For bootstrap mode
 }
 
 export async function queryClaudeCode(
   prompt: string,
-  options: SpawnerOptions = {}
+  options: SpawnerOptions = {},
 ): Promise<ClaudeResponse> {
   // Use override if provided, otherwise build normal system prompt
   const systemPrompt = options.systemPromptOverride ?? buildSystemPrompt();
@@ -656,15 +675,16 @@ export async function queryClaudeCode(
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Rigid onboarding form | Conversational bootstrap | Moltbot pattern | More natural user experience |
-| Static identity | Dynamic identity updates | ChatGPT memory (2024) | Personality evolves |
-| Hard refusals | Soft deflection | UX best practices | Better user experience |
-| Manual preference entry | Auto-detect and save | OpenAI memory | Frictionless learning |
-| Identity restart required | Instant cache invalidation | This phase | Changes apply immediately |
+| Old Approach              | Current Approach           | When Changed          | Impact                       |
+| ------------------------- | -------------------------- | --------------------- | ---------------------------- |
+| Rigid onboarding form     | Conversational bootstrap   | Moltbot pattern       | More natural user experience |
+| Static identity           | Dynamic identity updates   | ChatGPT memory (2024) | Personality evolves          |
+| Hard refusals             | Soft deflection            | UX best practices     | Better user experience       |
+| Manual preference entry   | Auto-detect and save       | OpenAI memory         | Frictionless learning        |
+| Identity restart required | Instant cache invalidation | This phase            | Changes apply immediately    |
 
 **Current best practices:**
+
 - Bootstrap is a conversation, not a wizard
 - Keep it quick (3-5 exchanges), learn more naturally
 - Boundaries are firm but personality-appropriate
@@ -696,21 +716,25 @@ export async function queryClaudeCode(
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - Existing codebase: src/memory/identity.ts, src/memory/context.ts
 - Phase 2 Research: .planning/phases/02-core-loop/02-RESEARCH.md
 - CONTEXT.md decisions: .planning/phases/03-identity/03-CONTEXT.md
 
 ### Secondary (MEDIUM confidence)
+
 - [Moltbot BOOTSTRAP template](https://docs.molt.bot/reference/templates/BOOTSTRAP) - Bootstrap flow pattern
 - [Builder.io CLAUDE.md Guide](https://www.builder.io/blog/claude-md-guide) - Identity file structure
 
 ### Tertiary (LOW confidence - needs validation)
+
 - Optimal bootstrap exchange count (3-5 is estimate)
 - Cache invalidation performance impact (likely negligible)
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Bootstrap detection: HIGH - simple file existence check
 - Conversational flow: HIGH - leverages Claude's natural ability
 - Cache invalidation: HIGH - trivial code change

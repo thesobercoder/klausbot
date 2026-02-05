@@ -48,10 +48,12 @@ metrics:
 Created `src/cron/executor.ts` with job execution logic.
 
 **Constants:**
+
 - `CRON_TIMEOUT`: 3600000ms (1 hour per CONTEXT.md)
 - `RETRY_DELAY`: 60000ms (1 minute)
 
 **executeCronJob(job: CronJob):**
+
 1. Calls `queryClaudeCode` with job instruction
 2. Appends cron context via `additionalInstructions`
 3. On success: sends result to user via `bot.api.sendMessage`
@@ -59,6 +61,7 @@ Created `src/cron/executor.ts` with job execution logic.
 5. Returns `{ success, result, durationMs }`
 
 **Cron context format:**
+
 ```xml
 <cron-execution>
 This is an autonomous cron job execution.
@@ -72,6 +75,7 @@ Complete the task and provide a concise result summary.
 ### Task 2: CRUD Service and Scheduler Loop
 
 **Service (src/cron/service.ts):**
+
 - `createCronJob(params)`: generates UUID, computes nextRunAtMs, persists
 - `listCronJobs(chatId?)`: returns all or filtered by chatId
 - `getCronJob(id)`: returns single job
@@ -80,6 +84,7 @@ Complete the task and provide a concise result summary.
 - `updateJobStatus(id, result)`: updates lastRunAtMs/lastStatus/lastError/lastDurationMs/nextRunAtMs
 
 **Scheduler (src/cron/scheduler.ts):**
+
 - `startScheduler()`: starts 60s tick loop
 - `stopScheduler()`: clears interval
 - `tick()`: checkAndEnqueueDueJobs then processNextJob
@@ -94,23 +99,23 @@ Complete the task and provide a concise result summary.
 
 ## Technical Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Retry strategy | Once after 60s | Simple, predictable, avoids runaway retries |
-| Execution model | Sequential (one at a time) | Prevents resource contention |
-| Missed job window | 24 hours | Catches recent misses without backlog flood |
-| Tick interval | 60 seconds | Minute-level precision sufficient for cron |
+| Decision          | Choice                     | Rationale                                   |
+| ----------------- | -------------------------- | ------------------------------------------- |
+| Retry strategy    | Once after 60s             | Simple, predictable, avoids runaway retries |
+| Execution model   | Sequential (one at a time) | Prevents resource contention                |
+| Missed job window | 24 hours                   | Catches recent misses without backlog flood |
+| Tick interval     | 60 seconds                 | Minute-level precision sufficient for cron  |
 
 ## Verification Results
 
-| Check | Status |
-|-------|--------|
-| npm run build | Pass |
-| executor imports queryClaudeCode from spawner | Pass |
-| executor imports bot from telegram/bot | Pass |
-| scheduler imports executeCronJob from executor | Pass |
-| CRON_TIMEOUT = 3600000 (1 hour) | Pass |
-| All functions exported via index.ts | Pass |
+| Check                                          | Status |
+| ---------------------------------------------- | ------ |
+| npm run build                                  | Pass   |
+| executor imports queryClaudeCode from spawner  | Pass   |
+| executor imports bot from telegram/bot         | Pass   |
+| scheduler imports executeCronJob from executor | Pass   |
+| CRON_TIMEOUT = 3600000 (1 hour)                | Pass   |
+| All functions exported via index.ts            | Pass   |
 
 ## Deviations from Plan
 
@@ -118,16 +123,17 @@ None - plan executed exactly as written.
 
 ## Files Changed
 
-| File | Change | Lines |
-|------|--------|-------|
-| src/cron/executor.ts | Created | 121 |
-| src/cron/service.ts | Created | 140 |
-| src/cron/scheduler.ts | Created | 168 |
-| src/cron/index.ts | Modified | +21 |
+| File                  | Change   | Lines |
+| --------------------- | -------- | ----- |
+| src/cron/executor.ts  | Created  | 121   |
+| src/cron/service.ts   | Created  | 140   |
+| src/cron/scheduler.ts | Created  | 168   |
+| src/cron/index.ts     | Modified | +21   |
 
 ## Next Phase Readiness
 
 **Ready for Plan 05-03 (Integration):**
+
 - `startScheduler()` ready for gateway integration
 - `stopScheduler()` ready for shutdown hook
 - `createCronJob()` ready for Claude to use

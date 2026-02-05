@@ -16,33 +16,34 @@ The moltbot pairing pattern is well-documented: `/start` generates pairing code,
 
 ### Core (from CONTEXT.md decisions)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| grammY | 1.39.x | Telegram bot framework | TypeScript-first, Bot API 9.3, active ecosystem, official plugins |
-| @grammyjs/runner | 2.0.x | Concurrent message processing | Enables parallel update handling with sequentialize for chat ordering |
-| @grammyjs/auto-retry | latest | Rate limit handling | Automatic 429/5xx retry with exponential backoff |
-| @grammyjs/auto-chat-action | latest | Typing indicator | Loops "typing" action during long operations |
-| @inquirer/prompts | 7.x | CLI wizard TUI | TypeScript-first, modern API, modular prompts |
-| pino | 9.x | Structured logging | JSON output, 5x faster than Winston, minimal overhead |
+| Library                    | Version | Purpose                       | Why Standard                                                          |
+| -------------------------- | ------- | ----------------------------- | --------------------------------------------------------------------- |
+| grammY                     | 1.39.x  | Telegram bot framework        | TypeScript-first, Bot API 9.3, active ecosystem, official plugins     |
+| @grammyjs/runner           | 2.0.x   | Concurrent message processing | Enables parallel update handling with sequentialize for chat ordering |
+| @grammyjs/auto-retry       | latest  | Rate limit handling           | Automatic 429/5xx retry with exponential backoff                      |
+| @grammyjs/auto-chat-action | latest  | Typing indicator              | Loops "typing" action during long operations                          |
+| @inquirer/prompts          | 7.x     | CLI wizard TUI                | TypeScript-first, modern API, modular prompts                         |
+| pino                       | 9.x     | Structured logging            | JSON output, 5x faster than Winston, minimal overhead                 |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| better-queue | 3.x | Message queue | If JSON persistence proves unreliable |
-| better-queue-sqlite | 1.0.x | SQLite store for better-queue | Persistent queue with crash recovery |
-| zod | 4.3.x | Runtime validation | Config validation, CLI arg parsing |
+| Library             | Version | Purpose                       | When to Use                           |
+| ------------------- | ------- | ----------------------------- | ------------------------------------- |
+| better-queue        | 3.x     | Message queue                 | If JSON persistence proves unreliable |
+| better-queue-sqlite | 1.0.x   | SQLite store for better-queue | Persistent queue with crash recovery  |
+| zod                 | 4.3.x   | Runtime validation            | Config validation, CLI arg parsing    |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| @inquirer/prompts | Ink (React TUI) | Ink more powerful but heavier; Inquirer simpler for wizard flow |
-| pino | winston | Winston more flexible but 5x slower; pino better for structured JSON |
-| JSON file queue | node-persistent-queue | node-persistent-queue lacks TypeScript types |
-| JSON file queue | better-queue-sqlite | SQLite more robust but adds dependency; JSON simpler for single-user |
+| Instead of        | Could Use             | Tradeoff                                                             |
+| ----------------- | --------------------- | -------------------------------------------------------------------- |
+| @inquirer/prompts | Ink (React TUI)       | Ink more powerful but heavier; Inquirer simpler for wizard flow      |
+| pino              | winston               | Winston more flexible but 5x slower; pino better for structured JSON |
+| JSON file queue   | node-persistent-queue | node-persistent-queue lacks TypeScript types                         |
+| JSON file queue   | better-queue-sqlite   | SQLite more robust but adds dependency; JSON simpler for single-user |
 
 **Installation:**
+
 ```bash
 npm install grammy @grammyjs/runner @grammyjs/auto-retry @grammyjs/auto-chat-action @inquirer/prompts pino zod
 npm install -D @types/pino
@@ -51,6 +52,7 @@ npm install -D @types/pino
 ## Architecture Patterns
 
 ### Recommended Project Structure
+
 ```
 src/
   index.ts           # Entry point - CLI dispatcher
@@ -84,8 +86,9 @@ src/
 **Why:** [Known bug](https://github.com/anthropics/claude-code/issues/771) causes Claude Code to hang indefinitely when all stdio is piped. Inheriting stdin resolves the hang.
 
 **CRITICAL - Use this pattern:**
+
 ```typescript
-import { spawn } from 'child_process';
+import { spawn } from "child_process";
 
 interface ClaudeResponse {
   result: string;
@@ -95,22 +98,32 @@ interface ClaudeResponse {
 
 async function queryClaudeCode(prompt: string): Promise<ClaudeResponse> {
   return new Promise((resolve, reject) => {
-    const claude = spawn('claude', [
-      '-p', prompt,
-      '--output-format', 'json',
-      '--dangerously-skip-permissions',  // Only in trusted environment
-    ], {
-      stdio: ['inherit', 'pipe', 'pipe'],  // CRITICAL: stdin inherits
-      env: { ...process.env },
+    const claude = spawn(
+      "claude",
+      [
+        "-p",
+        prompt,
+        "--output-format",
+        "json",
+        "--dangerously-skip-permissions", // Only in trusted environment
+      ],
+      {
+        stdio: ["inherit", "pipe", "pipe"], // CRITICAL: stdin inherits
+        env: { ...process.env },
+      },
+    );
+
+    let stdout = "";
+    let stderr = "";
+
+    claude.stdout.on("data", (data) => {
+      stdout += data;
+    });
+    claude.stderr.on("data", (data) => {
+      stderr += data;
     });
 
-    let stdout = '';
-    let stderr = '';
-
-    claude.stdout.on('data', (data) => { stdout += data; });
-    claude.stderr.on('data', (data) => { stderr += data; });
-
-    claude.on('close', (code) => {
+    claude.on("close", (code) => {
       if (code !== 0) {
         reject(new Error(`Claude exited ${code}: ${stderr}`));
       } else {
@@ -122,7 +135,7 @@ async function queryClaudeCode(prompt: string): Promise<ClaudeResponse> {
       }
     });
 
-    claude.on('error', (err) => {
+    claude.on("error", (err) => {
       reject(new Error(`Failed to spawn Claude: ${err.message}`));
     });
   });
@@ -136,12 +149,16 @@ async function queryClaudeCode(prompt: string): Promise<ClaudeResponse> {
 **What:** Configure grammY with runner, auto-retry, and auto-chat-action plugins.
 
 **Example:**
+
 ```typescript
 // Source: https://grammy.dev/plugins/runner, auto-retry, auto-chat-action
-import { Bot, Context } from 'grammy';
-import { run, sequentialize } from '@grammyjs/runner';
-import { autoRetry } from '@grammyjs/auto-retry';
-import { autoChatAction, AutoChatActionFlavor } from '@grammyjs/auto-chat-action';
+import { Bot, Context } from "grammy";
+import { run, sequentialize } from "@grammyjs/runner";
+import { autoRetry } from "@grammyjs/auto-retry";
+import {
+  autoChatAction,
+  AutoChatActionFlavor,
+} from "@grammyjs/auto-chat-action";
 
 type MyContext = Context & AutoChatActionFlavor;
 const bot = new Bot<MyContext>(process.env.TELEGRAM_BOT_TOKEN!);
@@ -158,16 +175,19 @@ bot.use(sequentialize((ctx) => ctx.chat?.id.toString()));
 // Error handling
 bot.catch((err) => {
   const ctx = err.ctx;
-  logger.error({
-    updateId: ctx.update.update_id,
-    error: err.error
-  }, 'Error handling update');
+  logger.error(
+    {
+      updateId: ctx.update.update_id,
+      error: err.error,
+    },
+    "Error handling update",
+  );
 });
 
 // Graceful shutdown
 const handle = run(bot);
-process.on('SIGINT', () => handle.stop());
-process.on('SIGTERM', () => handle.stop());
+process.on("SIGINT", () => handle.stop());
+process.on("SIGTERM", () => handle.stop());
 ```
 
 ### Pattern 3: Message Queue with Disk Persistence
@@ -175,15 +195,16 @@ process.on('SIGTERM', () => handle.stop());
 **What:** Simple JSON file queue for crash recovery.
 
 **Example:**
+
 ```typescript
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync } from "fs";
 
 interface QueuedMessage {
   id: string;
   chatId: number;
   text: string;
   timestamp: number;
-  status: 'pending' | 'processing' | 'done';
+  status: "pending" | "processing" | "done";
 }
 
 class MessageQueue {
@@ -197,11 +218,13 @@ class MessageQueue {
 
   private load(): void {
     if (existsSync(this.path)) {
-      const data = readFileSync(this.path, 'utf-8');
+      const data = readFileSync(this.path, "utf-8");
       this.queue = JSON.parse(data);
       // Resume pending/processing on restart
-      this.queue = this.queue.filter(m => m.status !== 'done');
-      this.queue.forEach(m => { m.status = 'pending'; });
+      this.queue = this.queue.filter((m) => m.status !== "done");
+      this.queue.forEach((m) => {
+        m.status = "pending";
+      });
       this.persist();
     }
   }
@@ -212,27 +235,35 @@ class MessageQueue {
 
   add(chatId: number, text: string): string {
     const id = crypto.randomUUID();
-    this.queue.push({ id, chatId, text, timestamp: Date.now(), status: 'pending' });
+    this.queue.push({
+      id,
+      chatId,
+      text,
+      timestamp: Date.now(),
+      status: "pending",
+    });
     this.persist();
     return id;
   }
 
   take(): QueuedMessage | undefined {
-    const msg = this.queue.find(m => m.status === 'pending');
+    const msg = this.queue.find((m) => m.status === "pending");
     if (msg) {
-      msg.status = 'processing';
+      msg.status = "processing";
       this.persist();
     }
     return msg;
   }
 
   complete(id: string): void {
-    const msg = this.queue.find(m => m.id === id);
+    const msg = this.queue.find((m) => m.id === id);
     if (msg) {
-      msg.status = 'done';
+      msg.status = "done";
       // Remove completed messages older than 1 hour
       const cutoff = Date.now() - 3600000;
-      this.queue = this.queue.filter(m => m.status !== 'done' || m.timestamp > cutoff);
+      this.queue = this.queue.filter(
+        (m) => m.status !== "done" || m.timestamp > cutoff,
+      );
       this.persist();
     }
   }
@@ -249,7 +280,10 @@ class MessageQueue {
 // Pairing store
 interface PairingState {
   approved: Map<number, { approvedAt: number; username?: string }>;
-  pending: Map<string, { chatId: number; requestedAt: number; username?: string }>;
+  pending: Map<
+    string,
+    { chatId: number; requestedAt: number; username?: string }
+  >;
 }
 
 class PairingStore {
@@ -258,14 +292,14 @@ class PairingStore {
 
   generateCode(): string {
     // 6-character alphanumeric code
-    return crypto.randomBytes(3).toString('hex').toUpperCase();
+    return crypto.randomBytes(3).toString("hex").toUpperCase();
   }
 
   requestPairing(chatId: number, username?: string): string {
     const code = this.generateCode();
     this.state.pending.set(code, { chatId, requestedAt: Date.now(), username });
     this.persist();
-    logger.info({ code, chatId, username }, 'Pairing requested');
+    logger.info({ code, chatId, username }, "Pairing requested");
     return code;
   }
 
@@ -275,11 +309,11 @@ class PairingStore {
 
     this.state.approved.set(pending.chatId, {
       approvedAt: Date.now(),
-      username: pending.username
+      username: pending.username,
     });
     this.state.pending.delete(code);
     this.persist();
-    logger.info({ code, chatId: pending.chatId }, 'Pairing approved');
+    logger.info({ code, chatId: pending.chatId }, "Pairing approved");
     return { chatId: pending.chatId };
   }
 
@@ -289,21 +323,23 @@ class PairingStore {
 }
 
 // Telegram command handler
-bot.command('start', async (ctx) => {
+bot.command("start", async (ctx) => {
   const chatId = ctx.chat.id;
 
   if (pairingStore.isApproved(chatId)) {
-    return ctx.reply('You are already paired.');
+    return ctx.reply("You are already paired.");
   }
 
   const code = pairingStore.requestPairing(chatId, ctx.from?.username);
-  return ctx.reply(`Pairing code: ${code}\n\nRun this on the server:\nklausbot pairing approve telegram ${code}`);
+  return ctx.reply(
+    `Pairing code: ${code}\n\nRun this on the server:\nklausbot pairing approve telegram ${code}`,
+  );
 });
 
 // Middleware to block unapproved users
 bot.use(async (ctx, next) => {
   if (!pairingStore.isApproved(ctx.chat?.id ?? 0)) {
-    return ctx.reply('Waiting for approval. Contact the bot owner.');
+    return ctx.reply("Waiting for approval. Contact the bot owner.");
   }
   return next();
 });
@@ -324,10 +360,10 @@ function splitMessage(text: string): string[] {
 
   while (remaining.length > MAX_LENGTH) {
     // Try to split at sentence boundary
-    let splitIdx = remaining.lastIndexOf('. ', MAX_LENGTH);
+    let splitIdx = remaining.lastIndexOf(". ", MAX_LENGTH);
     if (splitIdx === -1 || splitIdx < MAX_LENGTH / 2) {
       // Fallback to word boundary
-      splitIdx = remaining.lastIndexOf(' ', MAX_LENGTH);
+      splitIdx = remaining.lastIndexOf(" ", MAX_LENGTH);
     }
     if (splitIdx === -1) {
       // Hard split if no boundary found
@@ -361,14 +397,14 @@ async function sendLongMessage(ctx: Context, text: string): Promise<void> {
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Rate limit handling | Custom retry logic | @grammyjs/auto-retry | Handles 429s, 5xx, exponential backoff |
-| Typing indicator | setInterval loop | @grammyjs/auto-chat-action | Automatically loops during processing |
-| Concurrent updates | Custom Promise.all | @grammyjs/runner | Handles sequentializing, timeouts, errors |
-| CLI wizard | raw readline | @inquirer/prompts | Cross-platform, validation, TypeScript |
-| Structured logging | console.log + JSON.stringify | pino | Performance, child loggers, redaction |
-| Process management | Custom daemon code | systemd | Auto-restart, logging, boot startup |
+| Problem             | Don't Build                  | Use Instead                | Why                                       |
+| ------------------- | ---------------------------- | -------------------------- | ----------------------------------------- |
+| Rate limit handling | Custom retry logic           | @grammyjs/auto-retry       | Handles 429s, 5xx, exponential backoff    |
+| Typing indicator    | setInterval loop             | @grammyjs/auto-chat-action | Automatically loops during processing     |
+| Concurrent updates  | Custom Promise.all           | @grammyjs/runner           | Handles sequentializing, timeouts, errors |
+| CLI wizard          | raw readline                 | @inquirer/prompts          | Cross-platform, validation, TypeScript    |
+| Structured logging  | console.log + JSON.stringify | pino                       | Performance, child loggers, redaction     |
+| Process management  | Custom daemon code           | systemd                    | Auto-restart, logging, boot startup       |
 
 **Key insight:** grammY's plugin ecosystem handles most Telegram-specific complexity. Don't reinvent it.
 
@@ -423,22 +459,27 @@ async function sendLongMessage(ctx: Context, text: string): Promise<void> {
 
 ```typescript
 // Source: grammY docs (grammy.dev)
-import { Bot, Context, GrammyError, HttpError } from 'grammy';
-import { run, sequentialize } from '@grammyjs/runner';
-import { autoRetry } from '@grammyjs/auto-retry';
-import { autoChatAction, AutoChatActionFlavor } from '@grammyjs/auto-chat-action';
-import pino from 'pino';
+import { Bot, Context, GrammyError, HttpError } from "grammy";
+import { run, sequentialize } from "@grammyjs/runner";
+import { autoRetry } from "@grammyjs/auto-retry";
+import {
+  autoChatAction,
+  AutoChatActionFlavor,
+} from "@grammyjs/auto-chat-action";
+import pino from "pino";
 
 type MyContext = Context & AutoChatActionFlavor;
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const bot = new Bot<MyContext>(process.env.TELEGRAM_BOT_TOKEN!);
 
 // Configure API-level plugins
-bot.api.config.use(autoRetry({
-  maxRetryAttempts: 3,
-  maxDelaySeconds: 300,  // Don't wait more than 5 min
-}));
+bot.api.config.use(
+  autoRetry({
+    maxRetryAttempts: 3,
+    maxDelaySeconds: 300, // Don't wait more than 5 min
+  }),
+);
 
 // Configure middleware-level plugins
 bot.use(autoChatAction());
@@ -450,11 +491,14 @@ bot.catch((err) => {
   const e = err.error;
 
   if (e instanceof GrammyError) {
-    logger.error({ code: e.error_code, desc: e.description }, 'Telegram API error');
+    logger.error(
+      { code: e.error_code, desc: e.description },
+      "Telegram API error",
+    );
   } else if (e instanceof HttpError) {
-    logger.error({ error: e.error }, 'Network error');
+    logger.error({ error: e.error }, "Network error");
   } else {
-    logger.error({ error: e }, 'Unknown error');
+    logger.error({ error: e }, "Unknown error");
   }
 });
 
@@ -462,15 +506,15 @@ bot.catch((err) => {
 const handle = run(bot);
 
 const shutdown = async () => {
-  logger.info('Shutting down...');
+  logger.info("Shutting down...");
   await handle.stop();
   process.exit(0);
 };
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
 
-logger.info('Bot started');
+logger.info("Bot started");
 ```
 
 ### systemd Service Unit
@@ -509,37 +553,37 @@ WantedBy=multi-user.target
 
 ```typescript
 // Source: @inquirer/prompts docs
-import { input, confirm, select } from '@inquirer/prompts';
-import { execSync } from 'child_process';
+import { input, confirm, select } from "@inquirer/prompts";
+import { execSync } from "child_process";
 
 async function installWizard(): Promise<void> {
-  console.log('Klausbot Installation Wizard\n');
+  console.log("Klausbot Installation Wizard\n");
 
   const botToken = await input({
-    message: 'Enter your Telegram Bot Token:',
-    validate: (v) => v.includes(':') || 'Invalid token format',
+    message: "Enter your Telegram Bot Token:",
+    validate: (v) => v.includes(":") || "Invalid token format",
   });
 
   const deployMode = await select({
-    message: 'Deployment mode:',
+    message: "Deployment mode:",
     choices: [
-      { name: 'systemd service (recommended)', value: 'systemd' },
-      { name: 'Docker container', value: 'docker' },
-      { name: 'Development (foreground)', value: 'dev' },
+      { name: "systemd service (recommended)", value: "systemd" },
+      { name: "Docker container", value: "docker" },
+      { name: "Development (foreground)", value: "dev" },
     ],
   });
 
-  if (deployMode === 'systemd') {
+  if (deployMode === "systemd") {
     // Check if systemd available
     try {
-      execSync('systemctl --version', { stdio: 'ignore' });
+      execSync("systemctl --version", { stdio: "ignore" });
     } catch {
-      console.error('systemd not available. Use Docker or dev mode.');
+      console.error("systemd not available. Use Docker or dev mode.");
       process.exit(1);
     }
 
     const installNow = await confirm({
-      message: 'Install and start systemd service now?',
+      message: "Install and start systemd service now?",
       default: true,
     });
 
@@ -553,15 +597,16 @@ async function installWizard(): Promise<void> {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Telegraf | grammY | 2023-2024 | Better TypeScript, faster Bot API updates |
-| bot.start() polling | runner plugin | Always available | 10x throughput, proper concurrency |
-| winston logging | pino | 2024-2025 | 5x faster, JSON by default |
-| Manual retry logic | auto-retry plugin | Always available | Correct backoff, handles edge cases |
-| PM2 for Node.js | systemd | Depends on needs | Native, lighter, better security options |
+| Old Approach        | Current Approach  | When Changed     | Impact                                    |
+| ------------------- | ----------------- | ---------------- | ----------------------------------------- |
+| Telegraf            | grammY            | 2023-2024        | Better TypeScript, faster Bot API updates |
+| bot.start() polling | runner plugin     | Always available | 10x throughput, proper concurrency        |
+| winston logging     | pino              | 2024-2025        | 5x faster, JSON by default                |
+| Manual retry logic  | auto-retry plugin | Always available | Correct backoff, handles edge cases       |
+| PM2 for Node.js     | systemd           | Depends on needs | Native, lighter, better security options  |
 
 **Deprecated/outdated:**
+
 - Telegraf: Still maintained but lags behind Bot API
 - node-telegram-bot-api: Callback-based, unmaintained patterns
 - Manual typing indicator loops: Use auto-chat-action plugin
@@ -586,6 +631,7 @@ async function installWizard(): Promise<void> {
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [grammY Documentation](https://grammy.dev/) - Bot setup, plugins, middleware
 - [grammY runner plugin](https://grammy.dev/plugins/runner) - Concurrent processing
 - [grammY auto-retry plugin](https://grammy.dev/plugins/auto-retry) - Rate limit handling
@@ -593,18 +639,21 @@ async function installWizard(): Promise<void> {
 - [Claude Code Issue #771](https://github.com/anthropics/claude-code/issues/771) - Spawn hang bug
 
 ### Secondary (MEDIUM confidence)
+
 - [moltbot pairing](https://github.com/moltbot/moltbot) - Pairing flow reference
 - [Telegram Limits](https://limits.tginfo.me/en) - 4096 char message limit
 - [pino vs winston](https://betterstack.com/community/comparisons/pino-vs-winston/) - Logger comparison
 - [@inquirer/prompts](https://github.com/SBoudrias/Inquirer.js) - CLI wizard
 
 ### Tertiary (LOW confidence - needs validation)
+
 - better-queue-sqlite TypeScript support - verify @types availability
 - Status message update frequency limits - test empirically
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - grammY and plugins well-documented, actively maintained
 - Architecture patterns: MEDIUM-HIGH - spawn workaround verified, queue patterns standard
 - Pitfalls: HIGH - documented bugs and edge cases from official sources

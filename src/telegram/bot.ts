@@ -1,12 +1,15 @@
-import { Bot, Context, GrammyError, HttpError } from 'grammy';
-import { run, sequentialize } from '@grammyjs/runner';
-import { autoRetry } from '@grammyjs/auto-retry';
-import { autoChatAction, AutoChatActionFlavor } from '@grammyjs/auto-chat-action';
-import { hydrateFiles } from '@grammyjs/files';
-import { config } from '../config/index.js';
-import { logger, createChildLogger } from '../utils/index.js';
+import { Bot, Context, GrammyError, HttpError } from "grammy";
+import { run, sequentialize } from "@grammyjs/runner";
+import { autoRetry } from "@grammyjs/auto-retry";
+import {
+  autoChatAction,
+  AutoChatActionFlavor,
+} from "@grammyjs/auto-chat-action";
+import { hydrateFiles } from "@grammyjs/files";
+import { config } from "../config/index.js";
+import { logger, createChildLogger } from "../utils/index.js";
 
-const log = createChildLogger('telegram');
+const log = createChildLogger("telegram");
 
 /** Context type with auto-chat-action flavor */
 export type MyContext = Context & AutoChatActionFlavor;
@@ -19,7 +22,7 @@ bot.api.config.use(
   autoRetry({
     maxRetryAttempts: 3,
     maxDelaySeconds: 300,
-  })
+  }),
 );
 
 // Enable file download helper methods
@@ -38,20 +41,31 @@ bot.catch((err) => {
 
   if (e instanceof GrammyError) {
     log.error(
-      { error_code: e.error_code, description: e.description, updateId: ctx.update.update_id },
-      'Telegram API error'
+      {
+        error_code: e.error_code,
+        description: e.description,
+        updateId: ctx.update.update_id,
+      },
+      "Telegram API error",
     );
   } else if (e instanceof HttpError) {
-    log.error({ error: e.message, updateId: ctx.update.update_id }, 'Network error');
+    log.error(
+      { error: e.message, updateId: ctx.update.update_id },
+      "Network error",
+    );
   } else {
-    log.error({ error: e, updateId: ctx.update.update_id }, 'Unknown error');
+    log.error({ error: e, updateId: ctx.update.update_id }, "Unknown error");
   }
 
   // Send user-friendly error message (non-blocking)
   try {
-    ctx.reply('An error occurred while processing your message. Please try again.').catch(() => {
-      // Ignore reply errors
-    });
+    ctx
+      .reply(
+        "An error occurred while processing your message. Please try again.",
+      )
+      .catch(() => {
+        // Ignore reply errors
+      });
   } catch {
     // Ignore synchronous errors
   }
@@ -65,14 +79,14 @@ export function createRunner() {
   const handle = run(bot);
 
   const shutdown = async () => {
-    log.info('Shutting down bot...');
+    log.info("Shutting down bot...");
     await handle.stop();
-    log.info('Bot stopped');
+    log.info("Bot stopped");
   };
 
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 
-  log.info('Bot runner started');
+  log.info("Bot runner started");
   return handle;
 }

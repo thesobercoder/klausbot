@@ -109,79 +109,81 @@ Deferred to later milestones.
 
 Explicitly excluded. Documented to prevent scope creep.
 
-| Feature | Reason |
-|---------|--------|
-| Multi-user support | Personal assistant, single user only |
-| Web UI | Telegram is the interface |
-| Native Windows service | WSL2 provides better compatibility (OpenClaw pattern) |
-| Mobile app | Telegram handles mobile access |
-| OAuth for external services | Deferred to v2 |
+| Feature                     | Reason                                                |
+| --------------------------- | ----------------------------------------------------- |
+| Multi-user support          | Personal assistant, single user only                  |
+| Web UI                      | Telegram is the interface                             |
+| Native Windows service      | WSL2 provides better compatibility (OpenClaw pattern) |
+| Mobile app                  | Telegram handles mobile access                        |
+| OAuth for external services | Deferred to v2                                        |
 
 ## Traceability
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| PLAT-01 | Phase 9 | Complete |
-| PLAT-02 | Phase 9 | Complete |
-| PLAT-03 | Phase 9 | Complete |
-| PLAT-05 | Phase 9 | Complete |
-| PLAT-06 | Phase 9 | Complete |
-| DTCT-01 | Phase 9 | Complete |
-| DTCT-02 | Phase 9 | Complete |
-| DTCT-03 | Phase 9 | Complete |
-| DTCT-04 | Phase 9 | Complete |
-| DTCT-05 | Phase 9 | Complete |
-| DOCT-01 | Phase 10 | Pending |
-| DOCT-02 | Phase 10 | Pending |
-| DOCT-03 | Phase 10 | Pending |
-| DOCT-04 | Phase 10 | Pending |
-| DOCT-05 | Phase 10 | Pending |
-| DOCT-06 | Phase 10 | Pending |
-| DOCT-07 | Phase 10 | Pending |
-| DOCT-08 | Phase 10 | Pending |
-| SETUP-01 | Phase 11 | Pending |
-| SETUP-02 | Phase 11 | Pending |
-| SETUP-03 | Phase 11 | Pending |
-| SETUP-04 | Phase 11 | Pending |
-| SETUP-05 | Phase 11 | Pending |
-| SERV-01 | Phase 12 | Pending |
-| SERV-02 | Phase 12 | Pending |
-| SERV-03 | Phase 12 | Pending |
-| SERV-04 | Phase 12 | Pending |
-| SERV-05 | Phase 12 | Pending |
-| SECU-01 | Phase 13 | Pending |
-| SECU-02 | Phase 13 | Pending |
-| SECU-03 | Phase 13 | Pending |
-| STRM-01 | Phase 14 | Pending |
-| STRM-02 | Phase 14 | Pending |
-| STRM-03 | Phase 14 | Pending |
-| STRM-04 | Phase 14 | Pending |
-| TELE-01 | Phase 15 | Pending |
-| TELE-02 | Phase 15 | Pending |
-| HRTB-01 | Phase 16 | Pending |
-| HRTB-02 | Phase 16 | Pending |
-| HRTB-03 | Phase 16 | Pending |
-| HRTB-04 | Phase 16 | Pending |
-| HRTB-05 | Phase 16 | Pending |
-| HRTB-06 | Phase 16 | Pending |
-| PLAT-04 | - | DEFERRED |
-| RLSE-01 | Phase 17 | Complete |
-| RLSE-02 | Phase 17 | Complete |
-| RLSE-03 | Phase 17 | Complete |
-| RLSE-04 | Phase 17 | Complete |
-| RLSE-05 | Phase 17 | Complete |
-| TEST-01 | Phase 18 | Pending |
-| TEST-02 | Phase 18 | Pending |
-| TEST-03 | Phase 18 | Pending |
-| TEST-04 | Phase 18 | Pending |
+| Requirement | Phase    | Status   |
+| ----------- | -------- | -------- |
+| PLAT-01     | Phase 9  | Complete |
+| PLAT-02     | Phase 9  | Complete |
+| PLAT-03     | Phase 9  | Complete |
+| PLAT-05     | Phase 9  | Complete |
+| PLAT-06     | Phase 9  | Complete |
+| DTCT-01     | Phase 9  | Complete |
+| DTCT-02     | Phase 9  | Complete |
+| DTCT-03     | Phase 9  | Complete |
+| DTCT-04     | Phase 9  | Complete |
+| DTCT-05     | Phase 9  | Complete |
+| DOCT-01     | Phase 10 | Pending  |
+| DOCT-02     | Phase 10 | Pending  |
+| DOCT-03     | Phase 10 | Pending  |
+| DOCT-04     | Phase 10 | Pending  |
+| DOCT-05     | Phase 10 | Pending  |
+| DOCT-06     | Phase 10 | Pending  |
+| DOCT-07     | Phase 10 | Pending  |
+| DOCT-08     | Phase 10 | Pending  |
+| SETUP-01    | Phase 11 | Pending  |
+| SETUP-02    | Phase 11 | Pending  |
+| SETUP-03    | Phase 11 | Pending  |
+| SETUP-04    | Phase 11 | Pending  |
+| SETUP-05    | Phase 11 | Pending  |
+| SERV-01     | Phase 12 | Pending  |
+| SERV-02     | Phase 12 | Pending  |
+| SERV-03     | Phase 12 | Pending  |
+| SERV-04     | Phase 12 | Pending  |
+| SERV-05     | Phase 12 | Pending  |
+| SECU-01     | Phase 13 | Pending  |
+| SECU-02     | Phase 13 | Pending  |
+| SECU-03     | Phase 13 | Pending  |
+| STRM-01     | Phase 14 | Pending  |
+| STRM-02     | Phase 14 | Pending  |
+| STRM-03     | Phase 14 | Pending  |
+| STRM-04     | Phase 14 | Pending  |
+| TELE-01     | Phase 15 | Pending  |
+| TELE-02     | Phase 15 | Pending  |
+| HRTB-01     | Phase 16 | Pending  |
+| HRTB-02     | Phase 16 | Pending  |
+| HRTB-03     | Phase 16 | Pending  |
+| HRTB-04     | Phase 16 | Pending  |
+| HRTB-05     | Phase 16 | Pending  |
+| HRTB-06     | Phase 16 | Pending  |
+| PLAT-04     | -        | DEFERRED |
+| RLSE-01     | Phase 17 | Complete |
+| RLSE-02     | Phase 17 | Complete |
+| RLSE-03     | Phase 17 | Complete |
+| RLSE-04     | Phase 17 | Complete |
+| RLSE-05     | Phase 17 | Complete |
+| TEST-01     | Phase 18 | Pending  |
+| TEST-02     | Phase 18 | Pending  |
+| TEST-03     | Phase 18 | Pending  |
+| TEST-04     | Phase 18 | Pending  |
 
 **Coverage:**
+
 - v1.1 requirements: 49 total
 - Mapped to phases: 48
 - Deferred: 1 (PLAT-04)
 
 ---
-*Requirements defined: 2026-01-31*
-*Last updated: 2026-02-05 - Phase 17 requirements (RLSE-01 to RLSE-05) marked Complete*
+
+_Requirements defined: 2026-01-31_
+_Last updated: 2026-02-05 - Phase 17 requirements (RLSE-01 to RLSE-05) marked Complete_

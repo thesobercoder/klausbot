@@ -1,12 +1,7 @@
 // Memory module - file-based memory infrastructure for Claude
 
 // Home directory management
-export {
-  KLAUSBOT_HOME,
-  DIRS,
-  initializeHome,
-  getHomePath,
-} from './home.js';
+export { KLAUSBOT_HOME, DIRS, initializeHome, getHomePath } from "./home.js";
 
 // Identity file initialization
 export {
@@ -14,7 +9,7 @@ export {
   DEFAULT_IDENTITY,
   DEFAULT_USER,
   initializeIdentity,
-} from './identity.js';
+} from "./identity.js";
 
 // Conversation logging
 export {
@@ -22,7 +17,7 @@ export {
   ensureConversationFile,
   logUserMessage,
   logAssistantMessage,
-} from './logger.js';
+} from "./logger.js";
 
 // Context building (system prompt with identity + instructions)
 export {
@@ -31,10 +26,10 @@ export {
   buildSystemPrompt,
   invalidateIdentityCache,
   reloadIdentity,
-} from './context.js';
+} from "./context.js";
 
 // Database management
-export { getDb, closeDb, runMigrations, getDrizzle } from './db.js';
+export { getDb, closeDb, runMigrations, getDrizzle } from "./db.js";
 
 // Conversation storage
 export {
@@ -45,17 +40,17 @@ export {
   extractConversationText,
   generateSummary,
   type ConversationRecord,
-} from './conversations.js';
+} from "./conversations.js";
 
 // Embedding generation and storage
 export {
   generateEmbedding,
   storeEmbedding,
   initializeEmbeddings,
-} from './embeddings.js';
+} from "./embeddings.js";
 
 // Migration from JSON to SQLite
-export { migrateEmbeddings } from './migrate.js';
+export { migrateEmbeddings } from "./migrate.js";
 
 // Semantic search
-export { semanticSearch } from './search.js';
+export { semanticSearch } from "./search.js";

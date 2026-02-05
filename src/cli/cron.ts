@@ -10,12 +10,12 @@ import {
   updateCronJob,
   deleteCronJob,
   parseSchedule,
-} from '../cron/index.js';
-import { initializeHome } from '../memory/home.js';
-import { createChildLogger } from '../utils/logger.js';
-import { theme } from './theme.js';
+} from "../cron/index.js";
+import { initializeHome } from "../memory/home.js";
+import { createChildLogger } from "../utils/logger.js";
+import { theme } from "./theme.js";
 
-const log = createChildLogger('cron-cli');
+const log = createChildLogger("cron-cli");
 
 /**
  * Run the cron CLI
@@ -28,25 +28,25 @@ export async function runCronCLI(args: string[]): Promise<void> {
   initializeHome(log);
 
   switch (command) {
-    case 'add':
+    case "add":
       await handleAdd(args.slice(1));
       break;
-    case 'list':
+    case "list":
       handleList(args.slice(1));
       break;
-    case 'get':
+    case "get":
       handleGet(args.slice(1));
       break;
-    case 'delete':
+    case "delete":
       await handleDelete(args.slice(1));
       break;
-    case 'update':
+    case "update":
       handleUpdate(args.slice(1));
       break;
-    case 'enable':
+    case "enable":
       handleEnable(args[1]);
       break;
-    case 'disable':
+    case "disable":
       handleDisable(args[1]);
       break;
     default:
@@ -71,14 +71,14 @@ function parseArgs(args: string[]): Record<string, string> {
   const result: Record<string, string> = {};
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg.startsWith('--')) {
+    if (arg.startsWith("--")) {
       const key = arg.slice(2);
       const value = args[i + 1];
-      if (value && !value.startsWith('--')) {
+      if (value && !value.startsWith("--")) {
         result[key] = value;
         i++;
       } else {
-        result[key] = 'true';
+        result[key] = "true";
       }
     }
   }
@@ -89,8 +89,10 @@ async function handleAdd(args: string[]): Promise<void> {
   const opts = parseArgs(args);
 
   if (!opts.name || !opts.schedule || !opts.instruction || !opts.chatId) {
-    theme.error('Missing required arguments');
-    theme.info('Usage: klausbot cron add --name <name> --schedule <schedule> --instruction <instruction> --chatId <chatId>');
+    theme.error("Missing required arguments");
+    theme.info(
+      "Usage: klausbot cron add --name <name> --schedule <schedule> --instruction <instruction> --chatId <chatId>",
+    );
     process.exit(1);
   }
 
@@ -108,15 +110,23 @@ async function handleAdd(args: string[]): Promise<void> {
     humanSchedule: parsed.humanReadable,
   });
 
-  console.log(JSON.stringify({
-    success: true,
-    job: {
-      id: job.id,
-      name: job.name,
-      humanSchedule: job.humanSchedule,
-      nextRunAt: job.nextRunAtMs ? new Date(job.nextRunAtMs).toISOString() : null,
-    }
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        success: true,
+        job: {
+          id: job.id,
+          name: job.name,
+          humanSchedule: job.humanSchedule,
+          nextRunAt: job.nextRunAtMs
+            ? new Date(job.nextRunAtMs).toISOString()
+            : null,
+        },
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 function handleList(args: string[]): void {
@@ -125,40 +135,41 @@ function handleList(args: string[]): void {
 
   const jobs = listCronJobs(chatId);
 
+  theme.header("Cron Jobs");
   if (jobs.length === 0) {
-    theme.info('No cron jobs found.');
-    return;
-  }
+    theme.muted("  (none)");
+  } else {
+    for (const job of jobs) {
+      const status = job.enabled
+        ? theme.colors.green("\u2713")
+        : theme.colors.dim("\u25CB");
+      const nextRun = job.nextRunAtMs
+        ? new Date(job.nextRunAtMs).toLocaleString()
+        : "N/A";
+      const lastStatus = job.lastStatus ?? "never run";
 
-  theme.header(`Cron Jobs (${jobs.length})`);
+      theme.blank();
+      theme.text(`${status} ${job.name}`);
+      theme.keyValue("ID", job.id, { keyWidth: 10 });
+      theme.keyValue("Schedule", job.humanSchedule, { keyWidth: 10 });
+      theme.keyValue("Next run", nextRun, { keyWidth: 10 });
+      theme.keyValue("Last", lastStatus, { keyWidth: 10 });
+    }
+  }
   theme.blank();
-  for (const job of jobs) {
-    const status = job.enabled ? theme.colors.green('\u2713') : theme.colors.dim('\u25CB');
-    const nextRun = job.nextRunAtMs
-      ? new Date(job.nextRunAtMs).toLocaleString()
-      : 'N/A';
-    const lastStatus = job.lastStatus ?? 'never run';
-
-    theme.text(`${status} ${job.name}`);
-    theme.keyValue('ID', job.id, { keyWidth: 10 });
-    theme.keyValue('Schedule', job.humanSchedule, { keyWidth: 10 });
-    theme.keyValue('Next run', nextRun, { keyWidth: 10 });
-    theme.keyValue('Last', lastStatus, { keyWidth: 10 });
-    theme.blank();
-  }
 }
 
 function handleGet(args: string[]): void {
   const opts = parseArgs(args);
 
   if (!opts.id) {
-    theme.error('Missing --id argument');
+    theme.error("Missing --id argument");
     process.exit(1);
   }
 
   const job = getCronJob(opts.id);
   if (!job) {
-    console.log(JSON.stringify({ success: false, error: 'Job not found' }));
+    console.log(JSON.stringify({ success: false, error: "Job not found" }));
     process.exit(1);
   }
 
@@ -167,8 +178,8 @@ function handleGet(args: string[]): void {
 
 function handleEnable(id: string | undefined): void {
   if (!id) {
-    theme.error('Missing job ID');
-    theme.info('Usage: klausbot cron enable <id>');
+    theme.error("Missing job ID");
+    theme.info("Usage: klausbot cron enable <id>");
     process.exit(1);
   }
 
@@ -183,8 +194,8 @@ function handleEnable(id: string | undefined): void {
 
 function handleDisable(id: string | undefined): void {
   if (!id) {
-    theme.error('Missing job ID');
-    theme.info('Usage: klausbot cron disable <id>');
+    theme.error("Missing job ID");
+    theme.info("Usage: klausbot cron disable <id>");
     process.exit(1);
   }
 
@@ -201,19 +212,19 @@ async function handleDelete(args: string[]): Promise<void> {
   const opts = parseArgs(args);
 
   if (!opts.id) {
-    theme.error('Missing --id argument');
+    theme.error("Missing --id argument");
     process.exit(1);
   }
 
   // Add confirmation before deleting (unless --force)
-  if (opts.force !== 'true') {
-    const { confirm } = await import('@inquirer/prompts');
+  if (opts.force !== "true") {
+    const { confirm } = await import("@inquirer/prompts");
     const confirmed = await confirm({
       message: `Delete cron job "${opts.id}"?`,
       default: false,
     });
     if (!confirmed) {
-      theme.info('Aborted.');
+      theme.info("Aborted.");
       return;
     }
   }
@@ -226,7 +237,7 @@ function handleUpdate(args: string[]): void {
   const opts = parseArgs(args);
 
   if (!opts.id) {
-    theme.error('Missing --id argument');
+    theme.error("Missing --id argument");
     process.exit(1);
   }
 
@@ -234,7 +245,7 @@ function handleUpdate(args: string[]): void {
 
   if (opts.name) updates.name = opts.name;
   if (opts.instruction) updates.instruction = opts.instruction;
-  if (opts.enabled) updates.enabled = opts.enabled === 'true';
+  if (opts.enabled) updates.enabled = opts.enabled === "true";
 
   if (opts.schedule) {
     const parsed = parseSchedule(opts.schedule);
@@ -248,17 +259,25 @@ function handleUpdate(args: string[]): void {
 
   const job = updateCronJob(opts.id, updates);
   if (!job) {
-    console.log(JSON.stringify({ success: false, error: 'Job not found' }));
+    console.log(JSON.stringify({ success: false, error: "Job not found" }));
     process.exit(1);
   }
 
-  console.log(JSON.stringify({
-    success: true,
-    job: {
-      id: job.id,
-      name: job.name,
-      humanSchedule: job.humanSchedule,
-      nextRunAt: job.nextRunAtMs ? new Date(job.nextRunAtMs).toISOString() : null,
-    }
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        success: true,
+        job: {
+          id: job.id,
+          name: job.name,
+          humanSchedule: job.humanSchedule,
+          nextRunAt: job.nextRunAtMs
+            ? new Date(job.nextRunAtMs).toISOString()
+            : null,
+        },
+      },
+      null,
+      2,
+    ),
+  );
 }

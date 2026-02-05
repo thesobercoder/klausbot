@@ -4,7 +4,7 @@
  */
 
 /** Schedule type discriminator */
-export type ScheduleKind = 'at' | 'every' | 'cron';
+export type ScheduleKind = "at" | "every" | "cron";
 
 /**
  * Schedule configuration
@@ -25,7 +25,7 @@ export interface CronSchedule {
 }
 
 /** Job execution status */
-export type JobStatus = 'success' | 'failed';
+export type JobStatus = "success" | "failed";
 
 /**
  * Cron job definition

@@ -2,11 +2,11 @@
  * Cron service - CRUD operations for cron jobs
  */
 
-import { randomUUID } from 'crypto';
-import type { CronJob, CronSchedule } from './types.js';
-import { loadCronStore, saveCronStore } from './store.js';
-import { computeNextRunAtMs } from './schedule.js';
-import type { ExecutionResult } from './executor.js';
+import { randomUUID } from "crypto";
+import type { CronJob, CronSchedule } from "./types.js";
+import { loadCronStore, saveCronStore } from "./store.js";
+import { computeNextRunAtMs } from "./schedule.js";
+import type { ExecutionResult } from "./executor.js";
 
 /** Parameters for creating a new cron job */
 export interface CreateCronJobParams {
@@ -88,7 +88,12 @@ export function getCronJob(id: string): CronJob | undefined {
  */
 export function updateCronJob(
   id: string,
-  updates: Partial<Pick<CronJob, 'name' | 'schedule' | 'instruction' | 'enabled' | 'humanSchedule'>>
+  updates: Partial<
+    Pick<
+      CronJob,
+      "name" | "schedule" | "instruction" | "enabled" | "humanSchedule"
+    >
+  >,
 ): CronJob | undefined {
   const store = loadCronStore();
   const jobIndex = store.jobs.findIndex((job) => job.id === id);
@@ -103,7 +108,8 @@ export function updateCronJob(
   if (updates.name !== undefined) job.name = updates.name;
   if (updates.instruction !== undefined) job.instruction = updates.instruction;
   if (updates.enabled !== undefined) job.enabled = updates.enabled;
-  if (updates.humanSchedule !== undefined) job.humanSchedule = updates.humanSchedule;
+  if (updates.humanSchedule !== undefined)
+    job.humanSchedule = updates.humanSchedule;
 
   // If schedule changed, recalculate next run time
   if (updates.schedule !== undefined) {
@@ -152,7 +158,7 @@ export function updateJobStatus(id: string, result: ExecutionResult): void {
   }
 
   job.lastRunAtMs = Date.now();
-  job.lastStatus = result.success ? 'success' : 'failed';
+  job.lastStatus = result.success ? "success" : "failed";
   job.lastError = result.success ? null : result.result;
   job.lastDurationMs = result.durationMs;
 
@@ -160,7 +166,7 @@ export function updateJobStatus(id: string, result: ExecutionResult): void {
   job.nextRunAtMs = computeNextRunAtMs(job.schedule);
 
   // Disable one-shot ('at') jobs after execution
-  if (job.schedule.kind === 'at') {
+  if (job.schedule.kind === "at") {
     job.enabled = false;
   }
 

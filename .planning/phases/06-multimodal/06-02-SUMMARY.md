@@ -43,10 +43,12 @@ metrics:
 ## What Was Built
 
 ### 1. Images Directory in KLAUSBOT_HOME
+
 - Added 'images' to DIRS constant in `src/memory/home.ts`
 - `~/.klausbot/images/` created automatically on startup via existing `initializeHome()`
 
 ### 2. Image Storage Module (`src/media/storage.ts`)
+
 - `getImageDir()`: Returns today's dated directory (`~/.klausbot/images/YYYY-MM-DD/`)
 - `saveImage(sourcePath, originalFilename?)`: Copies image with UUID filename
   - Creates directory on demand
@@ -55,6 +57,7 @@ metrics:
   - Returns absolute path to saved file
 
 ### 3. Media Module Barrel Export (`src/media/index.ts`)
+
 - Single entry point for all media functionality
 - Re-exports:
   - Types: MediaAttachment, MediaType, TranscriptionResult
@@ -65,11 +68,11 @@ metrics:
 
 ## Task Completion
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1 | Update home.ts for images | a102fb8 | src/memory/home.ts |
-| 2 | Image storage module | 0051454 | src/media/storage.ts |
-| 3 | Media module barrel export | bfc53a8 | src/media/index.ts |
+| Task | Name                       | Commit  | Files                |
+| ---- | -------------------------- | ------- | -------------------- |
+| 1    | Update home.ts for images  | a102fb8 | src/memory/home.ts   |
+| 2    | Image storage module       | 0051454 | src/media/storage.ts |
+| 3    | Media module barrel export | bfc53a8 | src/media/index.ts   |
 
 ## Deviations from Plan
 
@@ -92,6 +95,7 @@ grep "export" index.ts    # Shows all 7 export statements
 ## Next Phase Readiness
 
 **Ready for 06-03:** Image processing pipeline integration
+
 - Storage API available via `import { saveImage } from './media/index.js'`
 - Images directory created on startup
 - Photos can be persisted with dated organization

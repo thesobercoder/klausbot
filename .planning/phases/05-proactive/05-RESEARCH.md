@@ -18,31 +18,32 @@ The learning system follows the existing memory pattern: Claude agentically read
 
 ### Core (Minimal Dependencies)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| croner | 8.x | Cron expression parsing, next-run calculation | Zero deps, used by PM2/Uptime Kuma, TypeScript native |
-| chrono-node | 2.9.x | Natural language date parsing | 5k stars, TypeScript rewrite, multi-locale |
-| fs (built-in) | - | JSON file persistence | No database dependency |
-| setInterval | - | In-memory scheduling loop | Simple, pairs with file-based persistence |
+| Library       | Version | Purpose                                       | Why Standard                                          |
+| ------------- | ------- | --------------------------------------------- | ----------------------------------------------------- |
+| croner        | 8.x     | Cron expression parsing, next-run calculation | Zero deps, used by PM2/Uptime Kuma, TypeScript native |
+| chrono-node   | 2.9.x   | Natural language date parsing                 | 5k stars, TypeScript rewrite, multi-locale            |
+| fs (built-in) | -       | JSON file persistence                         | No database dependency                                |
+| setInterval   | -       | In-memory scheduling loop                     | Simple, pairs with file-based persistence             |
 
 ### Schedule Types (moltbot pattern)
 
-| Type | Example | Use Case |
-|------|---------|----------|
-| `at` | "at 2026-01-31T09:00:00Z" | One-shot scheduled task |
-| `every` | "every 3600000" (ms) | Recurring interval |
-| `cron` | "0 9 * * *" | Recurring cron expression |
+| Type    | Example                   | Use Case                  |
+| ------- | ------------------------- | ------------------------- |
+| `at`    | "at 2026-01-31T09:00:00Z" | One-shot scheduled task   |
+| `every` | "every 3600000" (ms)      | Recurring interval        |
+| `cron`  | "0 9 \* \* \*"            | Recurring cron expression |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| croner | node-cron | node-cron lacks timezone support, no nextRun() method |
-| JSON file | SQLite/Redis | Overkill for single-user, Claude can't query directly |
-| setInterval loop | node-schedule | More deps, no significant benefit for simple use |
-| chrono-node | Custom NLP | Unreliable, chrono handles edge cases |
+| Instead of       | Could Use     | Tradeoff                                              |
+| ---------------- | ------------- | ----------------------------------------------------- |
+| croner           | node-cron     | node-cron lacks timezone support, no nextRun() method |
+| JSON file        | SQLite/Redis  | Overkill for single-user, Claude can't query directly |
+| setInterval loop | node-schedule | More deps, no significant benefit for simple use      |
+| chrono-node      | Custom NLP    | Unreliable, chrono handles edge cases                 |
 
 **Installation:**
+
 ```bash
 npm install croner chrono-node
 ```
@@ -73,29 +74,30 @@ src/
 **Source:** [moltbot cron/store.ts](https://github.com/moltbot/moltbot/tree/main/src/cron)
 
 **Example:**
+
 ```typescript
 // types.ts
-export type ScheduleKind = 'at' | 'every' | 'cron';
+export type ScheduleKind = "at" | "every" | "cron";
 
 export interface CronSchedule {
   kind: ScheduleKind;
-  atMs?: number;        // For 'at': target timestamp in ms
-  everyMs?: number;     // For 'every': interval in ms
-  anchorMs?: number;    // For 'every': reference point
-  expr?: string;        // For 'cron': cron expression
-  tz?: string;          // Timezone (IANA format)
+  atMs?: number; // For 'at': target timestamp in ms
+  everyMs?: number; // For 'every': interval in ms
+  anchorMs?: number; // For 'every': reference point
+  expr?: string; // For 'cron': cron expression
+  tz?: string; // Timezone (IANA format)
 }
 
 export interface CronJob {
   id: string;
   name: string;
   schedule: CronSchedule;
-  instruction: string;  // What Claude should do
-  chatId: number;       // User to notify
+  instruction: string; // What Claude should do
+  chatId: number; // User to notify
   createdAt: number;
   nextRunAtMs: number | null;
   lastRunAtMs: number | null;
-  lastStatus: 'success' | 'failed' | null;
+  lastStatus: "success" | "failed" | null;
   lastError: string | null;
   lastDurationMs: number | null;
   enabled: boolean;
@@ -107,16 +109,16 @@ export interface CronStoreFile {
 }
 
 // store.ts
-import { readFileSync, writeFileSync, existsSync, renameSync } from 'fs';
-import { randomUUID } from 'crypto';
+import { readFileSync, writeFileSync, existsSync, renameSync } from "fs";
+import { randomUUID } from "crypto";
 
-const STORE_PATH = getHomePath('cron', 'jobs.json');
+const STORE_PATH = getHomePath("cron", "jobs.json");
 
 export function loadCronStore(): CronStoreFile {
   if (!existsSync(STORE_PATH)) {
     return { version: 1, jobs: [] };
   }
-  const data = readFileSync(STORE_PATH, 'utf-8');
+  const data = readFileSync(STORE_PATH, "utf-8");
   return JSON.parse(data);
 }
 
@@ -137,10 +139,11 @@ export function saveCronStore(store: CronStoreFile): void {
 **Source:** [chrono-node](https://github.com/wanasit/chrono), [croner](https://github.com/Hexagon/croner)
 
 **Example:**
+
 ```typescript
 // parse.ts
-import * as chrono from 'chrono-node';
-import { Cron } from 'croner';
+import * as chrono from "chrono-node";
+import { Cron } from "croner";
 
 interface ParsedSchedule {
   schedule: CronSchedule;
@@ -152,7 +155,9 @@ export function parseSchedule(input: string): ParsedSchedule | null {
   const normalized = input.toLowerCase().trim();
 
   // Pattern 1: "every X (minutes|hours|days)"
-  const everyMatch = normalized.match(/every\s+(\d+)\s*(minute|hour|day|week)s?/);
+  const everyMatch = normalized.match(
+    /every\s+(\d+)\s*(minute|hour|day|week)s?/,
+  );
   if (everyMatch) {
     const [, count, unit] = everyMatch;
     const multipliers: Record<string, number> = {
@@ -163,7 +168,7 @@ export function parseSchedule(input: string): ParsedSchedule | null {
     };
     const everyMs = parseInt(count) * multipliers[unit];
     return {
-      schedule: { kind: 'every', everyMs, anchorMs: Date.now() },
+      schedule: { kind: "every", everyMs, anchorMs: Date.now() },
       humanReadable: `every ${count} ${unit}(s)`,
       nextRun: new Date(Date.now() + everyMs),
     };
@@ -175,7 +180,7 @@ export function parseSchedule(input: string): ParsedSchedule | null {
       const cron = new Cron(normalized);
       const next = cron.nextRun();
       return {
-        schedule: { kind: 'cron', expr: normalized },
+        schedule: { kind: "cron", expr: normalized },
         humanReadable: `cron: ${normalized}`,
         nextRun: next,
       };
@@ -189,7 +194,7 @@ export function parseSchedule(input: string): ParsedSchedule | null {
   if (parsed.length > 0) {
     const date = parsed[0].start.date();
     return {
-      schedule: { kind: 'at', atMs: date.getTime() },
+      schedule: { kind: "at", atMs: date.getTime() },
       humanReadable: `at ${date.toLocaleString()}`,
       nextRun: date,
     };
@@ -208,20 +213,21 @@ export function parseSchedule(input: string): ParsedSchedule | null {
 **Source:** [croner nextRun()](https://github.com/Hexagon/croner), moltbot schedule.ts
 
 **Example:**
+
 ```typescript
 // schedule.ts
-import { Cron } from 'croner';
+import { Cron } from "croner";
 
 export function computeNextRunAtMs(
   schedule: CronSchedule,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
 ): number | null {
   switch (schedule.kind) {
-    case 'at':
+    case "at":
       // One-shot: return if in future, null if past
       return schedule.atMs! > nowMs ? schedule.atMs! : null;
 
-    case 'every': {
+    case "every": {
       const everyMs = Math.max(1, schedule.everyMs!);
       const anchor = schedule.anchorMs ?? nowMs;
       if (nowMs < anchor) return anchor;
@@ -230,7 +236,7 @@ export function computeNextRunAtMs(
       return anchor + steps * everyMs;
     }
 
-    case 'cron': {
+    case "cron": {
       const cron = new Cron(schedule.expr!, {
         timezone: schedule.tz ?? undefined,
       });
@@ -253,13 +259,14 @@ export function computeNextRunAtMs(
 **Source:** CONTEXT.md decision: "retry once after delay, then report final status"
 
 **Example:**
+
 ```typescript
 // executor.ts
-import { queryClaudeCode } from '../daemon/spawner.js';
-import { bot } from '../telegram/bot.js';
+import { queryClaudeCode } from "../daemon/spawner.js";
+import { bot } from "../telegram/bot.js";
 
 const CRON_TIMEOUT = 3600000; // 1 hour per CONTEXT.md
-const RETRY_DELAY = 60000;    // 1 minute (Claude's discretion)
+const RETRY_DELAY = 60000; // 1 minute (Claude's discretion)
 
 export async function executeCronJob(job: CronJob): Promise<{
   success: boolean;
@@ -284,25 +291,26 @@ Complete the task and provide a concise result summary.
     const durationMs = Date.now() - startTime;
 
     // Notify user of success
-    await bot.api.sendMessage(job.chatId,
-      `[Cron: ${job.name}]\n${response.result}`
+    await bot.api.sendMessage(
+      job.chatId,
+      `[Cron: ${job.name}]\n${response.result}`,
     );
 
     return { success: true, result: response.result, durationMs };
-
   } catch (error) {
     const durationMs = Date.now() - startTime;
     const errorMsg = error instanceof Error ? error.message : String(error);
 
     // First failure: retry once after delay
     if (!job.lastError) {
-      await new Promise(r => setTimeout(r, RETRY_DELAY));
+      await new Promise((r) => setTimeout(r, RETRY_DELAY));
       try {
         const retryResponse = await queryClaudeCode(job.instruction, {
           timeout: CRON_TIMEOUT,
         });
-        await bot.api.sendMessage(job.chatId,
-          `[Cron: ${job.name}]\n${retryResponse.result}`
+        await bot.api.sendMessage(
+          job.chatId,
+          `[Cron: ${job.name}]\n${retryResponse.result}`,
         );
         return { success: true, result: retryResponse.result, durationMs };
       } catch (retryError) {
@@ -311,8 +319,9 @@ Complete the task and provide a concise result summary.
     }
 
     // Notify user of failure
-    await bot.api.sendMessage(job.chatId,
-      `[Cron: ${job.name} FAILED]\n${errorMsg}`
+    await bot.api.sendMessage(
+      job.chatId,
+      `[Cron: ${job.name} FAILED]\n${errorMsg}`,
     );
 
     return { success: false, result: errorMsg, durationMs };
@@ -329,6 +338,7 @@ Complete the task and provide a concise result summary.
 **Source:** CONTEXT.md: "Sequential execution — one cron at a time, queue others"
 
 **Example:**
+
 ```typescript
 // service.ts
 const TICK_INTERVAL = 60000; // Check every minute
@@ -345,7 +355,7 @@ export function startScheduler(): void {
     await processNextJob();
   }, TICK_INTERVAL);
 
-  log.info('Cron scheduler started');
+  log.info("Cron scheduler started");
 }
 
 async function checkAndEnqueueDueJobs(): Promise<void> {
@@ -355,7 +365,7 @@ async function checkAndEnqueueDueJobs(): Promise<void> {
   for (const job of store.jobs) {
     if (!job.enabled) continue;
     if (job.nextRunAtMs && job.nextRunAtMs <= nowMs) {
-      if (!pendingJobs.find(j => j.id === job.id)) {
+      if (!pendingJobs.find((j) => j.id === job.id)) {
         pendingJobs.push(job);
       }
     }
@@ -372,7 +382,7 @@ async function processNextJob(): Promise<void> {
     const result = await executeCronJob(job);
     updateJobStatus(job.id, result);
   } catch (err) {
-    log.error({ err, jobId: job.id }, 'Job execution error');
+    log.error({ err, jobId: job.id }, "Job execution error");
   } finally {
     isExecuting = false;
   }
@@ -380,11 +390,11 @@ async function processNextJob(): Promise<void> {
 
 function updateJobStatus(jobId: string, result: ExecutionResult): void {
   const store = loadCronStore();
-  const job = store.jobs.find(j => j.id === jobId);
+  const job = store.jobs.find((j) => j.id === jobId);
   if (!job) return;
 
   job.lastRunAtMs = Date.now();
-  job.lastStatus = result.success ? 'success' : 'failed';
+  job.lastStatus = result.success ? "success" : "failed";
   job.lastError = result.success ? null : result.result;
   job.lastDurationMs = result.durationMs;
 
@@ -392,7 +402,7 @@ function updateJobStatus(jobId: string, result: ExecutionResult): void {
   job.nextRunAtMs = computeNextRunAtMs(job.schedule);
 
   // Disable one-shot jobs after execution
-  if (job.schedule.kind === 'at') {
+  if (job.schedule.kind === "at") {
     job.enabled = false;
   }
 
@@ -409,6 +419,7 @@ function updateJobStatus(jobId: string, result: ExecutionResult): void {
 **Source:** CONTEXT.md: "agentically read LEARNINGS.md when relevant (not loaded at session start)"
 
 **Example:**
+
 ```typescript
 // Add to context.ts getRetrievalInstructions()
 const learningsInstructions = `
@@ -441,6 +452,7 @@ Entries are chronological, newest first. Remove entries that are no longer relev
 **Source:** CONTEXT.md: "Timing: end of conversation, after completing a task"
 
 **Example:**
+
 ```typescript
 // Add to system prompt
 const proactiveInstructions = `
@@ -474,12 +486,12 @@ Don't suggest if nothing relevant. Not every conversation needs suggestions.
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Natural language dates | Regex patterns | chrono-node | Edge cases (timezones, relative dates, locales) |
-| Cron expression parsing | Custom parser | croner | Complex syntax, next-run calculation |
-| Atomic file writes | writeFileSync | temp + rename | Prevents corruption on crash |
-| Schedule normalization | Custom logic | moltbot pattern | Tested across edge cases |
+| Problem                 | Don't Build    | Use Instead     | Why                                             |
+| ----------------------- | -------------- | --------------- | ----------------------------------------------- |
+| Natural language dates  | Regex patterns | chrono-node     | Edge cases (timezones, relative dates, locales) |
+| Cron expression parsing | Custom parser  | croner          | Complex syntax, next-run calculation            |
+| Atomic file writes      | writeFileSync  | temp + rename   | Prevents corruption on crash                    |
+| Schedule normalization  | Custom logic   | moltbot pattern | Tested across edge cases                        |
 
 **Key insight:** Scheduling looks simple but has many edge cases (DST, timezones, leap seconds). Use battle-tested libraries.
 
@@ -534,28 +546,28 @@ Don't suggest if nothing relevant. Not every conversation needs suggestions.
 ```typescript
 // Add to telegram/commands.ts
 
-bot.command('crons', async (ctx: MyContext) => {
+bot.command("crons", async (ctx: MyContext) => {
   const store = loadCronStore();
-  const enabledJobs = store.jobs.filter(j => j.enabled);
+  const enabledJobs = store.jobs.filter((j) => j.enabled);
 
   if (enabledJobs.length === 0) {
-    await ctx.reply('No scheduled tasks.\n\nCreate one with natural language, e.g.:\n"Remind me every morning at 9am to check emails"');
+    await ctx.reply(
+      'No scheduled tasks.\n\nCreate one with natural language, e.g.:\n"Remind me every morning at 9am to check emails"',
+    );
     return;
   }
 
-  const lines = enabledJobs.map(job => {
+  const lines = enabledJobs.map((job) => {
     const nextRun = job.nextRunAtMs
       ? new Date(job.nextRunAtMs).toLocaleString()
-      : 'never';
-    const status = job.lastStatus
-      ? ` (last: ${job.lastStatus})`
-      : '';
+      : "never";
+    const status = job.lastStatus ? ` (last: ${job.lastStatus})` : "";
     return `- **${job.name}**: ${job.humanSchedule}\n  Next: ${nextRun}${status}`;
   });
 
   await ctx.reply(
-    `*Scheduled Tasks*\n\n${lines.join('\n\n')}\n\n_Modify or delete via conversation_`,
-    { parse_mode: 'Markdown' }
+    `*Scheduled Tasks*\n\n${lines.join("\n\n")}\n\n_Modify or delete via conversation_`,
+    { parse_mode: "Markdown" },
   );
 });
 ```
@@ -586,13 +598,13 @@ What happened and what to do differently next time.
 ```typescript
 // gateway.ts additions
 
-import { startScheduler, stopScheduler, loadCronStore } from './cron/index.js';
+import { startScheduler, stopScheduler, loadCronStore } from "./cron/index.js";
 
 export async function startGateway(): Promise<void> {
   // ... existing initialization ...
 
   // Initialize cron system
-  ensureDataDir(getHomePath('cron'));
+  ensureDataDir(getHomePath("cron"));
 
   // Recover any jobs that were due while offline
   recoverMissedJobs();
@@ -600,7 +612,7 @@ export async function startGateway(): Promise<void> {
   // Start scheduler loop
   startScheduler();
 
-  log.info({ jobs: loadCronStore().jobs.length }, 'Cron scheduler initialized');
+  log.info({ jobs: loadCronStore().jobs.length }, "Cron scheduler initialized");
 
   // ... rest of gateway setup ...
 }
@@ -613,14 +625,15 @@ export async function stopGateway(): Promise<void> {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| node-cron | croner | 2024 | Better TypeScript, timezone support, no deps |
-| Custom date parsing | chrono-node v2 | 2023 | TypeScript rewrite, better accuracy |
-| Database job storage | JSON file | moltbot pattern | Simpler, Claude-accessible |
-| Load all context at start | Agentic file reading | RLM paper 2025 | Scales to unlimited history |
+| Old Approach              | Current Approach     | When Changed    | Impact                                       |
+| ------------------------- | -------------------- | --------------- | -------------------------------------------- |
+| node-cron                 | croner               | 2024            | Better TypeScript, timezone support, no deps |
+| Custom date parsing       | chrono-node v2       | 2023            | TypeScript rewrite, better accuracy          |
+| Database job storage      | JSON file            | moltbot pattern | Simpler, Claude-accessible                   |
+| Load all context at start | Agentic file reading | RLM paper 2025  | Scales to unlimited history                  |
 
 **Current best practices:**
+
 - croner for cron expression handling (zero deps, TypeScript native)
 - chrono-node for natural language dates (battle-tested, multi-locale)
 - JSON file persistence (Claude-readable, no database dependency)
@@ -628,6 +641,7 @@ export async function stopGateway(): Promise<void> {
 - Agentic LEARNINGS.md consultation (don't bloat context)
 
 **Deprecated/outdated:**
+
 - node-cron (less features, no timezone, no nextRun())
 - Redis/MongoDB for single-user cron (overkill)
 - Loading full LEARNINGS.md in system prompt (context waste)
@@ -657,15 +671,18 @@ export async function stopGateway(): Promise<void> {
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [croner GitHub](https://github.com/Hexagon/croner) - API docs, timezone support, nextRun()
 - [chrono-node GitHub](https://github.com/wanasit/chrono) - Natural language parsing, TypeScript support
 - [moltbot cron](https://github.com/moltbot/moltbot/tree/main/src/cron) - Reference implementation for store, types, scheduling
 
 ### Secondary (MEDIUM confidence)
+
 - [Better Stack Node.js Schedulers](https://betterstack.com/community/guides/scaling-nodejs/best-nodejs-schedulers/) - Library comparison
 - Existing codebase patterns (daemon/spawner.ts, daemon/queue.ts) - Integration approach
 
 ### Tertiary (LOW confidence)
+
 - Proactive suggestion frequency - requires empirical testing
 - Learning entry format - Claude's discretion per CONTEXT.md
 - Retry delay duration - Claude's discretion per CONTEXT.md
@@ -673,6 +690,7 @@ export async function stopGateway(): Promise<void> {
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - croner and chrono-node well-documented, moltbot reference verified
 - Architecture patterns: HIGH - follows existing codebase + moltbot patterns
 - Pitfalls: MEDIUM - timer drift and timezone issues are known, but edge cases need testing

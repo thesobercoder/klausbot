@@ -58,6 +58,7 @@ completed: 2026-01-29
 - **Files modified:** 3
 
 ## Accomplishments
+
 - Spawner accepts additionalInstructions to append (not replace) base prompt
 - Gateway detects bootstrap state and passes BOOTSTRAP_INSTRUCTIONS
 - Cache invalidated after every Claude response for instant identity updates
@@ -71,29 +72,36 @@ Each task was committed atomically:
 2. **Task 2: Gateway bootstrap routing and cache invalidation** - `ca7abc4` (feat)
 
 ## Files Created/Modified
+
 - `src/daemon/spawner.ts` - Added additionalInstructions to SpawnerOptions, append to systemPrompt
 - `src/daemon/gateway.ts` - Import bootstrap/memory, detect bootstrap, pass additionalInstructions, invalidate cache
 - `src/memory/context.ts` - Added Identity Updates section with mutability rules and deflection
 
 ## Decisions Made
+
 - Bootstrap APPENDS to normal prompt (never replaces) - preserves identity/retrieval instructions during bootstrap
 - Cache invalidated after EVERY response (not just bootstrap) - Claude may update identity anytime
 - Soft deflection phrases added (not hard errors) - maintains friendly UX for boundary violations
 
 ## Deviations from Plan
+
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 None.
 
 ## User Setup Required
+
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Bootstrap detection and routing complete
 - Identity files will be created during first message if missing
 - Ready for 03-03: E2E testing of bootstrap flow
 
 ---
-*Phase: 03-identity*
-*Completed: 2026-01-29*
+
+_Phase: 03-identity_
+_Completed: 2026-01-29_

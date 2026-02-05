@@ -2,8 +2,8 @@
  * Next run calculation for cron schedules
  */
 
-import { Cron } from 'croner';
-import type { CronSchedule } from './types.js';
+import { Cron } from "croner";
+import type { CronSchedule } from "./types.js";
 
 /**
  * Compute next run time for a schedule
@@ -14,16 +14,16 @@ import type { CronSchedule } from './types.js';
  */
 export function computeNextRunAtMs(
   schedule: CronSchedule,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
 ): number | null {
   switch (schedule.kind) {
-    case 'at': {
+    case "at": {
       // One-shot: return if in future, null if past
       const atMs = schedule.atMs ?? 0;
       return atMs > nowMs ? atMs : null;
     }
 
-    case 'every': {
+    case "every": {
       // Interval: calculate next run from anchor
       const everyMs = Math.max(1, schedule.everyMs ?? 0);
       const anchor = schedule.anchorMs ?? nowMs;
@@ -39,7 +39,7 @@ export function computeNextRunAtMs(
       return anchor + steps * everyMs;
     }
 
-    case 'cron': {
+    case "cron": {
       // Cron expression: use croner to calculate next run
       if (!schedule.expr) {
         return null;

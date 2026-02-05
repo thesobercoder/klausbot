@@ -3,14 +3,14 @@
  * Checks for due jobs every minute, executes sequentially
  */
 
-import type { CronJob } from './types.js';
-import { loadCronStore } from './store.js';
-import { executeCronJob } from './executor.js';
-import { updateJobStatus } from './service.js';
-import { computeNextRunAtMs } from './schedule.js';
-import { createChildLogger } from '../utils/index.js';
+import type { CronJob } from "./types.js";
+import { loadCronStore } from "./store.js";
+import { executeCronJob } from "./executor.js";
+import { updateJobStatus } from "./service.js";
+import { computeNextRunAtMs } from "./schedule.js";
+import { createChildLogger } from "../utils/index.js";
 
-const log = createChildLogger('cron-scheduler');
+const log = createChildLogger("cron-scheduler");
 
 /** Tick interval: check for due jobs every 60 seconds */
 const TICK_INTERVAL = 60000;
@@ -29,7 +29,7 @@ const pendingJobs: CronJob[] = [];
  */
 export function startScheduler(): void {
   if (schedulerInterval) {
-    log.warn('Scheduler already running');
+    log.warn("Scheduler already running");
     return;
   }
 
@@ -39,7 +39,7 @@ export function startScheduler(): void {
   // Start the tick loop
   schedulerInterval = setInterval(tick, TICK_INTERVAL);
 
-  log.info({ tickInterval: TICK_INTERVAL }, 'Cron scheduler started');
+  log.info({ tickInterval: TICK_INTERVAL }, "Cron scheduler started");
 
   // Run first tick immediately
   tick();
@@ -52,7 +52,7 @@ export function stopScheduler(): void {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    log.info('Cron scheduler stopped');
+    log.info("Cron scheduler stopped");
   }
 }
 
@@ -83,7 +83,10 @@ function checkAndEnqueueDueJobs(): void {
       // Don't add if already in queue
       if (!pendingJobs.find((j) => j.id === job.id)) {
         pendingJobs.push(job);
-        log.info({ jobId: job.id, jobName: job.name }, 'Job enqueued for execution');
+        log.info(
+          { jobId: job.id, jobName: job.name },
+          "Job enqueued for execution",
+        );
       }
     }
   }
@@ -96,7 +99,10 @@ function checkAndEnqueueDueJobs(): void {
 async function processNextJob(): Promise<void> {
   // Don't start new job if one is already executing
   if (isExecuting) {
-    log.debug({ pendingCount: pendingJobs.length }, 'Execution in progress, waiting');
+    log.debug(
+      { pendingCount: pendingJobs.length },
+      "Execution in progress, waiting",
+    );
     return;
   }
 
@@ -109,19 +115,30 @@ async function processNextJob(): Promise<void> {
   const job = pendingJobs.shift()!;
   isExecuting = true;
 
-  log.info({ jobId: job.id, jobName: job.name, pendingAfter: pendingJobs.length }, 'Processing job');
+  log.info(
+    { jobId: job.id, jobName: job.name, pendingAfter: pendingJobs.length },
+    "Processing job",
+  );
 
   try {
     const result = await executeCronJob(job);
     updateJobStatus(job.id, result);
 
     log.info(
-      { jobId: job.id, jobName: job.name, success: result.success, durationMs: result.durationMs },
-      'Job execution complete'
+      {
+        jobId: job.id,
+        jobName: job.name,
+        success: result.success,
+        durationMs: result.durationMs,
+      },
+      "Job execution complete",
     );
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    log.error({ jobId: job.id, jobName: job.name, error: errorMsg }, 'Job execution error');
+    log.error(
+      { jobId: job.id, jobName: job.name, error: errorMsg },
+      "Job execution error",
+    );
 
     // Update job status with failure
     updateJobStatus(job.id, {
@@ -165,14 +182,14 @@ function recoverMissedJobs(): void {
         recovered++;
         log.info(
           { jobId: job.id, jobName: job.name, missedByMs: missedBy },
-          'Recovered missed job'
+          "Recovered missed job",
         );
       }
     }
   }
 
   if (recovered > 0) {
-    log.info({ recoveredCount: recovered }, 'Recovered missed jobs');
+    log.info({ recoveredCount: recovered }, "Recovered missed jobs");
   }
 }
 

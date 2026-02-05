@@ -3,12 +3,16 @@
  * Exposes get_conversation to retrieve full transcripts
  */
 
-import { z } from 'zod';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { getConversationBySessionId, parseTranscript, extractConversationText } from '../../memory/conversations.js';
-import { createMcpLogger } from '../../utils/index.js';
+import { z } from "zod";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  getConversationBySessionId,
+  parseTranscript,
+  extractConversationText,
+} from "../../memory/conversations.js";
+import { createMcpLogger } from "../../utils/index.js";
 
-const log = createMcpLogger('mcp:conversations');
+const log = createMcpLogger("mcp:conversations");
 
 /**
  * Register conversation tools with MCP server
@@ -16,7 +20,7 @@ const log = createMcpLogger('mcp:conversations');
 export function registerConversationTools(server: McpServer): void {
   // get_conversation: Retrieve full transcript by session ID
   server.tool(
-    'get_conversation',
+    "get_conversation",
     `Retrieve the COMPLETE transcript of a past conversation - every message, full detail.
 
 USE THIS WHEN:
@@ -26,20 +30,24 @@ USE THIS WHEN:
 
 First use search_memories to find relevant session IDs, then use this to get full transcript.`,
     {
-      session_id: z.string().describe('Session ID from search_memories results'),
+      session_id: z
+        .string()
+        .describe("Session ID from search_memories results"),
     },
     async ({ session_id }) => {
       try {
-        log.info({ session_id }, 'get_conversation called');
+        log.info({ session_id }, "get_conversation called");
 
         const conversation = getConversationBySessionId(session_id);
 
         if (!conversation) {
           return {
-            content: [{
-              type: 'text' as const,
-              text: `Conversation not found: ${session_id}`,
-            }],
+            content: [
+              {
+                type: "text" as const,
+                text: `Conversation not found: ${session_id}`,
+              },
+            ],
           };
         }
 
@@ -53,29 +61,36 @@ First use search_memories to find relevant session IDs, then use this to get ful
           `Ended: ${new Date(conversation.endedAt).toLocaleString()}`,
           `Messages: ${conversation.messageCount}`,
           `Summary: ${conversation.summary}`,
-          '',
-          '=== Transcript ===',
-          '',
-        ].join('\n');
+          "",
+          "=== Transcript ===",
+          "",
+        ].join("\n");
 
-        log.info({ session_id, messageCount: conversation.messageCount }, 'get_conversation completed');
+        log.info(
+          { session_id, messageCount: conversation.messageCount },
+          "get_conversation completed",
+        );
 
         return {
-          content: [{
-            type: 'text' as const,
-            text: header + formatted,
-          }],
+          content: [
+            {
+              type: "text" as const,
+              text: header + formatted,
+            },
+          ],
         };
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log.error({ error: msg, session_id }, 'get_conversation failed');
+        log.error({ error: msg, session_id }, "get_conversation failed");
         return {
-          content: [{
-            type: 'text' as const,
-            text: `Error retrieving conversation: ${msg}`,
-          }],
+          content: [
+            {
+              type: "text" as const,
+              text: `Error retrieving conversation: ${msg}`,
+            },
+          ],
         };
       }
-    }
+    },
   );
 }

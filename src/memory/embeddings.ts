@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
-import { getDb } from './db.js';
+import OpenAI from "openai";
+import { getDb } from "./db.js";
 
 /** Embedding entry stored in SQLite */
 export interface EmbeddingEntry {
@@ -14,7 +14,7 @@ export interface EmbeddingEntry {
 let openaiClient: OpenAI | null = null;
 
 /** Model for embeddings (1536 dimensions, $0.00002/1K tokens) */
-const EMBEDDING_MODEL = 'text-embedding-3-small';
+const EMBEDDING_MODEL = "text-embedding-3-small";
 
 /** Max chunk size for text splitting (~500 chars for better retrieval) */
 const CHUNK_SIZE = 500;
@@ -45,10 +45,14 @@ function getOpenAIClient(): OpenAI | null {
  * @param text - Text to embed
  * @returns Embedding vector (1536 dimensions) or null on error
  */
-export async function generateEmbedding(text: string): Promise<number[] | null> {
+export async function generateEmbedding(
+  text: string,
+): Promise<number[] | null> {
   const client = getOpenAIClient();
   if (!client) {
-    console.warn('[embeddings] OPENAI_API_KEY not set, skipping embedding generation');
+    console.warn(
+      "[embeddings] OPENAI_API_KEY not set, skipping embedding generation",
+    );
     return null;
   }
 
@@ -89,10 +93,10 @@ function chunkText(text: string): string[] {
     }
 
     // Try to split at sentence boundary
-    let splitPoint = remaining.lastIndexOf('. ', CHUNK_SIZE);
+    let splitPoint = remaining.lastIndexOf(". ", CHUNK_SIZE);
     if (splitPoint === -1 || splitPoint < CHUNK_SIZE * 0.3) {
       // Try word boundary
-      splitPoint = remaining.lastIndexOf(' ', CHUNK_SIZE);
+      splitPoint = remaining.lastIndexOf(" ", CHUNK_SIZE);
     }
     if (splitPoint === -1 || splitPoint < CHUNK_SIZE * 0.3) {
       // Hard split
@@ -117,10 +121,15 @@ function chunkText(text: string): string[] {
  * @param text - Text to embed and store
  * @param source - Source identifier (e.g., 'assistant-2026-01-29')
  */
-export async function storeEmbedding(text: string, source: string): Promise<void> {
+export async function storeEmbedding(
+  text: string,
+  source: string,
+): Promise<void> {
   const client = getOpenAIClient();
   if (!client) {
-    console.warn('[embeddings] OPENAI_API_KEY not set, skipping embedding storage');
+    console.warn(
+      "[embeddings] OPENAI_API_KEY not set, skipping embedding storage",
+    );
     return;
   }
 

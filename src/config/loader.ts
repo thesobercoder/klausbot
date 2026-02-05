@@ -1,5 +1,5 @@
-import { configSchema, type Config } from './schema.js';
-import { ZodError } from 'zod';
+import { configSchema, type Config } from "./schema.js";
+import { ZodError } from "zod";
 
 /**
  * Load and validate configuration from environment variables
@@ -10,13 +10,13 @@ export function loadConfig(): Config {
 
   if (!result.success) {
     const issues = result.error.issues.map((issue) => {
-      const path = issue.path.join('.');
+      const path = issue.path.join(".");
       return `  - ${path}: ${issue.message}`;
     });
 
     throw new Error(
-      `Configuration validation failed:\n${issues.join('\n')}\n\n` +
-        `Ensure required environment variables are set in ~/.klausbot/.env or environment.`
+      `Configuration validation failed:\n${issues.join("\n")}\n\n` +
+        `Ensure required environment variables are set in ~/.klausbot/.env or environment.`,
     );
   }
 

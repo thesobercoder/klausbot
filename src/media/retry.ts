@@ -2,9 +2,9 @@
  * Exponential backoff retry utility for transient failures
  */
 
-import { createChildLogger } from '../utils/index.js';
+import { createChildLogger } from "../utils/index.js";
 
-const log = createChildLogger('media:retry');
+const log = createChildLogger("media:retry");
 
 /** Options for retry behavior */
 export interface RetryOptions {
@@ -13,12 +13,12 @@ export interface RetryOptions {
 }
 
 const TRANSIENT_PATTERNS = [
-  'timeout',
-  'rate limit',
-  '503',
-  '429',
-  'econnreset',
-  'etimedout',
+  "timeout",
+  "rate limit",
+  "503",
+  "429",
+  "econnreset",
+  "etimedout",
 ];
 
 /**
@@ -38,7 +38,7 @@ export function isTransientError(err: Error): boolean {
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  options?: RetryOptions
+  options?: RetryOptions,
 ): Promise<T> {
   const maxRetries = options?.maxRetries ?? 3;
   const baseDelayMs = options?.baseDelayMs ?? 1000;
@@ -65,7 +65,7 @@ export async function withRetry<T>(
       const delayMs = baseDelayMs * Math.pow(2, attempt);
       log.info(
         { attempt: attempt + 1, maxRetries, delayMs, error: lastError.message },
-        'retrying after transient error'
+        "retrying after transient error",
       );
 
       await new Promise((resolve) => setTimeout(resolve, delayMs));

@@ -100,5 +100,6 @@ None - no external service configuration required.
 - getPairingStore() available for CLI to call approvePairing/listPending
 
 ---
-*Phase: 01-foundation*
-*Completed: 2026-01-28*
+
+_Phase: 01-foundation_
+_Completed: 2026-01-28_

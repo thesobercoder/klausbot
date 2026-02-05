@@ -92,6 +92,7 @@ Phase 8 (CLI Theme System) is now complete:
 - Plan 03: End-to-end verification passed
 
 All success criteria met:
+
 - [x] All CLI commands display themed output
 - [x] ASCII art appears on help
 - [x] Colors disabled with NO_COLOR
@@ -104,5 +105,6 @@ All success criteria met:
 - ASCII art redesign is optional future improvement
 
 ---
-*Phase: 08-cli-theme-system*
-*Completed: 2026-01-31*
+
+_Phase: 08-cli-theme-system_
+_Completed: 2026-01-31_

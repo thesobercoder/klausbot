@@ -74,25 +74,25 @@ metrics:
 
 ## Decisions Made
 
-| Decision | Rationale |
-|----------|-----------|
-| text-embedding-3-small | Cheapest option ($0.00002/1K tokens), sufficient quality |
-| 500 char chunks | Balances context vs retrieval precision |
-| 0.7 similarity threshold | Filters noise while capturing relevant matches |
-| Fire-and-forget embedding | Main message flow shouldn't block on embedding |
-| Graceful degradation | Log warning and skip when OPENAI_API_KEY missing |
+| Decision                  | Rationale                                                |
+| ------------------------- | -------------------------------------------------------- |
+| text-embedding-3-small    | Cheapest option ($0.00002/1K tokens), sufficient quality |
+| 500 char chunks           | Balances context vs retrieval precision                  |
+| 0.7 similarity threshold  | Filters noise while capturing relevant matches           |
+| Fire-and-forget embedding | Main message flow shouldn't block on embedding           |
+| Graceful degradation      | Log warning and skip when OPENAI_API_KEY missing         |
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| src/memory/embeddings.ts | Created - embedding generation/storage |
-| src/memory/search.ts | Created - cosine similarity search |
-| src/memory/logger.ts | Added storeEmbedding call after logging |
-| src/memory/context.ts | Added semantic search instructions |
-| src/memory/index.ts | Export new functions |
-| src/daemon/gateway.ts | Initialize embeddings at startup |
-| package.json | Added openai@6.17.0 dependency |
+| File                     | Change                                  |
+| ------------------------ | --------------------------------------- |
+| src/memory/embeddings.ts | Created - embedding generation/storage  |
+| src/memory/search.ts     | Created - cosine similarity search      |
+| src/memory/logger.ts     | Added storeEmbedding call after logging |
+| src/memory/context.ts    | Added semantic search instructions      |
+| src/memory/index.ts      | Export new functions                    |
+| src/daemon/gateway.ts    | Initialize embeddings at startup        |
+| package.json             | Added openai@6.17.0 dependency          |
 
 ## Verification Results
 
@@ -110,10 +110,12 @@ None - plan executed exactly as written.
 ## Next Phase Readiness
 
 **Required for Phase 3 (Skills):**
+
 - Semantic search infrastructure ready for skill retrieval
 - Could search skill descriptions by intent
 
 **Future enhancements:**
+
 - Persist embeddings to SQLite for better querying
 - Add embedding cache to avoid re-embedding identical text
 - Implement embedding expiry for old entries

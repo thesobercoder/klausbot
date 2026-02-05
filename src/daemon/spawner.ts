@@ -1,11 +1,11 @@
-import { spawn } from 'child_process';
-import { writeFileSync } from 'fs';
-import os from 'os';
-import path from 'path';
-import { Logger } from 'pino';
-import { createChildLogger } from '../utils/logger.js';
-import { KLAUSBOT_HOME, buildSystemPrompt } from '../memory/index.js';
-import { handleTimeout } from './transcript.js';
+import { spawn } from "child_process";
+import { writeFileSync } from "fs";
+import os from "os";
+import path from "path";
+import { Logger } from "pino";
+import { createChildLogger } from "../utils/logger.js";
+import { KLAUSBOT_HOME, buildSystemPrompt } from "../memory/index.js";
+import { handleTimeout } from "./transcript.js";
 
 /**
  * Get MCP server configuration for klausbot cron tools
@@ -20,11 +20,11 @@ function getMcpConfig(): object {
   return {
     mcpServers: {
       klausbot: {
-        command: process.argv[0],  // node executable
-        args: [process.argv[1], 'mcp'],  // [script path, subcommand]
-        env: {}
-      }
-    }
+        command: process.argv[0], // node executable
+        args: [process.argv[1], "mcp"], // [script path, subcommand]
+        env: {},
+      },
+    },
   };
 }
 
@@ -49,29 +49,41 @@ function getHooksConfig(): object {
 
   return {
     hooks: {
-      SessionStart: [{
-        // Match startup and resume events (not clear/compact which are fresh starts)
-        matcher: 'startup|resume',
-        hooks: [{
-          type: 'command',
-          command: `${baseCommand} hook start`,
-          timeout: 10,  // 10 seconds max
-        }],
-      }],
-      PreCompact: [{
-        hooks: [{
-          type: 'command',
-          command: `${baseCommand} hook compact`,
-          timeout: 30,  // 30 seconds for state save
-        }],
-      }],
-      SessionEnd: [{
-        hooks: [{
-          type: 'command',
-          command: `${baseCommand} hook end`,
-          timeout: 60,  // 60 seconds for summary generation
-        }],
-      }],
+      SessionStart: [
+        {
+          // Match startup and resume events (not clear/compact which are fresh starts)
+          matcher: "startup|resume",
+          hooks: [
+            {
+              type: "command",
+              command: `${baseCommand} hook start`,
+              timeout: 10, // 10 seconds max
+            },
+          ],
+        },
+      ],
+      PreCompact: [
+        {
+          hooks: [
+            {
+              type: "command",
+              command: `${baseCommand} hook compact`,
+              timeout: 30, // 30 seconds for state save
+            },
+          ],
+        },
+      ],
+      SessionEnd: [
+        {
+          hooks: [
+            {
+              type: "command",
+              command: `${baseCommand} hook end`,
+              timeout: 60, // 60 seconds for summary generation
+            },
+          ],
+        },
+      ],
     },
   };
 }
@@ -115,7 +127,7 @@ export interface SpawnerOptions {
 
 const DEFAULT_TIMEOUT = 300000; // 5 minutes
 
-const logger: Logger = createChildLogger('spawner');
+const logger: Logger = createChildLogger("spawner");
 
 /**
  * Query Claude Code CLI with a prompt
@@ -130,18 +142,22 @@ const logger: Logger = createChildLogger('spawner');
  */
 export async function queryClaudeCode(
   prompt: string,
-  options: SpawnerOptions = {}
+  options: SpawnerOptions = {},
 ): Promise<ClaudeResponse> {
   const timeout = options.timeout ?? DEFAULT_TIMEOUT;
   const startTime = Date.now();
 
   // Log prompt (truncated for readability)
-  const truncatedPrompt = prompt.length > 100
-    ? `${prompt.slice(0, 100)}...`
-    : prompt;
+  const truncatedPrompt =
+    prompt.length > 100 ? `${prompt.slice(0, 100)}...` : prompt;
   logger.info(
-    { prompt: truncatedPrompt, timeout, model: options.model, cwd: KLAUSBOT_HOME },
-    'Spawning Claude Code'
+    {
+      prompt: truncatedPrompt,
+      timeout,
+      model: options.model,
+      cwd: KLAUSBOT_HOME,
+    },
+    "Spawning Claude Code",
   );
 
   return new Promise((resolve, reject) => {
@@ -150,7 +166,7 @@ export async function queryClaudeCode(
 
     // Append additional instructions if provided (for bootstrap mode)
     if (options.additionalInstructions) {
-      systemPrompt += '\n\n' + options.additionalInstructions;
+      systemPrompt += "\n\n" + options.additionalInstructions;
     }
 
     // Write MCP config to temp file for Claude CLI
@@ -166,55 +182,60 @@ export async function queryClaudeCode(
 
     // Build command arguments
     const args = [
-      '--dangerously-skip-permissions',
-      '-p', wrappedPrompt,
-      '--output-format', 'json',
-      '--append-system-prompt', systemPrompt,
-      '--mcp-config', mcpConfigPath,
-      '--settings', settingsJson,
+      "--dangerously-skip-permissions",
+      "-p",
+      wrappedPrompt,
+      "--output-format",
+      "json",
+      "--append-system-prompt",
+      systemPrompt,
+      "--mcp-config",
+      mcpConfigPath,
+      "--settings",
+      settingsJson,
     ];
     if (options.model) {
-      args.push('--model', options.model);
+      args.push("--model", options.model);
     }
 
-    logger.debug({ hooksConfig: hooksSettings }, 'Hook configuration');
+    logger.debug({ hooksConfig: hooksSettings }, "Hook configuration");
 
     // CRITICAL: stdin must inherit to avoid hang bug (issue #771)
-    const claude = spawn('claude', args, {
-      stdio: ['inherit', 'pipe', 'pipe'],
-      cwd: KLAUSBOT_HOME,  // Working directory for agentic file access
+    const claude = spawn("claude", args, {
+      stdio: ["inherit", "pipe", "pipe"],
+      cwd: KLAUSBOT_HOME, // Working directory for agentic file access
       env: process.env,
     });
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = "";
+    let stderr = "";
     let timedOut = false;
 
     // Set up timeout
     const timeoutId = setTimeout(() => {
       timedOut = true;
-      claude.kill('SIGTERM');
+      claude.kill("SIGTERM");
 
       // Force kill after 5 seconds if SIGTERM doesn't work
       setTimeout(() => {
         if (!claude.killed) {
-          claude.kill('SIGKILL');
+          claude.kill("SIGKILL");
         }
       }, 5000);
     }, timeout);
 
     // Collect stdout
-    claude.stdout.on('data', (data: Buffer) => {
+    claude.stdout.on("data", (data: Buffer) => {
       stdout += data.toString();
     });
 
     // Collect stderr
-    claude.stderr.on('data', (data: Buffer) => {
+    claude.stderr.on("data", (data: Buffer) => {
       stderr += data.toString();
     });
 
     // Handle process completion
-    claude.on('close', (code) => {
+    claude.on("close", (code) => {
       clearTimeout(timeoutId);
       const duration_ms = Date.now() - startTime;
 
@@ -223,11 +244,11 @@ export async function queryClaudeCode(
         // Attempt to recover response from Claude CLI transcript
         const recovered = handleTimeout(KLAUSBOT_HOME);
         if (recovered) {
-          logger.info({ duration_ms }, 'Recovered response from timeout');
+          logger.info({ duration_ms }, "Recovered response from timeout");
           resolve({
             result: recovered,
-            cost_usd: 0,  // Unknown cost for recovered response
-            session_id: 'recovered',
+            cost_usd: 0, // Unknown cost for recovered response
+            session_id: "recovered",
             duration_ms,
             is_error: false,
           });
@@ -244,9 +265,8 @@ export async function queryClaudeCode(
 
       // Handle non-zero exit code
       if (code !== 0) {
-        const stderrTruncated = stderr.length > 200
-          ? `${stderr.slice(0, 200)}...`
-          : stderr;
+        const stderrTruncated =
+          stderr.length > 200 ? `${stderr.slice(0, 200)}...` : stderr;
         const error = `Claude exited with code ${code}: ${stderrTruncated}`;
         logger.error({ code, stderr: stderrTruncated, duration_ms }, error);
         reject(new Error(error));
@@ -258,16 +278,17 @@ export async function queryClaudeCode(
         const parsed = JSON.parse(stdout);
 
         const response: ClaudeResponse = {
-          result: parsed.result ?? '',
+          result: parsed.result ?? "",
           cost_usd: parsed.cost_usd ?? 0,
-          session_id: parsed.session_id ?? '',
+          session_id: parsed.session_id ?? "",
           duration_ms,
           is_error: parsed.is_error ?? false,
         };
 
-        const truncatedResult = response.result.length > 200
-          ? `${response.result.slice(0, 200)}...`
-          : response.result;
+        const truncatedResult =
+          response.result.length > 200
+            ? `${response.result.slice(0, 200)}...`
+            : response.result;
         logger.info(
           {
             duration_ms,
@@ -277,14 +298,13 @@ export async function queryClaudeCode(
             resultLength: response.result.length,
             result: truncatedResult,
           },
-          'Claude Code responded'
+          "Claude Code responded",
         );
 
         resolve(response);
       } catch (parseErr) {
-        const stdoutTruncated = stdout.length > 100
-          ? `${stdout.slice(0, 100)}...`
-          : stdout;
+        const stdoutTruncated =
+          stdout.length > 100 ? `${stdout.slice(0, 100)}...` : stdout;
         const error = `Failed to parse Claude response: ${stdoutTruncated}`;
         logger.error({ stdout: stdoutTruncated, duration_ms }, error);
         reject(new Error(error));
@@ -292,7 +312,7 @@ export async function queryClaudeCode(
     });
 
     // Handle spawn errors (e.g., claude not found)
-    claude.on('error', (err) => {
+    claude.on("error", (err) => {
       clearTimeout(timeoutId);
       const error = `Failed to start Claude: ${err.message}`;
       logger.error({ err }, error);

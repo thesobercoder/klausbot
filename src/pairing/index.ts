@@ -5,7 +5,7 @@ export {
   type ApprovedUser,
   type PendingRequest,
   ALREADY_APPROVED,
-} from './store.js';
+} from "./store.js";
 
 // Re-export functions from flow
 export {
@@ -13,4 +13,4 @@ export {
   handleStartCommand,
   createPairingMiddleware,
   getPairingStore,
-} from './flow.js';
+} from "./flow.js";

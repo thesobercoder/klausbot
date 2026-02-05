@@ -57,47 +57,43 @@ Only approved users can interact with the bot.
 
 ## Usage
 
-### Container Commands
+### CLI Commands
 
-View logs:
-```bash
-docker compose logs -f
-```
+All commands work in both Docker and local environments:
 
-List pending/approved users:
-```bash
-docker compose exec bot klausbot pairing list
-```
+| Action | Docker | Local |
+| ------ | ------ | ----- |
+| **Start daemon** | `docker compose up -d` | `npm run dev -- daemon` |
+| **View logs** | `docker compose logs -f` | (logs to stdout) |
+| **Restart** | `docker compose restart` | (restart process) |
 
-Approve pairing request:
-```bash
-docker compose exec bot klausbot pairing approve <code>
-```
+#### Pairing
 
-Reject pairing request:
-```bash
-docker compose exec bot klausbot pairing reject <code>
-```
+| Action | Docker | Local |
+| ------ | ------ | ----- |
+| List users | `docker compose exec bot klausbot pairing list` | `npm run dev -- pairing list` |
+| Approve | `docker compose exec bot klausbot pairing approve <code>` | `npm run dev -- pairing approve <code>` |
+| Reject | `docker compose exec bot klausbot pairing reject <code>` | `npm run dev -- pairing reject <code>` |
+| Revoke | `docker compose exec bot klausbot pairing revoke <chatId>` | `npm run dev -- pairing revoke <chatId>` |
 
-Revoke user access:
-```bash
-docker compose exec bot klausbot pairing revoke <chatId>
-```
+#### Cron Jobs
 
-Restart:
-```bash
-docker compose restart
-```
+| Action | Docker | Local |
+| ------ | ------ | ----- |
+| List jobs | `docker compose exec bot klausbot cron list` | `npm run dev -- cron list` |
+| Enable | `docker compose exec bot klausbot cron enable <id>` | `npm run dev -- cron enable <id>` |
+| Disable | `docker compose exec bot klausbot cron disable <id>` | `npm run dev -- cron disable <id>` |
+| Delete | `docker compose exec bot klausbot cron delete --id <id>` | `npm run dev -- cron delete --id <id>` |
 
 ### Telegram Commands
 
-| Command | Description |
-|---------|-------------|
-| `/start` | Request pairing or check status |
-| `/status` | Show queue and approval status |
-| `/model` | Show current model info |
-| `/crons` | List scheduled tasks |
-| `/help` | Show available commands |
+| Command   | Description                     |
+| --------- | ------------------------------- |
+| `/start`  | Request pairing or check status |
+| `/status` | Show queue and approval status  |
+| `/model`  | Show current model info         |
+| `/crons`  | List scheduled tasks            |
+| `/help`   | Show available commands         |
 
 ## Configuration
 
@@ -105,19 +101,19 @@ docker compose restart
 
 Configure in `.env` file:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `TELEGRAM_BOT_TOKEN` | Yes | - | Telegram bot token from @BotFather |
-| `CLAUDE_CODE_OAUTH_TOKEN` | Container | - | Claude Code token from `claude setup-token` |
-| `OPENAI_API_KEY` | No | - | OpenAI API key for semantic memory search |
-| `LOG_LEVEL` | No | `info` | Log level (silent/trace/debug/info/warn/error/fatal) |
+| Variable                  | Required  | Default | Description                                          |
+| ------------------------- | --------- | ------- | ---------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN`      | Yes       | -       | Telegram bot token from @BotFather                   |
+| `CLAUDE_CODE_OAUTH_TOKEN` | Container | -       | Claude Code token from `claude setup-token`          |
+| `OPENAI_API_KEY`          | No        | -       | OpenAI API key for semantic memory search            |
+| `LOG_LEVEL`               | No        | `info`  | Log level (silent/trace/debug/info/warn/error/fatal) |
 
 ### JSON Configuration
 
 Optional configuration mounted at `/home/klausbot/.klausbot/config/klausbot.json`:
 
-| Key | Default | Description |
-|-----|---------|-------------|
+| Key     | Default     | Description                            |
+| ------- | ----------- | -------------------------------------- |
 | `model` | (inherited) | AI model: `opus`, `sonnet`, or `haiku` |
 
 If `model` is not set, Klausbot uses your Claude Code default.
@@ -127,6 +123,7 @@ If `model` is not set, Klausbot uses your Claude Code default.
 ### Bot not responding?
 
 Check container logs:
+
 ```bash
 docker compose logs -f
 ```
@@ -136,6 +133,7 @@ Verify bot token format: `123456789:ABC-DEF...`
 ### Memory search not working?
 
 Semantic search requires an OpenAI API key. Add to `.env`:
+
 ```bash
 OPENAI_API_KEY=sk-your-key-here
 ```

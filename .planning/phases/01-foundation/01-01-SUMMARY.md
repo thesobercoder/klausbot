@@ -14,11 +14,30 @@ affects: [01-02, 01-03, 01-04, 01-05]
 
 # Tech tracking
 tech-stack:
-  added: [grammy, "@grammyjs/runner", "@grammyjs/auto-retry", "@grammyjs/auto-chat-action", "@inquirer/prompts", pino, zod, dotenv, typescript, tsx]
+  added:
+    [
+      grammy,
+      "@grammyjs/runner",
+      "@grammyjs/auto-retry",
+      "@grammyjs/auto-chat-action",
+      "@inquirer/prompts",
+      pino,
+      zod,
+      dotenv,
+      typescript,
+      tsx,
+    ]
   patterns: [lazy-singleton-proxy, zod-env-validation]
 
 key-files:
-  created: [package.json, tsconfig.json, src/config/schema.ts, src/config/loader.ts, src/utils/logger.ts]
+  created:
+    [
+      package.json,
+      tsconfig.json,
+      src/config/schema.ts,
+      src/config/loader.ts,
+      src/utils/logger.ts,
+    ]
   modified: []
 
 key-decisions:
@@ -101,5 +120,6 @@ None - no external service configuration required.
 - All grammY plugins pre-installed and ready to use
 
 ---
-*Phase: 01-foundation*
-*Completed: 2026-01-28*
+
+_Phase: 01-foundation_
+_Completed: 2026-01-28_

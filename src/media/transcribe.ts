@@ -2,12 +2,12 @@
  * Whisper API transcription for audio files
  */
 
-import OpenAI from 'openai';
-import { createReadStream } from 'fs';
-import { createChildLogger } from '../utils/index.js';
-import type { TranscriptionResult } from './types.js';
+import OpenAI from "openai";
+import { createReadStream } from "fs";
+import { createChildLogger } from "../utils/index.js";
+import type { TranscriptionResult } from "./types.js";
 
-const log = createChildLogger('media:transcribe');
+const log = createChildLogger("media:transcribe");
 
 /**
  * Check if transcription is available (OPENAI_API_KEY set)
@@ -15,7 +15,7 @@ const log = createChildLogger('media:transcribe');
 export function isTranscriptionAvailable(): boolean {
   const available = Boolean(process.env.OPENAI_API_KEY);
   if (!available) {
-    log.warn('OPENAI_API_KEY not set, transcription unavailable');
+    log.warn("OPENAI_API_KEY not set, transcription unavailable");
   }
   return available;
 }
@@ -26,9 +26,11 @@ export function isTranscriptionAvailable(): boolean {
  * @returns Transcription text and duration
  * @throws Error if API key missing, rate limited, timeout, or other failure
  */
-export async function transcribeAudio(audioPath: string): Promise<TranscriptionResult> {
+export async function transcribeAudio(
+  audioPath: string,
+): Promise<TranscriptionResult> {
   if (!isTranscriptionAvailable()) {
-    throw new Error('Transcription unavailable: OPENAI_API_KEY not set');
+    throw new Error("Transcription unavailable: OPENAI_API_KEY not set");
   }
 
   const openai = new OpenAI();
@@ -37,13 +39,13 @@ export async function transcribeAudio(audioPath: string): Promise<TranscriptionR
   try {
     const transcription = await openai.audio.transcriptions.create({
       file: createReadStream(audioPath),
-      model: 'whisper-1',
+      model: "whisper-1",
     });
 
     const durationMs = Date.now() - startTime;
     log.info(
       { audioPath, textLength: transcription.text.length, durationMs },
-      'transcription complete'
+      "transcription complete",
     );
 
     return {
@@ -54,11 +56,11 @@ export async function transcribeAudio(audioPath: string): Promise<TranscriptionR
     const message = error instanceof Error ? error.message : String(error);
     const lowerMessage = message.toLowerCase();
 
-    if (lowerMessage.includes('rate limit') || lowerMessage.includes('429')) {
+    if (lowerMessage.includes("rate limit") || lowerMessage.includes("429")) {
       throw new Error(`Rate limited: ${message}`);
     }
 
-    if (lowerMessage.includes('timeout') || lowerMessage.includes('503')) {
+    if (lowerMessage.includes("timeout") || lowerMessage.includes("503")) {
       throw new Error(`Timeout: ${message}`);
     }
 

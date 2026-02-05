@@ -1,12 +1,12 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
-import os from 'os';
-import path from 'path';
+import { existsSync, readdirSync, readFileSync, statSync } from "fs";
+import os from "os";
+import path from "path";
 
 /**
  * Structure of a transcript entry in Claude CLI JSONL files
  */
 interface TranscriptEntry {
-  type: 'user' | 'assistant' | 'summary' | 'system';
+  type: "user" | "assistant" | "summary" | "system";
   message?: {
     content?: Array<{ type: string; text: string }>;
   };
@@ -24,8 +24,8 @@ interface TranscriptEntry {
  */
 export function getTranscriptDir(cwd: string): string {
   // Strip leading slash and replace all / with -
-  const sanitized = cwd.replace(/^\//, '').replace(/\//g, '-');
-  return path.join(os.homedir(), '.claude', 'projects', `-${sanitized}`);
+  const sanitized = cwd.replace(/^\//, "").replace(/\//g, "-");
+  return path.join(os.homedir(), ".claude", "projects", `-${sanitized}`);
 }
 
 /**
@@ -40,8 +40,9 @@ export function findLatestTranscript(projectDir: string): string | null {
   }
 
   // List all chat_*.jsonl files
-  const files = readdirSync(projectDir)
-    .filter(f => f.startsWith('chat_') && f.endsWith('.jsonl'));
+  const files = readdirSync(projectDir).filter(
+    (f) => f.startsWith("chat_") && f.endsWith(".jsonl"),
+  );
 
   if (files.length === 0) {
     return null;
@@ -49,7 +50,7 @@ export function findLatestTranscript(projectDir: string): string | null {
 
   // Sort by modification time descending
   const sorted = files
-    .map(f => ({
+    .map((f) => ({
       name: f,
       path: path.join(projectDir, f),
       mtime: statSync(path.join(projectDir, f)).mtime.getTime(),
@@ -65,13 +66,15 @@ export function findLatestTranscript(projectDir: string): string | null {
  * @param transcriptPath - Path to JSONL transcript file
  * @returns Last assistant response text, or null if none found
  */
-export function extractLastAssistantResponse(transcriptPath: string): string | null {
+export function extractLastAssistantResponse(
+  transcriptPath: string,
+): string | null {
   if (!existsSync(transcriptPath)) {
     return null;
   }
 
-  const content = readFileSync(transcriptPath, 'utf-8');
-  const lines = content.split('\n').filter(line => line.trim());
+  const content = readFileSync(transcriptPath, "utf-8");
+  const lines = content.split("\n").filter((line) => line.trim());
 
   let lastAssistantText: string | null = null;
 
@@ -79,9 +82,11 @@ export function extractLastAssistantResponse(transcriptPath: string): string | n
     try {
       const entry = JSON.parse(line) as TranscriptEntry;
 
-      if (entry.type === 'assistant' && entry.message?.content) {
+      if (entry.type === "assistant" && entry.message?.content) {
         // Find text content in the message
-        const textContent = entry.message.content.find(c => c.type === 'text');
+        const textContent = entry.message.content.find(
+          (c) => c.type === "text",
+        );
         if (textContent?.text) {
           lastAssistantText = textContent.text;
         }

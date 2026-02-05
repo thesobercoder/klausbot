@@ -3,10 +3,10 @@
  * Stores and retrieves conversation transcripts with summaries
  */
 
-import { eq, desc, gte } from 'drizzle-orm';
-import { getDrizzle } from './db.js';
-import { conversations } from './schema.js';
-import OpenAI from 'openai';
+import { eq, desc, gte } from "drizzle-orm";
+import { getDrizzle } from "./db.js";
+import { conversations } from "./schema.js";
+import OpenAI from "openai";
 
 /** Lazy-initialized OpenAI client */
 let openaiClient: OpenAI | null = null;
@@ -31,7 +31,7 @@ export interface ConversationRecord {
 
 /** Transcript entry structure (from Claude CLI JSONL) */
 interface TranscriptEntry {
-  type: 'user' | 'assistant' | 'summary' | 'system';
+  type: "user" | "assistant" | "summary" | "system";
   timestamp?: string;
   message?: {
     role?: string;
@@ -43,7 +43,7 @@ interface TranscriptEntry {
  * Parse JSONL transcript file content
  */
 export function parseTranscript(content: string): TranscriptEntry[] {
-  const lines = content.split('\n').filter(line => line.trim());
+  const lines = content.split("\n").filter((line) => line.trim());
   const entries: TranscriptEntry[] = [];
 
   for (const line of lines) {
@@ -64,63 +64,70 @@ export function extractConversationText(entries: TranscriptEntry[]): string {
   const parts: string[] = [];
 
   for (const entry of entries) {
-    if ((entry.type === 'user' || entry.type === 'assistant') && entry.message?.content) {
+    if (
+      (entry.type === "user" || entry.type === "assistant") &&
+      entry.message?.content
+    ) {
       let textContent: string;
 
       // Handle both string and array content formats
-      if (typeof entry.message.content === 'string') {
+      if (typeof entry.message.content === "string") {
         textContent = entry.message.content;
       } else if (Array.isArray(entry.message.content)) {
         textContent = entry.message.content
-          .filter(c => c.type === 'text' && c.text)
-          .map(c => c.text)
-          .join('\n');
+          .filter((c) => c.type === "text" && c.text)
+          .map((c) => c.text)
+          .join("\n");
       } else {
         continue;
       }
 
       if (textContent) {
-        const role = entry.type === 'user' ? 'User' : 'Assistant';
+        const role = entry.type === "user" ? "User" : "Assistant";
         parts.push(`${role}: ${textContent}`);
       }
     }
   }
 
-  return parts.join('\n\n');
+  return parts.join("\n\n");
 }
 
 /**
  * Generate summary of conversation using OpenAI
  */
-export async function generateSummary(conversationText: string): Promise<string> {
+export async function generateSummary(
+  conversationText: string,
+): Promise<string> {
   // Skip if conversation is very short
   if (conversationText.length < 100) {
-    return 'Brief conversation.';
+    return "Brief conversation.";
   }
 
   // Skip if no OpenAI API key
   const openai = getOpenAIClient();
   if (!openai) {
-    const preview = conversationText.slice(0, 200).replace(/\n/g, ' ');
+    const preview = conversationText.slice(0, 200).replace(/\n/g, " ");
     return `${preview}...`;
   }
 
   // Truncate very long conversations for summarization
   const maxLength = 10000;
-  const truncated = conversationText.length > maxLength
-    ? conversationText.slice(0, maxLength) + '\n...[truncated]'
-    : conversationText;
+  const truncated =
+    conversationText.length > maxLength
+      ? conversationText.slice(0, maxLength) + "\n...[truncated]"
+      : conversationText;
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: "gpt-4o-mini",
       messages: [
         {
-          role: 'system',
-          content: 'Summarize this conversation in 2-3 sentences. Focus on the main topics discussed and any conclusions or outcomes.',
+          role: "system",
+          content:
+            "Summarize this conversation in 2-3 sentences. Focus on the main topics discussed and any conclusions or outcomes.",
         },
         {
-          role: 'user',
+          role: "user",
           content: truncated,
         },
       ],
@@ -128,10 +135,13 @@ export async function generateSummary(conversationText: string): Promise<string>
       temperature: 0.3,
     });
 
-    return response.choices[0]?.message?.content ?? 'Conversation summary unavailable.';
+    return (
+      response.choices[0]?.message?.content ??
+      "Conversation summary unavailable."
+    );
   } catch (err) {
     // Fallback if API fails
-    const preview = conversationText.slice(0, 200).replace(/\n/g, ' ');
+    const preview = conversationText.slice(0, 200).replace(/\n/g, " ");
     return `Conversation about: ${preview}...`;
   }
 }
@@ -167,7 +177,10 @@ export function storeConversation(record: ConversationRecord): void {
 /**
  * Get recent conversation summaries for context injection
  */
-export function getRecentConversations(limit: number = 3, daysBack?: number): ConversationRecord[] {
+export function getRecentConversations(
+  limit: number = 3,
+  daysBack?: number,
+): ConversationRecord[] {
   const db = getDrizzle();
 
   let query = db
@@ -193,7 +206,9 @@ export function getRecentConversations(limit: number = 3, daysBack?: number): Co
 /**
  * Get a conversation by session ID
  */
-export function getConversationBySessionId(sessionId: string): ConversationRecord | null {
+export function getConversationBySessionId(
+  sessionId: string,
+): ConversationRecord | null {
   const db = getDrizzle();
 
   const result = db

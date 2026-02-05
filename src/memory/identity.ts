@@ -1,6 +1,6 @@
-import { existsSync, writeFileSync } from 'fs';
-import type { Logger } from 'pino';
-import { getHomePath } from './home.js';
+import { existsSync, writeFileSync } from "fs";
+import type { Logger } from "pino";
+import { getHomePath } from "./home.js";
 
 /** Default SOUL.md content - core values and principles */
 export const DEFAULT_SOUL = `# SOUL
@@ -70,11 +70,11 @@ What happened and what to do differently next time.
 
 /** Identity file defaults mapping */
 const IDENTITY_FILES: Record<string, string> = {
-  'SOUL.md': DEFAULT_SOUL,
-  'IDENTITY.md': DEFAULT_IDENTITY,
-  'USER.md': DEFAULT_USER,
-  'REMINDERS.md': DEFAULT_REMINDERS,
-  'LEARNINGS.md': DEFAULT_LEARNINGS,
+  "SOUL.md": DEFAULT_SOUL,
+  "IDENTITY.md": DEFAULT_IDENTITY,
+  "USER.md": DEFAULT_USER,
+  "REMINDERS.md": DEFAULT_REMINDERS,
+  "LEARNINGS.md": DEFAULT_LEARNINGS,
 };
 
 /**
@@ -85,10 +85,10 @@ const IDENTITY_FILES: Record<string, string> = {
  */
 export function initializeIdentity(logger: Logger): void {
   for (const [filename, content] of Object.entries(IDENTITY_FILES)) {
-    const path = getHomePath('identity', filename);
+    const path = getHomePath("identity", filename);
     if (!existsSync(path)) {
       writeFileSync(path, content);
-      logger.info({ path }, 'Created identity file');
+      logger.info({ path }, "Created identity file");
     }
   }
 }

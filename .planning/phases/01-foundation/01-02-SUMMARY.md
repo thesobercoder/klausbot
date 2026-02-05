@@ -18,11 +18,18 @@ affects: [01-03, 01-04, 01-05, 01-06]
 
 # Tech tracking
 tech-stack:
-  added: []  # grammY plugins already installed in 01-01
+  added: [] # grammY plugins already installed in 01-01
   patterns: [grammy-runner-pattern, middleware-chain, child-logger-per-module]
 
 key-files:
-  created: [src/telegram/bot.ts, src/telegram/commands.ts, src/telegram/handlers.ts, src/telegram/index.ts, src/utils/split.ts]
+  created:
+    [
+      src/telegram/bot.ts,
+      src/telegram/commands.ts,
+      src/telegram/handlers.ts,
+      src/telegram/index.ts,
+      src/utils/split.ts,
+    ]
   modified: [src/utils/index.ts]
 
 key-decisions:
@@ -89,6 +96,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Fixed off-by-one in splitMessage hard split**
+
 - **Found during:** Task 2 verification
 - **Issue:** Hard split at MAX_LENGTH produced 4097 char chunks (splitIdx + 1)
 - **Fix:** Changed search bounds to MAX_LENGTH - 1
@@ -117,5 +125,6 @@ None - no external service configuration required. Bot token already validated b
 - All exports verified: bot, MyContext, createRunner, setupCommands, setupHandlers, splitMessage, sendLongMessage
 
 ---
-*Phase: 01-foundation*
-*Completed: 2026-01-28*
+
+_Phase: 01-foundation_
+_Completed: 2026-01-28_

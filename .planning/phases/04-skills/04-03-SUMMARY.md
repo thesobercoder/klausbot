@@ -20,34 +20,37 @@ metrics:
 
 ## Verification Results
 
-| Test | Status | Notes |
-|------|--------|-------|
-| Telegram command menu | PASS | `skill_creator` appears in `/` menu |
-| Skill invocation | PASS | `/skill_creator` invokes skill-creator |
-| CLI skills manager | PASS | `node dist/index.js skills` lists skill-creator |
-| Claude skill awareness | PASS | Claude responds to "what skills do you have?" |
+| Test                   | Status | Notes                                           |
+| ---------------------- | ------ | ----------------------------------------------- |
+| Telegram command menu  | PASS   | `skill_creator` appears in `/` menu             |
+| Skill invocation       | PASS   | `/skill_creator` invokes skill-creator          |
+| CLI skills manager     | PASS   | `node dist/index.js skills` lists skill-creator |
+| Claude skill awareness | PASS   | Claude responds to "what skills do you have?"   |
 
 ## Issues Found & Fixed
 
 ### Issue 1: Telegram command name mismatch
+
 - **Problem:** Telegram requires underscores, skill folder uses hyphens
 - **Fix:** Store mapping, translate `/skill_creator` → `/skill-creator` before Claude
 
 ### Issue 2: Wrong translation format
+
 - **Problem:** Translated to `/skill skill-creator`, Claude parsed "skill" as skill name
 - **Fix:** Translate to `/skill-creator` directly (Claude recognizes this format)
 
 ### Issue 3: Debugging needed file logging
+
 - **Problem:** Gateway runs on different machine, couldn't see logs
 - **Fix:** Added pino multistream for console + `logs/app.log`
 
 ## Commits During Verification
 
-| Hash | Description |
-|------|-------------|
-| db53992 | Include original skill name in Telegram description |
+| Hash    | Description                                                  |
+| ------- | ------------------------------------------------------------ |
+| db53992 | Include original skill name in Telegram description          |
 | d767dd4 | Remove skill commands from Telegram menu (reverted approach) |
-| 9c14cba | Surface skills with reverse lookup (final approach) |
+| 9c14cba | Surface skills with reverse lookup (final approach)          |
 
 ## Phase 4 Success Criteria
 
@@ -58,5 +61,6 @@ metrics:
 - [x] SKILL-05: Skills use standard SKILL.md format
 
 ---
-*Phase: 04-skills*
-*Completed: 2026-01-29*
+
+_Phase: 04-skills_
+_Completed: 2026-01-29_

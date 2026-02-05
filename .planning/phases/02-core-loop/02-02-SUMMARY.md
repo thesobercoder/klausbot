@@ -56,6 +56,7 @@ completed: 2026-01-29
 - **Files modified:** 3
 
 ## Accomplishments
+
 - Context builder module that loads and caches identity files
 - Retrieval instructions telling Claude how to search conversations and update preferences
 - Spawner injects system prompt via --append-system-prompt
@@ -71,29 +72,36 @@ Each task was committed atomically:
 **Plan metadata:** (pending)
 
 ## Files Created/Modified
+
 - `src/memory/context.ts` - loadIdentity(), getRetrievalInstructions(), buildSystemPrompt()
 - `src/memory/index.ts` - Re-exports context functions
 - `src/daemon/spawner.ts` - cwd=KLAUSBOT_HOME, --append-system-prompt
 
 ## Decisions Made
+
 - Identity files cached at module level (process restart needed for changes)
 - XML tag wrapping: `<SOUL.md>content</SOUL.md>` for clear structure
 - Retrieval instructions include dynamic today's date (en-CA format: YYYY-MM-DD)
 
 ## Deviations from Plan
+
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 None.
 
 ## User Setup Required
+
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Context builder ready for use
 - Spawner bootstraps Claude with identity + memory instructions
 - Ready for 02-03 (handler integration) to wire query flow
 
 ---
-*Phase: 02-core-loop*
-*Completed: 2026-01-29*
+
+_Phase: 02-core-loop_
+_Completed: 2026-01-29_

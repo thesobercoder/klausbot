@@ -1,20 +1,20 @@
-import { readdirSync, existsSync, readFileSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
-import type { Bot } from 'grammy';
+import { readdirSync, existsSync, readFileSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
+import type { Bot } from "grammy";
 
 /** Telegram bot command shape (for setMyCommands) */
 interface BotCommand {
   command: string;
   description: string;
 }
-import type { MyContext } from './bot.js';
-import { createChildLogger } from '../utils/index.js';
+import type { MyContext } from "./bot.js";
+import { createChildLogger } from "../utils/index.js";
 
-const log = createChildLogger('telegram:skills');
+const log = createChildLogger("telegram:skills");
 
 /** Default location for Claude Code skills */
-const SKILLS_DIR = join(homedir(), '.claude', 'skills');
+const SKILLS_DIR = join(homedir(), ".claude", "skills");
 
 /** Map of sanitized command names to original skill names */
 const skillCommandMap = new Map<string, string>();
@@ -27,9 +27,9 @@ const skillCommandMap = new Map<string, string>();
 function sanitizeCommandName(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9_]+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '')
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "")
     .slice(0, 32);
 }
 
@@ -42,7 +42,7 @@ export function getInstalledSkillNames(): string[] {
 
   return readdirSync(SKILLS_DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory())
-    .filter((d) => existsSync(join(SKILLS_DIR, d.name, 'SKILL.md')))
+    .filter((d) => existsSync(join(SKILLS_DIR, d.name, "SKILL.md")))
     .map((d) => d.name);
 }
 
@@ -51,11 +51,11 @@ export function getInstalledSkillNames(): string[] {
  * Falls back to skill name if description not found
  */
 export function getSkillDescription(name: string): string {
-  const skillPath = join(SKILLS_DIR, name, 'SKILL.md');
+  const skillPath = join(SKILLS_DIR, name, "SKILL.md");
   if (!existsSync(skillPath)) return name;
 
   try {
-    const content = readFileSync(skillPath, 'utf-8');
+    const content = readFileSync(skillPath, "utf-8");
     // Extract description from YAML frontmatter
     const match = content.match(/^---\n[\s\S]*?description:\s*(.+)/m);
     if (match) {
@@ -76,21 +76,21 @@ export function getSkillDescription(name: string): string {
  */
 export function translateSkillCommand(text: string): string {
   const trimmed = text.trim();
-  if (!trimmed.startsWith('/')) return text;
+  if (!trimmed.startsWith("/")) return text;
 
   // Extract command and args: /command args
   const match = trimmed.match(/^\/([^\s]+)(?:\s+(.*))?$/);
   if (!match) return text;
 
   const command = match[1].toLowerCase();
-  const args = match[2] || '';
+  const args = match[2] || "";
 
   // Check if this is a registered skill command
   const skillName = skillCommandMap.get(command);
   if (skillName) {
     // Translate to /<original-name> [args] - Claude Code recognizes /skill-name format
     const translated = args ? `/${skillName} ${args}` : `/${skillName}`;
-    log.debug({ from: trimmed, to: translated }, 'Translated skill command');
+    log.debug({ from: trimmed, to: translated }, "Translated skill command");
     return translated;
   }
 
@@ -101,20 +101,25 @@ export function translateSkillCommand(text: string): string {
  * Register bot commands with Telegram menu
  * Skills registered with sanitized names, original names stored for reverse lookup
  */
-export async function registerSkillCommands(bot: Bot<MyContext>): Promise<void> {
-  log.info({ skillsDir: SKILLS_DIR, exists: existsSync(SKILLS_DIR) }, 'Checking skills directory');
+export async function registerSkillCommands(
+  bot: Bot<MyContext>,
+): Promise<void> {
+  log.info(
+    { skillsDir: SKILLS_DIR, exists: existsSync(SKILLS_DIR) },
+    "Checking skills directory",
+  );
 
   const skillNames = getInstalledSkillNames();
-  log.info({ skillNames }, 'Found installed skills');
+  log.info({ skillNames }, "Found installed skills");
 
   // Clear and rebuild command map
   skillCommandMap.clear();
 
   // Built-in commands
   const builtins: BotCommand[] = [
-    { command: 'start', description: 'Start or check pairing' },
-    { command: 'help', description: 'Show available commands' },
-    { command: 'status', description: 'Show queue status' },
+    { command: "start", description: "Start or check pairing" },
+    { command: "help", description: "Show available commands" },
+    { command: "status", description: "Show queue status" },
   ];
 
   // Skill commands with sanitized names
@@ -122,7 +127,10 @@ export async function registerSkillCommands(bot: Bot<MyContext>): Promise<void> 
   for (const name of skillNames) {
     const sanitized = sanitizeCommandName(name);
     const description = getSkillDescription(name);
-    log.info({ original: name, command: sanitized, descLen: description.length }, 'Adding skill command');
+    log.info(
+      { original: name, command: sanitized, descLen: description.length },
+      "Adding skill command",
+    );
     skillCommandMap.set(sanitized, name);
     skillCommands.push({
       command: sanitized,
@@ -133,16 +141,23 @@ export async function registerSkillCommands(bot: Bot<MyContext>): Promise<void> 
   // Telegram limits to 100 commands
   const allCommands = [...builtins, ...skillCommands].slice(0, 100);
 
-  log.info({ commands: allCommands.map(c => c.command) }, 'Registering commands with Telegram');
+  log.info(
+    { commands: allCommands.map((c) => c.command) },
+    "Registering commands with Telegram",
+  );
 
   try {
     await bot.api.setMyCommands(allCommands);
     log.info(
-      { builtins: builtins.length, skills: skillNames, total: allCommands.length },
-      'Registered Telegram commands successfully'
+      {
+        builtins: builtins.length,
+        skills: skillNames,
+        total: allCommands.length,
+      },
+      "Registered Telegram commands successfully",
     );
   } catch (err) {
-    log.error({ err }, 'Failed to register Telegram commands');
+    log.error({ err }, "Failed to register Telegram commands");
     throw err;
   }
 }

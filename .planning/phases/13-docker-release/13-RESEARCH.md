@@ -17,13 +17,15 @@ Research confirms standard README patterns: story-first structure matches user d
 This phase is documentation-only. No new libraries required.
 
 ### Documentation Tools
-| Tool | Purpose | Why Standard |
-|------|---------|--------------|
-| shields.io | MIT license badge | Industry standard, widely recognized |
+
+| Tool            | Purpose                 | Why Standard                             |
+| --------------- | ----------------------- | ---------------------------------------- |
+| shields.io      | MIT license badge       | Industry standard, widely recognized     |
 | Markdown tables | Configuration reference | Native GitHub rendering, no dependencies |
-| Code blocks | Command examples | Clear, copyable examples |
+| Code blocks     | Command examples        | Clear, copyable examples                 |
 
 ### Badge Format
+
 ```markdown
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ```
@@ -34,7 +36,7 @@ This phase is documentation-only. No new libraries required.
 
 Per user decision: Story first, single file, minimal badges.
 
-```markdown
+````markdown
 # klausbot
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -49,6 +51,7 @@ Per user decision: Story first, single file, minimal badges.
 ## What It Does
 
 [2-3 paragraph feature overview]
+
 - 24/7 Claude-powered Telegram assistant
 - Persistent memory across conversations
 - Scheduled tasks via natural language
@@ -57,46 +60,58 @@ Per user decision: Story first, single file, minimal badges.
 ## Installation
 
 ### Prerequisites
+
 - Node.js 20+
 - Telegram bot token (from @BotFather)
 - Claude CLI installed and authenticated
 
 ### Quick Start
+
 ```bash
 npm install -g klausbot
 klausbot setup
 ```
+````
 
 ### Docker (Coming Soon)
+
 Docker support planned for future release.
 
 ## Usage
 
 ### CLI Commands
+
 [Table of all CLI commands]
 
 ### Telegram Commands
+
 [Table of all Telegram commands]
 
 ## Configuration
 
 ### Environment Variables
+
 [Table: Variable | Required | Default | Description]
 
 ### JSON Configuration
+
 [Table for ~/.klausbot/config/klausbot.json options]
 
 ## Troubleshooting
 
 ### Common Questions
+
 [FAQ format Q&A]
 
 ### Diagnostic Commands
+
 [Commands to check status]
 
 ## License
+
 MIT - see LICENSE
-```
+
+````
 
 ### Environment Variable Table Format
 Per user decision: Required column with Yes/No.
@@ -107,12 +122,13 @@ Per user decision: Required column with Yes/No.
 | TELEGRAM_BOT_TOKEN | Yes | - | Bot token from @BotFather |
 | OPENAI_API_KEY | No | - | Enables semantic memory search |
 | LOG_LEVEL | No | info | Logging verbosity (trace/debug/info/warn/error) |
-```
+````
 
 ### FAQ Troubleshooting Format
+
 Per user decision: Q&A format with diagnostic commands.
 
-```markdown
+````markdown
 ## Troubleshooting
 
 ### Bot not responding?
@@ -121,6 +137,7 @@ Per user decision: Q&A format with diagnostic commands.
    ```bash
    klausbot status
    ```
+````
 
 2. Verify bot token:
    - Token format: `123456789:ABC-DEF...`
@@ -133,6 +150,7 @@ Per user decision: Q&A format with diagnostic commands.
 ### Memory search not working?
 
 OpenAI API key required for semantic search.
+
 - Check: `klausbot status` shows "OpenAI API Key: configured"
 - Fix: Add OPENAI_API_KEY to ~/.klausbot/.env
 
@@ -141,7 +159,8 @@ OpenAI API key required for semantic search.
 ```bash
 klausbot restart
 ```
-```
+
+````
 
 ## Don't Hand-Roll
 
@@ -248,28 +267,28 @@ LOG_LEVEL=info
 # Required for semantic memory search
 # Get from https://platform.openai.com/account/api-keys
 OPENAI_API_KEY=
-```
+````
 
 ### MCP Tools (from codebase)
 
 For power users - tools available when klausbot runs as MCP server:
 
-| Tool | Description |
-|------|-------------|
-| `search_memories` | Search past conversations semantically |
+| Tool               | Description                            |
+| ------------------ | -------------------------------------- |
+| `search_memories`  | Search past conversations semantically |
 | `get_conversation` | Retrieve full transcript by session ID |
-| `create_cron` | Create scheduled task |
-| `list_crons` | List scheduled tasks for chat |
-| `delete_cron` | Delete scheduled task |
-| `update_cron` | Modify existing scheduled task |
+| `create_cron`      | Create scheduled task                  |
+| `list_crons`       | List scheduled tasks for chat          |
+| `delete_cron`      | Delete scheduled task                  |
+| `update_cron`      | Modify existing scheduled task         |
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Multi-file docs | Single README | User decision | Everything discoverable in one place |
-| Docker first | Docker "Coming Soon" | User decision | Focus on docs quality first |
-| Generic badges | Minimal (MIT only) | User decision | Clean, uncluttered appearance |
+| Old Approach    | Current Approach     | When Changed  | Impact                               |
+| --------------- | -------------------- | ------------- | ------------------------------------ |
+| Multi-file docs | Single README        | User decision | Everything discoverable in one place |
+| Docker first    | Docker "Coming Soon" | User decision | Focus on docs quality first          |
+| Generic badges  | Minimal (MIT only)   | User decision | Clean, uncluttered appearance        |
 
 ## Open Questions
 
@@ -286,20 +305,24 @@ For power users - tools available when klausbot runs as MCP server:
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - Codebase analysis: `src/index.ts`, `src/config/schema.ts`, `src/telegram/commands.ts`, `src/mcp-server/tools/*.ts`
 - User context: `17-CONTEXT.md` (all decisions)
 
 ### Secondary (MEDIUM confidence)
+
 - [Make a README](https://www.makeareadme.com/) - Standard README structure
 - [shields.io](https://shields.io/) - Badge generation service
 - [Markdown License Badges](https://gist.github.com/lukas-h/2a5d00690736b4c3a7ba) - MIT badge format
 
 ### Tertiary (LOW confidence)
+
 - General README best practices from web search (not project-specific)
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - No libraries needed, pure documentation
 - Architecture: HIGH - User decisions are explicit, codebase provides all content
 - Pitfalls: MEDIUM - Based on general documentation experience

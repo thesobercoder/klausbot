@@ -5,13 +5,18 @@
  * Uses mtime checking for efficient hot reload (cheap to call frequently)
  */
 
-import { existsSync, readFileSync, statSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
-import { jsonConfigSchema, type JsonConfig } from './schema.js';
+import { existsSync, readFileSync, statSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
+import { jsonConfigSchema, type JsonConfig } from "./schema.js";
 
 /** Path to JSON config file */
-export const JSON_CONFIG_PATH = join(homedir(), '.klausbot', 'config', 'klausbot.json');
+export const JSON_CONFIG_PATH = join(
+  homedir(),
+  ".klausbot",
+  "config",
+  "klausbot.json",
+);
 
 /** Cached config instance */
 let configCache: JsonConfig | null = null;
@@ -49,10 +54,10 @@ export function loadJsonConfig(): JsonConfig {
   // Need to reload
   let raw: string;
   try {
-    raw = readFileSync(JSON_CONFIG_PATH, 'utf8');
+    raw = readFileSync(JSON_CONFIG_PATH, "utf8");
   } catch (err) {
     throw new Error(
-      `Failed to read config file at ${JSON_CONFIG_PATH}: ${err instanceof Error ? err.message : String(err)}`
+      `Failed to read config file at ${JSON_CONFIG_PATH}: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 
@@ -61,7 +66,7 @@ export function loadJsonConfig(): JsonConfig {
     parsed = JSON.parse(raw);
   } catch (err) {
     throw new Error(
-      `Invalid JSON in config file at ${JSON_CONFIG_PATH}: ${err instanceof Error ? err.message : String(err)}`
+      `Invalid JSON in config file at ${JSON_CONFIG_PATH}: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 
@@ -69,11 +74,11 @@ export function loadJsonConfig(): JsonConfig {
   const result = jsonConfigSchema.safeParse(parsed);
   if (!result.success) {
     const issues = result.error.issues.map((issue) => {
-      const path = issue.path.join('.') || '(root)';
+      const path = issue.path.join(".") || "(root)";
       return `  - ${path}: ${issue.message}`;
     });
     throw new Error(
-      `Config validation failed for ${JSON_CONFIG_PATH}:\n${issues.join('\n')}`
+      `Config validation failed for ${JSON_CONFIG_PATH}:\n${issues.join("\n")}`,
     );
   }
 

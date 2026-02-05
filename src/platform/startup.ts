@@ -5,13 +5,13 @@
  * Validates required capabilities before proceeding.
  */
 
-import { theme } from '../cli/theme.js';
-import { detectPlatform } from './detect.js';
+import { theme } from "../cli/theme.js";
+import { detectPlatform } from "./detect.js";
 import {
   capabilities,
   checkAllCapabilities,
   type CheckResult,
-} from './capabilities.js';
+} from "./capabilities.js";
 
 /**
  * Display the startup checklist with color-coded capability status.
@@ -21,7 +21,7 @@ import {
 export function displayStartupChecklist(results: CheckResult[]): void {
   const platform = detectPlatform();
 
-  theme.header('Capability Check');
+  theme.header("Capability Check");
   theme.blank();
 
   // Show platform info
@@ -39,22 +39,22 @@ export function displayStartupChecklist(results: CheckResult[]): void {
     const { capability, status } = result;
     const { name, severity, hint } = capability;
 
-    if (status === 'ok') {
+    if (status === "ok") {
       // Green checkmark for OK
       console.log(
-        `  ${theme.colors.green(theme.symbols.check)} ${name}: ${theme.colors.green('enabled')}`
+        `  ${theme.colors.green(theme.symbols.check)} ${name}: ${theme.colors.green("enabled")}`,
       );
       enabledCount++;
-    } else if (severity === 'required') {
+    } else if (severity === "required") {
       // Red X for missing required
       console.log(
-        `  ${theme.colors.red(theme.symbols.cross)} ${name}: ${theme.colors.red('disabled')}`
+        `  ${theme.colors.red(theme.symbols.cross)} ${name}: ${theme.colors.red("disabled")}`,
       );
       missingHints.push(hint);
     } else {
       // Yellow warning for missing optional
       console.log(
-        `  ${theme.colors.yellow(theme.symbols.warning)}  ${name}: ${theme.colors.yellow('degraded')}`
+        `  ${theme.colors.yellow(theme.symbols.warning)}  ${name}: ${theme.colors.yellow("degraded")}`,
       );
       missingHints.push(hint);
     }
@@ -65,18 +65,19 @@ export function displayStartupChecklist(results: CheckResult[]): void {
   const summaryColor =
     enabledCount === totalCount
       ? theme.colors.green
-      : enabledCount >= capabilities.filter((c) => c.severity === 'required').length
+      : enabledCount >=
+          capabilities.filter((c) => c.severity === "required").length
         ? theme.colors.yellow
         : theme.colors.red;
 
   console.log(
-    `  ${summaryColor(`Ready: ${enabledCount}/${totalCount} features enabled`)}`
+    `  ${summaryColor(`Ready: ${enabledCount}/${totalCount} features enabled`)}`,
   );
 
   // Hints section for missing capabilities
   if (missingHints.length > 0) {
     theme.blank();
-    theme.muted('  To enable more features:');
+    theme.muted("  To enable more features:");
     for (const hint of missingHints) {
       theme.muted(`    ${theme.symbols.arrow} ${hint}`);
     }
@@ -99,14 +100,14 @@ export async function validateRequiredCapabilities(): Promise<void> {
 
   // Find missing required capabilities
   const missingRequired = results.filter(
-    (r) => r.status === 'missing' && r.capability.severity === 'required'
+    (r) => r.status === "missing" && r.capability.severity === "required",
   );
 
   if (missingRequired.length > 0) {
-    const names = missingRequired.map((r) => r.capability.name).join(', ');
+    const names = missingRequired.map((r) => r.capability.name).join(", ");
     theme.error(`Missing required capabilities: ${names}`);
     theme.blank();
-    theme.muted('  Run `klausbot doctor` for detailed diagnostics');
+    theme.muted("  Run `klausbot doctor` for detailed diagnostics");
     theme.blank();
     // Use setImmediate to allow pino logger to flush before exit
     setTimeout(() => process.exit(1), 100);

@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'fs';
-import { getHomePath } from './home.js';
+import { existsSync, readFileSync } from "fs";
+import { getHomePath } from "./home.js";
 
 /**
  * Cache identity content at startup to avoid blocking I/O per request
@@ -8,7 +8,12 @@ import { getHomePath } from './home.js';
 let identityCache: string | null = null;
 
 /** Identity files to load from ~/.klausbot/identity/ */
-const IDENTITY_FILES = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'REMINDERS.md'] as const;
+const IDENTITY_FILES = [
+  "SOUL.md",
+  "IDENTITY.md",
+  "USER.md",
+  "REMINDERS.md",
+] as const;
 
 /**
  * Load identity files from disk and cache
@@ -25,10 +30,10 @@ export function loadIdentity(): string {
   const parts: string[] = [];
 
   for (const filename of IDENTITY_FILES) {
-    const path = getHomePath('identity', filename);
+    const path = getHomePath("identity", filename);
     if (existsSync(path)) {
       try {
-        const content = readFileSync(path, 'utf-8');
+        const content = readFileSync(path, "utf-8");
         parts.push(`<${filename}>\n${content}\n</${filename}>`);
       } catch {
         // Graceful degradation: skip unreadable files
@@ -36,7 +41,7 @@ export function loadIdentity(): string {
     }
   }
 
-  identityCache = parts.join('\n\n');
+  identityCache = parts.join("\n\n");
   return identityCache;
 }
 
@@ -268,5 +273,13 @@ export function buildSystemPrompt(): string {
 
   // Skill reminder first, agent reminder second (both folder location reminders grouped together)
   // Then identity, then instructions
-  return skillReminder + '\n\n' + agentReminder + '\n\n' + identity + '\n\n' + instructions;
+  return (
+    skillReminder +
+    "\n\n" +
+    agentReminder +
+    "\n\n" +
+    identity +
+    "\n\n" +
+    instructions
+  );
 }

@@ -26,6 +26,7 @@ re_verification:
 **Previous gap:** Semantic search (MEM-05) was missing — only grep-based keyword search existed.
 
 **Resolution:** Added embeddings.ts (211 lines) and search.ts (122 lines) with full integration:
+
 - Embedding generation via OpenAI API (text-embedding-3-small, 1536 dims)
 - Cosine similarity search over stored embeddings
 - Fire-and-forget embedding storage after each assistant message
@@ -36,59 +37,60 @@ re_verification:
 
 ### Observable Truths
 
-| # | Truth | Status | Evidence |
-|---|-------|--------|----------|
-| 1 | User asks "what did we discuss yesterday?" and Claude retrieves relevant conversation via agentic file reading | ✓ VERIFIED | Context builder provides instructions to read conversations/{date}.md; wiring unchanged from previous verification |
-| 2 | All conversations persisted to storage (queryable later) | ✓ VERIFIED | logger.ts logs to daily markdown files; wiring unchanged |
-| 3 | Claude's response reflects context from identity files (SOUL.md, IDENTITY.md, USER.md) | ✓ VERIFIED | buildSystemPrompt() loads and injects identity files; wiring unchanged |
-| 4 | User preferences stated in conversation appear in USER.md within same session | ✓ VERIFIED | Retrieval instructions tell Claude to update USER.md; wiring unchanged |
-| 5 | Semantic search returns relevant memories when queried about past topics | ✓ VERIFIED | **NEW:** embeddings.ts + search.ts implement vector search with OpenAI embeddings; context.ts instructs Claude how to use semantic search |
+| #   | Truth                                                                                                          | Status     | Evidence                                                                                                                                  |
+| --- | -------------------------------------------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | User asks "what did we discuss yesterday?" and Claude retrieves relevant conversation via agentic file reading | ✓ VERIFIED | Context builder provides instructions to read conversations/{date}.md; wiring unchanged from previous verification                        |
+| 2   | All conversations persisted to storage (queryable later)                                                       | ✓ VERIFIED | logger.ts logs to daily markdown files; wiring unchanged                                                                                  |
+| 3   | Claude's response reflects context from identity files (SOUL.md, IDENTITY.md, USER.md)                         | ✓ VERIFIED | buildSystemPrompt() loads and injects identity files; wiring unchanged                                                                    |
+| 4   | User preferences stated in conversation appear in USER.md within same session                                  | ✓ VERIFIED | Retrieval instructions tell Claude to update USER.md; wiring unchanged                                                                    |
+| 5   | Semantic search returns relevant memories when queried about past topics                                       | ✓ VERIFIED | **NEW:** embeddings.ts + search.ts implement vector search with OpenAI embeddings; context.ts instructs Claude how to use semantic search |
 
 **Score:** 5/5 truths verified (was 4/5)
 
 ### Required Artifacts (New in 02-05)
 
-| Artifact | Expected | Status | Details |
-|----------|----------|--------|---------|
-| `src/memory/embeddings.ts` | Embedding generation + storage | ✓ VERIFIED | 211 lines, exports generateEmbedding/storeEmbedding/initializeEmbeddings; OpenAI integration with lazy client init; graceful degradation |
-| `src/memory/search.ts` | Cosine similarity semantic search | ✓ VERIFIED | 122 lines, exports semanticSearch/cosineSimilarity; pure TypeScript similarity calc; 0.7 threshold filtering |
-| `package.json` | openai dependency | ✓ VERIFIED | openai@6.17.0 added |
-| `~/.klausbot/embeddings.json` | Storage file | ✓ VERIFIED | File created at initialization; empty (awaits runtime messages) |
+| Artifact                      | Expected                          | Status     | Details                                                                                                                                  |
+| ----------------------------- | --------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/memory/embeddings.ts`    | Embedding generation + storage    | ✓ VERIFIED | 211 lines, exports generateEmbedding/storeEmbedding/initializeEmbeddings; OpenAI integration with lazy client init; graceful degradation |
+| `src/memory/search.ts`        | Cosine similarity semantic search | ✓ VERIFIED | 122 lines, exports semanticSearch/cosineSimilarity; pure TypeScript similarity calc; 0.7 threshold filtering                             |
+| `package.json`                | openai dependency                 | ✓ VERIFIED | openai@6.17.0 added                                                                                                                      |
+| `~/.klausbot/embeddings.json` | Storage file                      | ✓ VERIFIED | File created at initialization; empty (awaits runtime messages)                                                                          |
 
 **Previous artifacts (02-01 through 02-04):** All pass regression checks.
 
 ### Key Link Verification (New in 02-05)
 
-| From | To | Via | Status | Details |
-|------|-----|-----|--------|---------|
-| logger.ts:86 | embeddings.storeEmbedding | Fire-and-forget call after logging | ✓ WIRED | `storeEmbedding(content, 'assistant-' + getToday()).catch(() => {})` |
-| gateway.ts:39 | embeddings.initializeEmbeddings | Startup initialization | ✓ WIRED | `initializeEmbeddings()` called after identity init |
-| context.ts:78-87 | Semantic search instructions | Added to retrieval instructions | ✓ WIRED | Instructions tell Claude to use semanticSearch() for conceptual queries |
-| index.ts:35-42 | Export new functions | Module re-exports | ✓ WIRED | Exports generateEmbedding, storeEmbedding, initializeEmbeddings, semanticSearch, cosineSimilarity |
+| From             | To                              | Via                                | Status  | Details                                                                                           |
+| ---------------- | ------------------------------- | ---------------------------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| logger.ts:86     | embeddings.storeEmbedding       | Fire-and-forget call after logging | ✓ WIRED | `storeEmbedding(content, 'assistant-' + getToday()).catch(() => {})`                              |
+| gateway.ts:39    | embeddings.initializeEmbeddings | Startup initialization             | ✓ WIRED | `initializeEmbeddings()` called after identity init                                               |
+| context.ts:78-87 | Semantic search instructions    | Added to retrieval instructions    | ✓ WIRED | Instructions tell Claude to use semanticSearch() for conceptual queries                           |
+| index.ts:35-42   | Export new functions            | Module re-exports                  | ✓ WIRED | Exports generateEmbedding, storeEmbedding, initializeEmbeddings, semanticSearch, cosineSimilarity |
 
 **Previous key links (02-01 through 02-04):** All pass regression checks.
 
 ### Requirements Coverage
 
-| Requirement | Status | Supporting Truth(s) | Blocking Issue |
-|-------------|--------|---------------------|----------------|
-| MEM-01: All conversations persisted | ✓ SATISFIED | Truth #2 | - |
-| MEM-02: Hybrid context model | ✓ SATISFIED | Truth #3 (identity stuffed), Truth #1 (history via agentic lookup) | - |
-| MEM-03: Session bootstrap includes identity files | ✓ SATISFIED | Truth #3 | - |
-| MEM-04: RLM-inspired retrieval (agentic) | ✓ SATISFIED | Truth #1 | - |
-| MEM-05: Semantic retrieval (vector embeddings) | ✓ SATISFIED | Truth #5 | **GAP CLOSED** |
-| MEM-06: User preferences extracted to USER.md | ✓ SATISFIED | Truth #4 | - |
-| MEM-07: Conversation history queryable by Claude | ✓ SATISFIED | Truth #1 | - |
+| Requirement                                       | Status      | Supporting Truth(s)                                                | Blocking Issue |
+| ------------------------------------------------- | ----------- | ------------------------------------------------------------------ | -------------- |
+| MEM-01: All conversations persisted               | ✓ SATISFIED | Truth #2                                                           | -              |
+| MEM-02: Hybrid context model                      | ✓ SATISFIED | Truth #3 (identity stuffed), Truth #1 (history via agentic lookup) | -              |
+| MEM-03: Session bootstrap includes identity files | ✓ SATISFIED | Truth #3                                                           | -              |
+| MEM-04: RLM-inspired retrieval (agentic)          | ✓ SATISFIED | Truth #1                                                           | -              |
+| MEM-05: Semantic retrieval (vector embeddings)    | ✓ SATISFIED | Truth #5                                                           | **GAP CLOSED** |
+| MEM-06: User preferences extracted to USER.md     | ✓ SATISFIED | Truth #4                                                           | -              |
+| MEM-07: Conversation history queryable by Claude  | ✓ SATISFIED | Truth #1                                                           | -              |
 
 **Coverage:** 7/7 requirements satisfied (was 6/7)
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
-|------|------|---------|----------|--------|
-| None | - | - | - | - |
+| ---- | ---- | ------- | -------- | ------ |
+| None | -    | -       | -        | -      |
 
 **Scan details:**
+
 - TODO/FIXME/XXX/HACK comments: None found in embeddings.ts or search.ts
 - Placeholder text: None found
 - Empty returns: All returns (null, []) are intentional graceful degradation with proper error logging
@@ -99,16 +101,16 @@ re_verification:
 
 All previously verified artifacts pass quick regression checks:
 
-| Artifact | Check | Status |
-|----------|-------|--------|
-| src/memory/home.ts | Exists, 43 lines | ✓ PASS |
-| src/memory/identity.ts | Exists, 76 lines, DEFAULT_SOUL/IDENTITY/USER present | ✓ PASS |
-| src/memory/logger.ts | Exists, 88 lines (was 83, added storeEmbedding call) | ✓ PASS |
-| src/memory/context.ts | Exists, 127 lines (was 115, added semantic search instructions) | ✓ PASS |
-| src/memory/index.ts | Exists, 42 lines (was 32, added new exports) | ✓ PASS |
-| src/daemon/spawner.ts | buildSystemPrompt imported and called (line 4, 61) | ✓ PASS |
-| src/daemon/gateway.ts | All initialization calls present (lines 37-39) | ✓ PASS |
-| src/daemon/gateway.ts | Logger wiring intact (lines 220, 239) | ✓ PASS |
+| Artifact               | Check                                                           | Status |
+| ---------------------- | --------------------------------------------------------------- | ------ |
+| src/memory/home.ts     | Exists, 43 lines                                                | ✓ PASS |
+| src/memory/identity.ts | Exists, 76 lines, DEFAULT_SOUL/IDENTITY/USER present            | ✓ PASS |
+| src/memory/logger.ts   | Exists, 88 lines (was 83, added storeEmbedding call)            | ✓ PASS |
+| src/memory/context.ts  | Exists, 127 lines (was 115, added semantic search instructions) | ✓ PASS |
+| src/memory/index.ts    | Exists, 42 lines (was 32, added new exports)                    | ✓ PASS |
+| src/daemon/spawner.ts  | buildSystemPrompt imported and called (line 4, 61)              | ✓ PASS |
+| src/daemon/gateway.ts  | All initialization calls present (lines 37-39)                  | ✓ PASS |
+| src/daemon/gateway.ts  | Logger wiring intact (lines 220, 239)                           | ✓ PASS |
 
 **No regressions detected.**
 
@@ -121,6 +123,7 @@ All previously verified artifacts pass quick regression checks:
 **Previous state:** FAILED — Only grep-based keyword search implemented (MEM-05 blocked)
 
 **Gap details:**
+
 - Missing: Vector embedding generation for conversation content
 - Missing: Embedding storage/index for semantic retrieval
 - Missing: Semantic search interface for Claude to query similar content
@@ -165,18 +168,19 @@ All previously verified artifacts pass quick regression checks:
 
 ## Design Decisions
 
-| Decision | Rationale | Trade-off |
-|----------|-----------|-----------|
-| text-embedding-3-small | Cheapest option ($0.00002/1K tokens), sufficient quality | Lower quality than text-embedding-3-large, but acceptable for personal assistant use case |
-| 500 char chunks | Balances context retention vs retrieval precision | Could miss very long-context relationships, but better for specific fact retrieval |
-| 0.7 similarity threshold | Filters noise while capturing relevant matches | May miss weak associations, but reduces false positives |
-| Fire-and-forget embedding | Main message flow shouldn't block on embedding failures | Embeddings may silently fail, but grep fallback always available |
-| JSON file storage | Simple, no DB dependency | Not optimal for large-scale retrieval; deferred to future enhancement |
-| Graceful degradation | System works without OPENAI_API_KEY (falls back to grep) | Reduces semantic capability but maintains core functionality |
+| Decision                  | Rationale                                                | Trade-off                                                                                 |
+| ------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| text-embedding-3-small    | Cheapest option ($0.00002/1K tokens), sufficient quality | Lower quality than text-embedding-3-large, but acceptable for personal assistant use case |
+| 500 char chunks           | Balances context retention vs retrieval precision        | Could miss very long-context relationships, but better for specific fact retrieval        |
+| 0.7 similarity threshold  | Filters noise while capturing relevant matches           | May miss weak associations, but reduces false positives                                   |
+| Fire-and-forget embedding | Main message flow shouldn't block on embedding failures  | Embeddings may silently fail, but grep fallback always available                          |
+| JSON file storage         | Simple, no DB dependency                                 | Not optimal for large-scale retrieval; deferred to future enhancement                     |
+| Graceful degradation      | System works without OPENAI_API_KEY (falls back to grep) | Reduces semantic capability but maintains core functionality                              |
 
 ## Human Verification
 
 **Runtime testing:** Not performed in this verification cycle. Previous human verification (02-04) validated truths #1-4. Truth #5 (semantic search) verified by:
+
 - Code inspection: Implementation complete and wired
 - Build verification: Compiles successfully
 - Export verification: All functions exported and importable
@@ -184,6 +188,7 @@ All previously verified artifacts pass quick regression checks:
 - Graceful degradation: Error handling confirmed
 
 **Recommended runtime test (deferred to Phase 3 or manual testing):**
+
 1. Set OPENAI_API_KEY in environment
 2. Send multiple messages with related concepts (e.g., "family", "parents", "siblings")
 3. Query "what did we discuss about my family?"
@@ -214,27 +219,32 @@ All requirements (MEM-01 through MEM-07) satisfied. All success criteria verifie
 Previous VERIFICATION.md existed with `gaps:` section → RE-VERIFICATION MODE activated.
 
 **Optimization applied:**
+
 - **Failed items (Truth #5):** Full 3-level verification (exists, substantive, wired)
 - **Passed items (Truths #1-4):** Quick regression check (existence + basic sanity)
 
 ### Artifact Verification (3 Levels)
 
 **Level 1 - Existence:**
+
 - embeddings.ts: ✓ EXISTS (211 lines)
 - search.ts: ✓ EXISTS (122 lines)
 - embeddings.json: ✓ EXISTS (19 bytes, empty structure)
 
 **Level 2 - Substantive:**
+
 - embeddings.ts: ✓ SUBSTANTIVE (211 lines >> 10 min, no stubs, has exports)
 - search.ts: ✓ SUBSTANTIVE (122 lines >> 10 min, no stubs, has exports)
 
 **Level 3 - Wired:**
+
 - embeddings.ts: ✓ WIRED (imported by logger.ts, gateway.ts, search.ts, index.ts)
 - search.ts: ✓ WIRED (imported by index.ts, used in context.ts instructions)
 
 ### Key Link Verification
 
 **Pattern: Logger → Embeddings**
+
 ```bash
 # Verification command:
 grep -n "storeEmbedding" src/memory/logger.ts
@@ -243,6 +253,7 @@ grep -n "storeEmbedding" src/memory/logger.ts
 ```
 
 **Pattern: Gateway → Initialization**
+
 ```bash
 # Verification command:
 grep -n "initializeEmbeddings" src/daemon/gateway.ts
@@ -251,6 +262,7 @@ grep -n "initializeEmbeddings" src/daemon/gateway.ts
 ```
 
 **Pattern: Context → Instructions**
+
 ```bash
 # Verification command:
 grep -n "semantic" src/memory/context.ts

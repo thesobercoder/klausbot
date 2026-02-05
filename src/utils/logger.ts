@@ -1,9 +1,9 @@
-import pino, { Logger, destination, multistream } from 'pino';
-import { mkdirSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
-import pinoPretty from 'pino-pretty';
-import { config } from '../config/index.js';
+import pino, { Logger, destination, multistream } from "pino";
+import { mkdirSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
+import pinoPretty from "pino-pretty";
+import { config } from "../config/index.js";
 
 /** Base logger instance (lazy-initialized) */
 let _logger: Logger | null = null;
@@ -12,7 +12,7 @@ let _logger: Logger | null = null;
 let _mcpLogger: Logger | null = null;
 
 /** Logs directory under ~/.klausbot/logs */
-const LOGS_DIR = join(homedir(), '.klausbot', 'logs');
+const LOGS_DIR = join(homedir(), ".klausbot", "logs");
 
 /** Ensure logs directory exists */
 function ensureLogsDir(): string {
@@ -34,7 +34,7 @@ function getLogger(): Logger {
   if (_logger === null) {
     const isTTY = process.stdout.isTTY;
     const logsDir = ensureLogsDir();
-    const logFile = join(logsDir, 'app.log');
+    const logFile = join(logsDir, "app.log");
 
     // File stream for JSON logs
     const fileStream = destination(logFile);
@@ -43,8 +43,8 @@ function getLogger(): Logger {
       // TTY: pretty console + JSON file
       const prettyStream = pinoPretty({
         colorize: true,
-        ignore: 'pid,hostname',
-        translateTime: 'HH:MM:ss',
+        ignore: "pid,hostname",
+        translateTime: "HH:MM:ss",
       });
 
       _logger = pino(
@@ -60,7 +60,7 @@ function getLogger(): Logger {
         multistream([
           { stream: prettyStream, level: config.LOG_LEVEL as pino.Level },
           { stream: fileStream, level: config.LOG_LEVEL as pino.Level },
-        ])
+        ]),
       );
     } else {
       // Non-TTY: JSON to stdout + file
@@ -77,7 +77,7 @@ function getLogger(): Logger {
         multistream([
           { stream: process.stdout, level: config.LOG_LEVEL as pino.Level },
           { stream: fileStream, level: config.LOG_LEVEL as pino.Level },
-        ])
+        ]),
       );
     }
   }
@@ -89,7 +89,7 @@ export const logger: Logger = new Proxy({} as Logger, {
   get(_target, prop) {
     const log = getLogger();
     const value = log[prop as keyof Logger];
-    if (typeof value === 'function') {
+    if (typeof value === "function") {
       return value.bind(log);
     }
     return value;
@@ -112,14 +112,14 @@ export function createChildLogger(name: string): Logger {
 export function createMcpLogger(name: string): Logger {
   if (_mcpLogger === null) {
     const logsDir = ensureLogsDir();
-    const logFile = join(logsDir, 'mcp.log');
+    const logFile = join(logsDir, "mcp.log");
     const fileStream = destination(logFile);
 
     // MCP server: stderr for console (stdout is protocol), file for persistence
     const prettyStream = pinoPretty({
       colorize: true,
-      ignore: 'pid,hostname',
-      translateTime: 'HH:MM:ss',
+      ignore: "pid,hostname",
+      translateTime: "HH:MM:ss",
       destination: 2, // stderr
     });
 
@@ -136,7 +136,7 @@ export function createMcpLogger(name: string): Logger {
       multistream([
         { stream: prettyStream, level: config.LOG_LEVEL as pino.Level },
         { stream: fileStream, level: config.LOG_LEVEL as pino.Level },
-      ])
+      ]),
     );
   }
   return _mcpLogger.child({ module: name });

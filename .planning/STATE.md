@@ -19,10 +19,12 @@ Progress: [█████████░] 83% (phases 9 + 13 complete, 10-12 + 
 ## Milestone Summary
 
 **v1.1 Production Ready:**
+
 - 6 phases (9-14)
 - 15 planned plans
 
 **Scope:**
+
 - Platform detection + 12-factor compliance
 - Telegram streaming + threading
 - Heartbeat.md system
@@ -30,6 +32,7 @@ Progress: [█████████░] 83% (phases 9 + 13 complete, 10-12 + 
 - Testing framework
 
 **Removed (not needed for fork-and-run model):**
+
 - Doctor command
 - Setup/Onboard wizard
 - Service management (launchd/systemd)
@@ -37,18 +40,19 @@ Progress: [█████████░] 83% (phases 9 + 13 complete, 10-12 + 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 5 (v1.1)
 - Average duration: 3m 03s
 - Total execution time: 15m 16s
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 09-platform-foundation | 3/3 | 11m 14s | 3m 45s |
-| 13-docker-release | 2/2 | 4m 02s | 2m 01s |
+| Phase                  | Plans | Total   | Avg/Plan |
+| ---------------------- | ----- | ------- | -------- |
+| 09-platform-foundation | 3/3   | 11m 14s | 3m 45s   |
+| 13-docker-release      | 2/2   | 4m 02s  | 2m 01s   |
 
-*Updated after each plan completion*
+_Updated after each plan completion_
 
 ## Accumulated Context
 
@@ -99,5 +103,6 @@ Resume file: .planning/phases/13-docker-release/.continue-here.md
 2. Or plan phases 10-12 (Telegram streaming/threading, Heartbeat)
 
 ---
-*State updated: 2026-02-05*
-*v1.1 in progress*
+
+_State updated: 2026-02-05_
+_v1.1 in progress_

@@ -107,47 +107,47 @@ For current requirements, see `.planning/REQUIREMENTS.md` (created for next mile
 
 ## Traceability
 
-| Requirement | Phase     | Status   |
-| ----------- | --------- | -------- |
-| INFRA-01    | Phase 1   | Complete |
-| INFRA-02    | Phase 1   | Complete |
-| INFRA-03    | Phase 1   | Complete |
-| INFRA-04    | Phase 1   | Complete |
-| INFRA-05    | Phase 1   | Complete |
-| COMM-01     | Phase 1   | Complete |
-| COMM-02     | Phase 1   | Complete |
-| COMM-03     | Phase 1   | Complete |
-| COMM-04     | Phase 1   | Complete |
-| COMM-05     | Phase 6   | Complete |
-| COMM-06     | Phase 6   | Complete |
-| MEM-01      | Phase 2   | Complete |
-| MEM-02      | Phase 2   | Complete |
-| MEM-03      | Phase 2   | Complete |
-| MEM-04      | Phase 2   | Complete |
-| MEM-05      | Phase 2   | Complete |
-| MEM-06      | Phase 2   | Complete |
-| MEM-07      | Phase 2   | Complete |
-| IDEN-01     | Phase 3   | Complete |
-| IDEN-02     | Phase 3   | Complete |
-| IDEN-03     | Phase 3   | Complete |
-| IDEN-04     | Phase 3   | Complete |
-| IDEN-05     | Phase 3   | Complete |
-| IDEN-06     | Phase 3   | Complete |
-| CRON-01     | Phase 5   | Complete |
-| CRON-02     | Phase 5   | Complete |
-| CRON-03     | Phase 5   | Complete |
-| CRON-04     | Phase 5   | Complete |
-| CRON-05     | Phase 5   | Complete |
-| SKILL-01    | Phase 4   | Complete |
-| SKILL-02    | Phase 4   | Partial  |
-| SKILL-03    | Phase 4   | Complete |
-| SKILL-04    | Phase 4   | Partial  |
-| SKILL-05    | Phase 4   | Complete |
-| EVOL-01     | Phase 5   | Complete |
-| EVOL-02     | Phase 5   | Complete |
-| EVOL-03     | Phase 5   | Complete |
-| EVOL-04     | Phase 1   | Complete |
-| EVOL-05     | Phase 5   | Partial  |
+| Requirement | Phase   | Status   |
+| ----------- | ------- | -------- |
+| INFRA-01    | Phase 1 | Complete |
+| INFRA-02    | Phase 1 | Complete |
+| INFRA-03    | Phase 1 | Complete |
+| INFRA-04    | Phase 1 | Complete |
+| INFRA-05    | Phase 1 | Complete |
+| COMM-01     | Phase 1 | Complete |
+| COMM-02     | Phase 1 | Complete |
+| COMM-03     | Phase 1 | Complete |
+| COMM-04     | Phase 1 | Complete |
+| COMM-05     | Phase 6 | Complete |
+| COMM-06     | Phase 6 | Complete |
+| MEM-01      | Phase 2 | Complete |
+| MEM-02      | Phase 2 | Complete |
+| MEM-03      | Phase 2 | Complete |
+| MEM-04      | Phase 2 | Complete |
+| MEM-05      | Phase 2 | Complete |
+| MEM-06      | Phase 2 | Complete |
+| MEM-07      | Phase 2 | Complete |
+| IDEN-01     | Phase 3 | Complete |
+| IDEN-02     | Phase 3 | Complete |
+| IDEN-03     | Phase 3 | Complete |
+| IDEN-04     | Phase 3 | Complete |
+| IDEN-05     | Phase 3 | Complete |
+| IDEN-06     | Phase 3 | Complete |
+| CRON-01     | Phase 5 | Complete |
+| CRON-02     | Phase 5 | Complete |
+| CRON-03     | Phase 5 | Complete |
+| CRON-04     | Phase 5 | Complete |
+| CRON-05     | Phase 5 | Complete |
+| SKILL-01    | Phase 4 | Complete |
+| SKILL-02    | Phase 4 | Partial  |
+| SKILL-03    | Phase 4 | Complete |
+| SKILL-04    | Phase 4 | Partial  |
+| SKILL-05    | Phase 4 | Complete |
+| EVOL-01     | Phase 5 | Complete |
+| EVOL-02     | Phase 5 | Complete |
+| EVOL-03     | Phase 5 | Complete |
+| EVOL-04     | Phase 1 | Complete |
+| EVOL-05     | Phase 5 | Partial  |
 
 **Coverage:**
 

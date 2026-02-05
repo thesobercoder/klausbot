@@ -14,12 +14,14 @@ Reliable detection of environment capabilities and clear diagnostics. Users run 
 ## Implementation Decisions
 
 ### Startup Output Format
+
 - Verbose checklist on startup showing all capabilities with pass/fail status
 - Use color + symbols: green ✓ for pass, yellow ⚠ for degraded, red ✗ for fail
 - Show ALL capabilities (not just enabled ones) — disabled features appear with status
 - Summary line at the end: "Ready: X/Y features enabled"
 
 ### Degradation Messaging
+
 - Separate hints section after checklist: "To enable more features:" with actionable guidance
 - Severity depends on capability type:
   - **Required** (Telegram token, Claude Code) → Error, fail to start
@@ -29,6 +31,7 @@ Reliable detection of environment capabilities and clear diagnostics. Users run 
   - Example: "Missing TELEGRAM_BOT_TOKEN. Run 'klausbot doctor' for help."
 
 ### Detection Granularity
+
 - **Required capabilities:**
   - Claude Code (must be configured and accessible — subscription or API key, user's choice)
   - TELEGRAM_BOT_TOKEN
@@ -37,6 +40,7 @@ Reliable detection of environment capabilities and clear diagnostics. Users run 
 - **Optional features:** Currently none in active use (embeddings/VOYAGE_API_KEY for future)
 
 ### Config Validation
+
 - **Hot reload:** Config changes apply without full restart (at minimum, on next message)
 - **Separation of concerns:**
   - Env vars: Secrets only (TELEGRAM_BOT_TOKEN, API keys)
@@ -45,6 +49,7 @@ Reliable detection of environment capabilities and clear diagnostics. Users run 
 - **Explicit command:** `klausbot config validate` for pre-start validation (useful for CI/deployment)
 
 ### Claude's Discretion
+
 - Exact checklist formatting/spacing
 - How to detect Claude Code is configured (subprocess check, auth verification)
 - Internal WSL2 detection for bug reports (surfaced as "Linux")
@@ -70,5 +75,5 @@ None — discussion stayed within phase scope
 
 ---
 
-*Phase: 09-platform-foundation*
-*Context gathered: 2026-01-31*
+_Phase: 09-platform-foundation_
+_Context gathered: 2026-01-31_

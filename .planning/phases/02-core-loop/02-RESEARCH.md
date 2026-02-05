@@ -20,23 +20,24 @@ Conversation storage as daily markdown files (`conversations/2026-01-29.md`) ali
 
 Phase 2 uses existing Phase 1 stack. No new libraries required.
 
-| Library | Version | Purpose | Notes |
-|---------|---------|---------|-------|
-| Node.js spawn | built-in | Process spawning with cwd | `spawn()` accepts `cwd` in options |
-| fs module | built-in | File I/O for conversations | writeFileSync/appendFileSync |
-| path module | built-in | Path resolution | join, homedir |
-| os module | built-in | Home directory | `homedir()` for `~/.klausbot/` |
+| Library       | Version  | Purpose                    | Notes                              |
+| ------------- | -------- | -------------------------- | ---------------------------------- |
+| Node.js spawn | built-in | Process spawning with cwd  | `spawn()` accepts `cwd` in options |
+| fs module     | built-in | File I/O for conversations | writeFileSync/appendFileSync       |
+| path module   | built-in | Path resolution            | join, homedir                      |
+| os module     | built-in | Home directory             | `homedir()` for `~/.klausbot/`     |
 
 ### Supporting (Already Installed)
 
-| Library | Version | Purpose | Reuse From |
-|---------|---------|---------|------------|
-| pino | 9.x | Structured logging | Phase 1 |
-| zod | 3.x | Config validation | Phase 1 |
+| Library | Version | Purpose            | Reuse From |
+| ------- | ------- | ------------------ | ---------- |
+| pino    | 9.x     | Structured logging | Phase 1    |
+| zod     | 3.x     | Config validation  | Phase 1    |
 
 ### No New Dependencies
 
 **Rationale:**
+
 - Claude Code provides all retrieval tools (Read, Grep, Glob)
 - File operations use Node.js built-ins
 - No embedding infrastructure per CONTEXT.md decision
@@ -68,13 +69,14 @@ Phase 2 uses existing Phase 1 stack. No new libraries required.
 **Source:** [Node.js child_process docs](https://nodejs.org/api/child_process.html), [Claude Code CLI Reference](https://code.claude.com/docs/en/cli-reference)
 
 **Example:**
-```typescript
-import { spawn } from 'child_process';
-import { homedir } from 'os';
-import { join } from 'path';
-import { readFileSync, existsSync } from 'fs';
 
-const KLAUSBOT_HOME = join(homedir(), '.klausbot');
+```typescript
+import { spawn } from "child_process";
+import { homedir } from "os";
+import { join } from "path";
+import { readFileSync, existsSync } from "fs";
+
+const KLAUSBOT_HOME = join(homedir(), ".klausbot");
 
 interface SpawnerOptions {
   timeout?: number;
@@ -82,21 +84,21 @@ interface SpawnerOptions {
 }
 
 function buildSystemPrompt(): string {
-  const identityDir = join(KLAUSBOT_HOME, 'identity');
+  const identityDir = join(KLAUSBOT_HOME, "identity");
   const parts: string[] = [];
 
   // Load identity files if they exist
-  const files = ['SOUL.md', 'IDENTITY.md', 'USER.md'];
+  const files = ["SOUL.md", "IDENTITY.md", "USER.md"];
   for (const file of files) {
     const filePath = join(identityDir, file);
     if (existsSync(filePath)) {
-      const content = readFileSync(filePath, 'utf-8');
+      const content = readFileSync(filePath, "utf-8");
       parts.push(`<${file}>\n${content}\n</${file}>`);
     }
   }
 
   // Add retrieval instructions
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
   parts.push(`
 <instructions>
 ## Memory System
@@ -120,30 +122,33 @@ Your working directory is ~/.klausbot/ which contains:
 - Search for [!important] to find pinned messages
 </instructions>`);
 
-  return parts.join('\n\n');
+  return parts.join("\n\n");
 }
 
 async function queryClaudeCode(
   userMessage: string,
-  options: SpawnerOptions = {}
+  options: SpawnerOptions = {},
 ): Promise<ClaudeResponse> {
   const systemPrompt = buildSystemPrompt();
 
   return new Promise((resolve, reject) => {
     const args = [
-      '--dangerously-skip-permissions',
-      '-p', userMessage,
-      '--output-format', 'json',
-      '--append-system-prompt', systemPrompt,
+      "--dangerously-skip-permissions",
+      "-p",
+      userMessage,
+      "--output-format",
+      "json",
+      "--append-system-prompt",
+      systemPrompt,
     ];
 
     if (options.model) {
-      args.push('--model', options.model);
+      args.push("--model", options.model);
     }
 
-    const claude = spawn('claude', args, {
-      stdio: ['inherit', 'pipe', 'pipe'],  // CRITICAL: stdin inherits (Phase 1 bug)
-      cwd: KLAUSBOT_HOME,  // Working directory for agentic file access
+    const claude = spawn("claude", args, {
+      stdio: ["inherit", "pipe", "pipe"], // CRITICAL: stdin inherits (Phase 1 bug)
+      cwd: KLAUSBOT_HOME, // Working directory for agentic file access
       env: process.env,
     });
 
@@ -161,6 +166,7 @@ async function queryClaudeCode(
 **Rationale:** Human-readable, grep-friendly, editable by both human and Claude.
 
 **Example format:**
+
 ```markdown
 # Conversation Log - 2026-01-29
 
@@ -171,6 +177,7 @@ What did we discuss about the project architecture yesterday?
 
 **Assistant:**
 Based on yesterday's conversation, we discussed three main architectural decisions:
+
 1. Using a message queue for async processing
 2. File-based persistence instead of SQLite
 3. The pairing flow for security
@@ -191,41 +198,42 @@ I'll start implementing the message queue. Based on our discussion, I'll use a J
 ```
 
 **Implementation:**
-```typescript
-import { appendFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
 
-const KLAUSBOT_HOME = join(homedir(), '.klausbot');
+```typescript
+import { appendFileSync, existsSync, mkdirSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
+
+const KLAUSBOT_HOME = join(homedir(), ".klausbot");
 
 function getConversationPath(): string {
-  const date = new Date().toISOString().split('T')[0];  // YYYY-MM-DD
-  return join(KLAUSBOT_HOME, 'conversations', `${date}.md`);
+  const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  return join(KLAUSBOT_HOME, "conversations", `${date}.md`);
 }
 
 function formatTime(): string {
-  return new Date().toTimeString().split(' ')[0];  // HH:MM:SS
+  return new Date().toTimeString().split(" ")[0]; // HH:MM:SS
 }
 
 function ensureConversationFile(): string {
-  const convDir = join(KLAUSBOT_HOME, 'conversations');
+  const convDir = join(KLAUSBOT_HOME, "conversations");
   if (!existsSync(convDir)) {
     mkdirSync(convDir, { recursive: true });
   }
 
   const filePath = getConversationPath();
   if (!existsSync(filePath)) {
-    const date = new Date().toISOString().split('T')[0];
+    const date = new Date().toISOString().split("T")[0];
     appendFileSync(filePath, `# Conversation Log - ${date}\n\n`);
   }
 
   return filePath;
 }
 
-function logConversation(role: 'user' | 'assistant', content: string): void {
+function logConversation(role: "user" | "assistant", content: string): void {
   const filePath = ensureConversationFile();
   const time = formatTime();
-  const roleLabel = role === 'user' ? 'User' : 'Assistant';
+  const roleLabel = role === "user" ? "User" : "Assistant";
 
   const entry = `## ${time}\n\n**${roleLabel}:**\n${content}\n\n---\n\n`;
   appendFileSync(filePath, entry);
@@ -239,9 +247,10 @@ function logConversation(role: 'user' | 'assistant', content: string): void {
 **What:** Create default identity files on first run.
 
 **Example:**
+
 ```typescript
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { join } from "path";
 
 const DEFAULT_SOUL = `# SOUL
 
@@ -299,16 +308,16 @@ const DEFAULT_USER = `# USER
 `;
 
 function initializeIdentity(): void {
-  const identityDir = join(KLAUSBOT_HOME, 'identity');
+  const identityDir = join(KLAUSBOT_HOME, "identity");
 
   if (!existsSync(identityDir)) {
     mkdirSync(identityDir, { recursive: true });
   }
 
   const defaults: Record<string, string> = {
-    'SOUL.md': DEFAULT_SOUL,
-    'IDENTITY.md': DEFAULT_IDENTITY,
-    'USER.md': DEFAULT_USER,
+    "SOUL.md": DEFAULT_SOUL,
+    "IDENTITY.md": DEFAULT_IDENTITY,
+    "USER.md": DEFAULT_USER,
   };
 
   for (const [filename, content] of Object.entries(defaults)) {
@@ -329,18 +338,19 @@ function initializeIdentity(): void {
 **Rationale:** From CONTEXT.md: "Guidance stripped from conversation log (only user's actual message saved)"
 
 **Implementation:**
+
 ```typescript
 // In gateway.ts processMessage()
 
 async function processMessage(msg: QueuedMessage): Promise<void> {
   // Log user's original message (NOT the system-prompted version)
-  logConversation('user', msg.text);
+  logConversation("user", msg.text);
 
   // Build full prompt with system context (Claude sees this)
   const response = await queryClaudeCode(msg.text);
 
   // Log Claude's response
-  logConversation('assistant', response.result);
+  logConversation("assistant", response.result);
 
   // ... rest of processing
 }
@@ -357,36 +367,37 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
 **Source:** CONTEXT.md decision: "Subcommand pattern: `klausbot gateway`, `klausbot pair`, etc."
 
 **Example:**
+
 ```typescript
 // src/index.ts
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const command = args[0] ?? 'gateway';  // Default to gateway
+  const command = args[0] ?? "gateway"; // Default to gateway
 
   switch (command) {
-    case 'gateway':
-      const { startGateway } = await import('./daemon/gateway.js');
+    case "gateway":
+      const { startGateway } = await import("./daemon/gateway.js");
       await startGateway();
       break;
 
-    case 'pair':
-    case 'pairing':
+    case "pair":
+    case "pairing":
       await handlePairing(args.slice(1));
       break;
 
-    case 'init':
+    case "init":
       await initializeKlausbot();
       break;
 
-    case 'version':
-    case '--version':
-    case '-v':
+    case "version":
+    case "--version":
+    case "-v":
       console.log(`klausbot v${getVersion()}`);
       break;
 
-    case 'help':
-    case '--help':
-    case '-h':
+    case "help":
+    case "--help":
+    case "-h":
       printHelp();
       break;
 
@@ -430,13 +441,13 @@ Environment:
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| File search | Custom search index | Claude's Grep tool | Claude optimizes retrieval naturally |
-| Date parsing | Complex date library | ISO string split | `date.toISOString().split('T')[0]` |
-| Config migration | Manual file copy | ensureDataDir with migration | Handles both old and new locations |
-| Prompt templating | String interpolation | Simple template literals | Keep prompts readable, avoid complexity |
-| Embedding search | Vector DB | Grep + keywords | CONTEXT.md defers embeddings |
+| Problem           | Don't Build          | Use Instead                  | Why                                     |
+| ----------------- | -------------------- | ---------------------------- | --------------------------------------- |
+| File search       | Custom search index  | Claude's Grep tool           | Claude optimizes retrieval naturally    |
+| Date parsing      | Complex date library | ISO string split             | `date.toISOString().split('T')[0]`      |
+| Config migration  | Manual file copy     | ensureDataDir with migration | Handles both old and new locations      |
+| Prompt templating | String interpolation | Simple template literals     | Keep prompts readable, avoid complexity |
+| Embedding search  | Vector DB            | Grep + keywords              | CONTEXT.md defers embeddings            |
 
 **Key insight:** Phase 2's power comes from Claude's native agentic capabilities, not custom tooling. The less we build, the more we leverage Claude's strengths.
 
@@ -491,12 +502,18 @@ Environment:
 ```typescript
 // Source: Combined from Claude Code docs + Node.js spawn
 
-import { spawn } from 'child_process';
-import { homedir } from 'os';
-import { join } from 'path';
-import { existsSync, readFileSync, mkdirSync, writeFileSync, appendFileSync } from 'fs';
+import { spawn } from "child_process";
+import { homedir } from "os";
+import { join } from "path";
+import {
+  existsSync,
+  readFileSync,
+  mkdirSync,
+  writeFileSync,
+  appendFileSync,
+} from "fs";
 
-const KLAUSBOT_HOME = join(homedir(), '.klausbot');
+const KLAUSBOT_HOME = join(homedir(), ".klausbot");
 
 // Cache identity content at startup
 let identityCache: string | null = null;
@@ -504,23 +521,23 @@ let identityCache: string | null = null;
 export function loadIdentity(): string {
   if (identityCache) return identityCache;
 
-  const identityDir = join(KLAUSBOT_HOME, 'identity');
+  const identityDir = join(KLAUSBOT_HOME, "identity");
   const parts: string[] = [];
 
-  for (const file of ['SOUL.md', 'IDENTITY.md', 'USER.md']) {
+  for (const file of ["SOUL.md", "IDENTITY.md", "USER.md"]) {
     const path = join(identityDir, file);
     if (existsSync(path)) {
-      const content = readFileSync(path, 'utf-8');
+      const content = readFileSync(path, "utf-8");
       parts.push(`<${file}>\n${content}\n</${file}>`);
     }
   }
 
-  identityCache = parts.join('\n\n');
+  identityCache = parts.join("\n\n");
   return identityCache;
 }
 
 export function getRetrievalInstructions(): string {
-  const today = new Date().toLocaleDateString('en-CA');  // YYYY-MM-DD local
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
   return `
 <memory-instructions>
 Working directory: ~/.klausbot/
@@ -545,7 +562,7 @@ When user states a preference, update identity/USER.md with:
 }
 
 export function buildSystemPrompt(): string {
-  return loadIdentity() + '\n\n' + getRetrievalInstructions();
+  return loadIdentity() + "\n\n" + getRetrievalInstructions();
 }
 ```
 
@@ -554,19 +571,19 @@ export function buildSystemPrompt(): string {
 ```typescript
 // src/memory/logger.ts
 
-import { appendFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
+import { appendFileSync, existsSync, mkdirSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
 
-const KLAUSBOT_HOME = join(homedir(), '.klausbot');
-const CONVERSATIONS_DIR = join(KLAUSBOT_HOME, 'conversations');
+const KLAUSBOT_HOME = join(homedir(), ".klausbot");
+const CONVERSATIONS_DIR = join(KLAUSBOT_HOME, "conversations");
 
 function getToday(): string {
-  return new Date().toLocaleDateString('en-CA');  // YYYY-MM-DD local
+  return new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
 }
 
 function getTime(): string {
-  return new Date().toLocaleTimeString('en-GB');  // HH:MM:SS
+  return new Date().toLocaleTimeString("en-GB"); // HH:MM:SS
 }
 
 function ensureConversationsDir(): void {
@@ -608,17 +625,17 @@ export function logAssistantMessage(content: string): void {
 ```typescript
 // src/memory/init.ts
 
-import { existsSync, mkdirSync, writeFileSync, copyFileSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
-import { Logger } from 'pino';
+import { existsSync, mkdirSync, writeFileSync, copyFileSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
+import { Logger } from "pino";
 
-const KLAUSBOT_HOME = join(homedir(), '.klausbot');
+const KLAUSBOT_HOME = join(homedir(), ".klausbot");
 
-const DIRS = ['config', 'conversations', 'identity'];
+const DIRS = ["config", "conversations", "identity"];
 
 const DEFAULT_IDENTITY = {
-  'SOUL.md': `# SOUL
+  "SOUL.md": `# SOUL
 
 ## Core Values
 
@@ -636,7 +653,7 @@ I am Klaus, a helpful personal assistant who:
 - I respect boundaries and privacy
 `,
 
-  'IDENTITY.md': `# IDENTITY
+  "IDENTITY.md": `# IDENTITY
 
 ## Name
 Klaus
@@ -647,7 +664,7 @@ Klaus
 - Proactive about helpful context
 `,
 
-  'USER.md': `# USER
+  "USER.md": `# USER
 
 ## Preferences
 (Learned through conversation)
@@ -666,27 +683,27 @@ export function initializeKlausbotHome(logger: Logger): void {
     const path = join(KLAUSBOT_HOME, dir);
     if (!existsSync(path)) {
       mkdirSync(path, { recursive: true });
-      logger.info({ path }, 'Created directory');
+      logger.info({ path }, "Created directory");
     }
   }
 
   // Create identity files if missing
   for (const [filename, content] of Object.entries(DEFAULT_IDENTITY)) {
-    const path = join(KLAUSBOT_HOME, 'identity', filename);
+    const path = join(KLAUSBOT_HOME, "identity", filename);
     if (!existsSync(path)) {
       writeFileSync(path, content);
-      logger.info({ path }, 'Created identity file');
+      logger.info({ path }, "Created identity file");
     }
   }
 
-  logger.info({ home: KLAUSBOT_HOME }, 'Klausbot home initialized');
+  logger.info({ home: KLAUSBOT_HOME }, "Klausbot home initialized");
 }
 
 export function migrateFromDataDir(oldDataDir: string, logger: Logger): void {
   // Migrate config files from old DATA_DIR to new location
   const migrations = [
-    { from: 'pairing.json', to: 'config/pairing.json' },
-    { from: 'queue.json', to: 'config/queue.json' },
+    { from: "pairing.json", to: "config/pairing.json" },
+    { from: "queue.json", to: "config/queue.json" },
   ];
 
   for (const { from, to } of migrations) {
@@ -695,7 +712,7 @@ export function migrateFromDataDir(oldDataDir: string, logger: Logger): void {
 
     if (existsSync(oldPath) && !existsSync(newPath)) {
       copyFileSync(oldPath, newPath);
-      logger.info({ from: oldPath, to: newPath }, 'Migrated file');
+      logger.info({ from: oldPath, to: newPath }, "Migrated file");
     }
   }
 }
@@ -703,15 +720,16 @@ export function migrateFromDataDir(oldDataDir: string, logger: Logger): void {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Full history in context | Agentic file retrieval | RLM paper (2024) | Infinite memory without context bloat |
-| Vector embeddings | Grep + keyword search | Simplified | No infrastructure, Claude optimizes naturally |
-| --system-prompt (replace) | --append-system-prompt | Claude Code 2.x | Keep default behaviors, add custom |
-| Custom search tools | Claude's built-in tools | Always | Let Claude decide how to search |
-| Complex identity schemas | Simple markdown files | moltbot pattern | Human-editable, git-trackable |
+| Old Approach              | Current Approach        | When Changed     | Impact                                        |
+| ------------------------- | ----------------------- | ---------------- | --------------------------------------------- |
+| Full history in context   | Agentic file retrieval  | RLM paper (2024) | Infinite memory without context bloat         |
+| Vector embeddings         | Grep + keyword search   | Simplified       | No infrastructure, Claude optimizes naturally |
+| --system-prompt (replace) | --append-system-prompt  | Claude Code 2.x  | Keep default behaviors, add custom            |
+| Custom search tools       | Claude's built-in tools | Always           | Let Claude decide how to search               |
+| Complex identity schemas  | Simple markdown files   | moltbot pattern  | Human-editable, git-trackable                 |
 
 **Current best practices:**
+
 - Use `--append-system-prompt` not `--system-prompt` (preserves Claude's defaults)
 - Keep system prompt concise - load detailed content from files
 - Trust Claude's agentic capabilities over building custom tools
@@ -742,21 +760,25 @@ export function migrateFromDataDir(oldDataDir: string, logger: Logger): void {
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [Claude Code CLI Reference](https://code.claude.com/docs/en/cli-reference) - `--append-system-prompt`, `-p` flags
 - [Claude Code Best Practices](https://code.claude.com/docs/en/best-practices) - CLAUDE.md patterns, system prompt guidance
 - [Node.js child_process docs](https://nodejs.org/api/child_process.html) - spawn() `cwd` option
 
 ### Secondary (MEDIUM confidence)
+
 - [Phase 1 Research](../01-foundation/01-RESEARCH.md) - Spawn workaround, existing patterns
 - CONTEXT.md decisions - Data home, conversation format, identity files
 
 ### Tertiary (LOW confidence - needs validation)
+
 - System prompt size practical limits - test empirically
 - Local vs UTC date handling edge cases - test during implementation
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - no new dependencies, all built-in Node.js
 - Architecture patterns: HIGH - verified via official Claude Code docs
 - Pitfalls: MEDIUM - some require empirical validation

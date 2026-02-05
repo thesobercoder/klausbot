@@ -38,13 +38,13 @@ metrics:
 
 All Phase 1 success criteria verified:
 
-| Criteria | Status | Notes |
-|----------|--------|-------|
-| Message acknowledgment within 5s | PASS | Immediate "Thinking..." status |
-| Unauthorized rejection with clear error | PASS | "Waiting for approval" message shown |
-| Processing indicator appears | PASS | Typing indicator + status message |
-| Errors surfaced with actionable context | PASS | User-friendly error messages |
-| Gateway survives restart | PASS | Queue persists, processes on restart |
+| Criteria                                | Status | Notes                                |
+| --------------------------------------- | ------ | ------------------------------------ |
+| Message acknowledgment within 5s        | PASS   | Immediate "Thinking..." status       |
+| Unauthorized rejection with clear error | PASS   | "Waiting for approval" message shown |
+| Processing indicator appears            | PASS   | Typing indicator + status message    |
+| Errors surfaced with actionable context | PASS   | User-friendly error messages         |
+| Gateway survives restart                | PASS   | Queue persists, processes on restart |
 
 ## Issues Found and Fixed During Testing
 
@@ -90,12 +90,14 @@ All Phase 1 success criteria verified:
 ## Deviations from Plan
 
 **[Rule 3 - Blocking] Build system switch**
+
 - Found during: Initial testing
 - Issue: tsc output not suitable for single-entry execution
 - Fix: Switched to tsup bundler
 - Files: package.json, tsup.config.ts
 
 **[Rule 3 - Blocking] Dotenv loading order**
+
 - Found during: First bot startup
 - Issue: Config singleton accessed before env loaded
 - Fix: Import dotenv/config at top of index.ts
@@ -106,6 +108,7 @@ All Phase 1 success criteria verified:
 ### What Was Built
 
 Complete klausbot gateway daemon:
+
 - **Telegram integration**: grammY bot with typing indicators, message splitting
 - **Security**: Moltbot-style pairing flow with CLI approval
 - **Queue**: JSON file persistence, survives restarts
@@ -153,23 +156,25 @@ Dockerfile           # Container build
 
 ## Commits
 
-| Hash | Description |
-|------|-------------|
+| Hash    | Description                                           |
+| ------- | ----------------------------------------------------- |
 | e11adab | build: switch from tsc to tsup for single-file bundle |
-| ea3ada8 | fix: load dotenv at entry point before config access |
-| (auto) | Various fixes during testing via auto-commit |
+| ea3ada8 | fix: load dotenv at entry point before config access  |
+| (auto)  | Various fixes during testing via auto-commit          |
 
 ## Next Phase Readiness
 
 **Ready for Phase 2 (Core Loop)**
 
 Phase 1 foundation complete:
+
 - Gateway daemon operational
 - Security boundaries enforced
 - Message flow verified end-to-end
 - Deployment tooling ready
 
 Phase 2 will add:
+
 - Memory file system (conversations, identity)
 - Semantic search for context retrieval
 - Claude Code integration depth

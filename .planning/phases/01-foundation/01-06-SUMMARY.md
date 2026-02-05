@@ -43,6 +43,7 @@ metrics:
 ## What Was Built
 
 ### 1. Install Wizard (src/cli/install.ts)
+
 - **runInstallWizard()**: Interactive prompts via @inquirer/prompts
 - Prerequisites check: Claude CLI detection with continue-anyway option
 - Token validation: Must contain `:` for Telegram format
@@ -52,11 +53,13 @@ metrics:
   - **dev**: Generate .env, print npm run dev
 
 Key flows:
+
 - Systemd: Creates klausbot user, directories, installs service
 - Docker: Verifies docker available, creates data mount point
 - Dev: Simple .env generation
 
 ### 2. systemd Service (klausbot.service)
+
 - Type=simple with auto-restart (10s delay)
 - Security hardening: NoNewPrivileges, PrivateTmp, ProtectSystem, ProtectHome
 - ReadWritePaths for data directory only
@@ -64,6 +67,7 @@ Key flows:
 - After=network-online.target for network deps
 
 ### 3. Docker (Dockerfile, .dockerignore)
+
 - node:20-slim base image
 - Non-root klausbot user
 - Production-only npm install
@@ -71,6 +75,7 @@ Key flows:
 - .dockerignore excludes node_modules, src, .git, .env
 
 ### 4. CLI Integration (src/index.ts)
+
 - `klausbot install` -> runInstallWizard()
 - `klausbot version` -> reads package.json
 - Updated help text with all commands
@@ -81,10 +86,10 @@ None - plan executed exactly as written.
 
 ## Commits
 
-| Hash | Description |
-|------|-------------|
-| 1272f50 | feat(01-06): create interactive install wizard |
-| 9f2ccd5 | feat(01-06): add systemd service and Dockerfile |
+| Hash    | Description                                             |
+| ------- | ------------------------------------------------------- |
+| 1272f50 | feat(01-06): create interactive install wizard          |
+| 9f2ccd5 | feat(01-06): add systemd service and Dockerfile         |
 | 37d297f | feat(01-06): wire install and version commands into CLI |
 
 ## Next Phase Readiness
@@ -92,10 +97,12 @@ None - plan executed exactly as written.
 **Ready for 01-07 (Error recovery)**
 
 Deployment infrastructure complete:
+
 - Install wizard for all scenarios
 - systemd service template for Linux servers
 - Docker support for containerized deployment
 - Version command for debugging
 
 Remaining for Phase 1:
+
 - Error recovery enhancement (01-07)

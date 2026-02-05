@@ -1,5 +1,5 @@
-import { getDb } from './db.js';
-import { generateEmbedding } from './embeddings.js';
+import { getDb } from "./db.js";
+import { generateEmbedding } from "./embeddings.js";
 
 /** Search result with relevance score */
 export interface SearchResult {
@@ -12,7 +12,7 @@ export interface SearchResult {
 /** Search options */
 export interface SearchOptions {
   topK?: number;
-  daysBack?: number;  // Filter to last N days
+  daysBack?: number; // Filter to last N days
 }
 
 /**
@@ -25,13 +25,15 @@ export interface SearchOptions {
  */
 export async function semanticSearch(
   query: string,
-  options: SearchOptions = {}
+  options: SearchOptions = {},
 ): Promise<SearchResult[]> {
   const { topK = 5, daysBack } = options;
 
   // Check for API key first
   if (!process.env.OPENAI_API_KEY) {
-    console.warn('[search] OPENAI_API_KEY not set, semantic search unavailable');
+    console.warn(
+      "[search] OPENAI_API_KEY not set, semantic search unavailable",
+    );
     return [];
   }
 
@@ -47,7 +49,10 @@ export async function semanticSearch(
   // sqlite-vec uses k = ? constraint for KNN, not LIMIT
   // Join vec_embeddings.rowid to embeddings.id for text data
   let sql: string;
-  const params: (Float32Array | number | string)[] = [new Float32Array(queryEmbedding), topK];
+  const params: (Float32Array | number | string)[] = [
+    new Float32Array(queryEmbedding),
+    topK,
+  ];
 
   if (daysBack !== undefined && daysBack > 0) {
     const cutoff = new Date();
@@ -92,7 +97,7 @@ export async function semanticSearch(
 
   // Convert distance to similarity score (sqlite-vec returns L2 distance)
   // Lower distance = more similar, convert to 0-1 score where 1 = identical
-  return rows.map(row => ({
+  return rows.map((row) => ({
     text: row.text,
     source: row.source,
     timestamp: row.timestamp,
@@ -106,7 +111,7 @@ export interface ConversationSearchResult {
   summary: string;
   endedAt: string;
   messageCount: number;
-  score: number;  // Relevance score (0-1)
+  score: number; // Relevance score (0-1)
 }
 
 /**
@@ -119,7 +124,7 @@ export interface ConversationSearchResult {
  */
 export function searchConversations(
   query: string,
-  options: { topK?: number; daysBack?: number } = {}
+  options: { topK?: number; daysBack?: number } = {},
 ): ConversationSearchResult[] {
   const { topK = 5, daysBack } = options;
   const db = getDb();
@@ -127,11 +132,11 @@ export function searchConversations(
   // Escape FTS5 special characters and format query
   // FTS5 uses space-separated terms with implicit AND
   const ftsQuery = query
-    .replace(/['"]/g, '')  // Remove quotes
+    .replace(/['"]/g, "") // Remove quotes
     .split(/\s+/)
-    .filter(w => w.length > 1)
-    .map(w => `"${w}"`)  // Quote each term for exact matching
-    .join(' OR ');  // OR for broader results
+    .filter((w) => w.length > 1)
+    .map((w) => `"${w}"`) // Quote each term for exact matching
+    .join(" OR "); // OR for broader results
 
   if (!ftsQuery) {
     return [];
@@ -159,7 +164,7 @@ export function searchConversations(
       ORDER BY rank
       LIMIT ?
     `;
-    params.splice(1, 0, cutoff.toISOString());  // Insert cutoff between query and limit
+    params.splice(1, 0, cutoff.toISOString()); // Insert cutoff between query and limit
   } else {
     sql = `
       SELECT
@@ -187,7 +192,7 @@ export function searchConversations(
 
     // Convert BM25 rank to 0-1 score (BM25 returns negative values, lower = better match)
     // Normalize: -10 (great) to 0 (poor) -> 1.0 to 0.0
-    return rows.map(row => ({
+    return rows.map((row) => ({
       sessionId: row.session_id,
       summary: row.summary,
       endedAt: row.ended_at,
@@ -196,7 +201,7 @@ export function searchConversations(
     }));
   } catch (err) {
     // FTS5 query syntax error - fall back to empty results
-    console.warn('[search] FTS5 query failed:', err);
+    console.warn("[search] FTS5 query failed:", err);
     return [];
   }
 }

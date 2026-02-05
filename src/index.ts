@@ -7,19 +7,19 @@
  * Note: Uses dynamic imports to avoid loading config/bot for help command
  */
 
-import { Command } from 'commander';
-import dotenv from 'dotenv';
-import { readFileSync } from 'fs';
-import { homedir } from 'os';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { theme } from './cli/theme.js';
+import { Command } from "commander";
+import dotenv from "dotenv";
+import { readFileSync } from "fs";
+import { homedir } from "os";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import { theme } from "./cli/theme.js";
 
 // Load .env from both locations (later loads don't override existing)
 // 1. Current directory (for development)
 // 2. ~/.klausbot/.env (for production)
 dotenv.config();
-dotenv.config({ path: join(homedir(), '.klausbot', '.env') });
+dotenv.config({ path: join(homedir(), ".klausbot", ".env") });
 
 /**
  * Get package version from package.json
@@ -28,11 +28,11 @@ function getVersion(): string {
   try {
     const __dirname = dirname(fileURLToPath(import.meta.url));
     // Navigate up from dist/index.js to project root
-    const pkgPath = join(__dirname, '..', 'package.json');
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    return pkg.version ?? '0.0.0';
+    const pkgPath = join(__dirname, "..", "package.json");
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    return pkg.version ?? "0.0.0";
   } catch {
-    return '0.0.0';
+    return "0.0.0";
   }
 }
 
@@ -41,7 +41,7 @@ function getVersion(): string {
  * Must be called before importing config/logger
  */
 function silenceLogs(): void {
-  process.env.LOG_LEVEL = 'silent';
+  process.env.LOG_LEVEL = "silent";
 }
 
 /**
@@ -69,10 +69,10 @@ program.configureHelp({
     const alias = cmd.alias();
     // Get arguments only (skip [options] clutter)
     const args = cmd.registeredArguments
-      .map((arg) => arg.required ? `<${arg.name()}>` : `[${arg.name()}]`)
-      .join(' ');
+      .map((arg) => (arg.required ? `<${arg.name()}>` : `[${arg.name()}]`))
+      .join(" ");
     // Subcommands indicator
-    const subCmds = cmd.commands.length > 0 ? '[command]' : '';
+    const subCmds = cmd.commands.length > 0 ? "[command]" : "";
 
     let term = alias ? `${name}|${alias}` : name;
     if (args) term += ` ${args}`;
@@ -87,28 +87,31 @@ program.configureHelp({
 });
 
 program
-  .name('klausbot')
-  .description('Telegram gateway for Claude Code')
-  .version(getVersion(), '-v, --version', 'Show version')
-  .addHelpText('beforeAll', () => {
+  .name("klausbot")
+  .description("Telegram gateway for Claude Code")
+  .version(getVersion(), "-v, --version", "Show version")
+  .addHelpText("beforeAll", () => {
     theme.asciiArt();
-    return '';
+    return "";
   })
-  .addHelpText('after', `
+  .addHelpText(
+    "after",
+    `
 Skills: npx skills or manually add to ~/.claude/skills/
 
 Environment Variables:
   TELEGRAM_BOT_TOKEN    Telegram bot token (required)
   LOG_LEVEL             Log level (default: info)
-`);
+`,
+  );
 
 // daemon command - starts the gateway (auto-creates ~/.klausbot on startup)
 program
-  .command('daemon')
-  .alias('gateway')
-  .description('Start the gateway daemon')
+  .command("daemon")
+  .alias("gateway")
+  .description("Start the gateway daemon")
   .action(async () => {
-    const { startGateway } = await import('./daemon/index.js');
+    const { startGateway } = await import("./daemon/index.js");
     await startGateway();
   });
 
@@ -163,77 +166,77 @@ program
 //     ], { indent: 2 });
 //   });
 
-// cron command (commented out - manage via Telegram/MCP instead)
-// program
-//   .command('cron')
-//   .description('Manage scheduled jobs')
-//   .argument('[action]', 'Action: list, enable, disable, delete')
-//   .argument('[id]', 'Job ID')
-//   .action(async (action?: string, id?: string) => {
-//     silenceLogs();
-//     const { runCronCLI } = await import('./cli/index.js');
-//     const args = [action, id].filter(Boolean) as string[];
-//     await runCronCLI(args);
-//   });
+// cron command
+program
+  .command("cron")
+  .description("Manage scheduled jobs")
+  .argument("[action]", "Action: list, enable, disable, delete")
+  .argument("[id]", "Job ID")
+  .action(async (action?: string, id?: string) => {
+    silenceLogs();
+    const { runCronCLI } = await import("./cli/index.js");
+    const args = [action, id].filter(Boolean) as string[];
+    await runCronCLI(args);
+  });
 
 // mcp command (internal, for Claude CLI integration)
 program
-  .command('mcp')
-  .description('MCP server for Claude CLI (internal)')
+  .command("mcp")
+  .description("MCP server for Claude CLI (internal)")
   .action(async () => {
-    const { runMcpServer } = await import('./mcp-server/index.js');
+    const { runMcpServer } = await import("./mcp-server/index.js");
     await runMcpServer();
   });
 
 // hook command (for Claude Code hooks)
 const hook = program
-  .command('hook')
-  .description('Claude Code session hooks (internal)');
+  .command("hook")
+  .description("Claude Code session hooks (internal)");
 
 hook
-  .command('start')
-  .description('SessionStart hook - outputs context to stdout')
+  .command("start")
+  .description("SessionStart hook - outputs context to stdout")
   .action(async () => {
     silenceLogs();
-    const { handleHookStart } = await import('./cli/hook.js');
+    const { handleHookStart } = await import("./cli/hook.js");
     await handleHookStart();
   });
 
 hook
-  .command('compact')
-  .description('PreCompact hook - saves state before compaction')
+  .command("compact")
+  .description("PreCompact hook - saves state before compaction")
   .action(async () => {
     silenceLogs();
-    const { handleHookCompact } = await import('./cli/hook.js');
+    const { handleHookCompact } = await import("./cli/hook.js");
     await handleHookCompact();
   });
 
 hook
-  .command('end')
-  .description('SessionEnd hook - stores transcript and summary')
+  .command("end")
+  .description("SessionEnd hook - stores transcript and summary")
   .action(async () => {
     silenceLogs();
-    const { handleHookEnd } = await import('./cli/hook.js');
+    const { handleHookEnd } = await import("./cli/hook.js");
     await handleHookEnd();
   });
 
 // pairing command with subcommands
-const pairing = program
-  .command('pairing')
-  .description('Manage user pairing');
+const pairing = program.command("pairing").description("Manage user pairing");
 
 pairing
-  .command('approve <code>')
-  .description('Approve pairing request')
+  .command("approve <code>")
+  .description("Approve pairing request")
   .action(async (code: string) => {
     silenceLogs();
-    const { KLAUSBOT_HOME } = await import('./memory/home.js');
-    const { initPairingStore } = await import('./pairing/index.js');
+    const { KLAUSBOT_HOME } = await import("./memory/home.js");
+    const { initPairingStore } = await import("./pairing/index.js");
     const store = initPairingStore(KLAUSBOT_HOME);
 
     const result = store.approvePairing(code.toUpperCase());
     if (result) {
-      theme.success(`Approved: chatId=${result.chatId}, username=${result.username ?? 'N/A'}`);
+      theme.success(
+        `Approved: chatId=${result.chatId}, username=${result.username ?? "N/A"}`,
+      );
     } else {
       theme.error(`Code "${code}" not found`);
       process.exit(1);
@@ -241,12 +244,12 @@ pairing
   });
 
 pairing
-  .command('reject <code>')
-  .description('Reject pairing request')
+  .command("reject <code>")
+  .description("Reject pairing request")
   .action(async (code: string) => {
     silenceLogs();
-    const { KLAUSBOT_HOME } = await import('./memory/home.js');
-    const { initPairingStore } = await import('./pairing/index.js');
+    const { KLAUSBOT_HOME } = await import("./memory/home.js");
+    const { initPairingStore } = await import("./pairing/index.js");
     const store = initPairingStore(KLAUSBOT_HOME);
 
     const rejected = store.rejectPairing(code.toUpperCase());
@@ -259,52 +262,52 @@ pairing
   });
 
 pairing
-  .command('list')
-  .description('List pending and approved users')
+  .command("list")
+  .description("List pending and approved users")
   .action(async () => {
     silenceLogs();
-    const { KLAUSBOT_HOME } = await import('./memory/home.js');
-    const { initPairingStore } = await import('./pairing/index.js');
+    const { KLAUSBOT_HOME } = await import("./memory/home.js");
+    const { initPairingStore } = await import("./pairing/index.js");
     const store = initPairingStore(KLAUSBOT_HOME);
 
     const pending = store.listPending();
     const approved = store.listApproved();
 
-    theme.header('Pending Requests');
+    theme.header("Pending Requests");
     if (pending.length === 0) {
-      theme.muted('  (none)');
+      theme.muted("  (none)");
     } else {
       for (const req of pending) {
-        theme.keyValue('Code', req.code, { keyWidth: 6 });
-        theme.keyValue('Chat', String(req.chatId), { keyWidth: 6 });
-        theme.keyValue('User', req.username ?? 'N/A', { keyWidth: 6 });
-        theme.keyValue('Age', formatAge(req.requestedAt), { keyWidth: 6 });
+        theme.keyValue("Code", req.code, { keyWidth: 6 });
+        theme.keyValue("Chat", String(req.chatId), { keyWidth: 6 });
+        theme.keyValue("User", req.username ?? "N/A", { keyWidth: 6 });
+        theme.keyValue("Age", formatAge(req.requestedAt), { keyWidth: 6 });
         theme.blank();
       }
     }
 
     theme.blank();
-    theme.header('Approved Users');
+    theme.header("Approved Users");
     if (approved.length === 0) {
-      theme.muted('  (none)');
+      theme.muted("  (none)");
     } else {
       for (const user of approved) {
-        theme.keyValue('Chat', String(user.chatId), { keyWidth: 6 });
-        theme.keyValue('User', user.username ?? 'N/A', { keyWidth: 6 });
-        theme.keyValue('Since', formatAge(user.approvedAt), { keyWidth: 6 });
+        theme.keyValue("Chat", String(user.chatId), { keyWidth: 6 });
+        theme.keyValue("User", user.username ?? "N/A", { keyWidth: 6 });
+        theme.keyValue("Since", formatAge(user.approvedAt), { keyWidth: 6 });
         theme.blank();
       }
     }
   });
 
 pairing
-  .command('revoke <chatId>')
-  .description('Revoke access for chat ID')
-  .option('-f, --force', 'Skip confirmation prompt')
+  .command("revoke <chatId>")
+  .description("Revoke access for chat ID")
+  .option("-f, --force", "Skip confirmation prompt")
   .action(async (chatIdStr: string, options: { force?: boolean }) => {
     silenceLogs();
-    const { KLAUSBOT_HOME } = await import('./memory/home.js');
-    const { initPairingStore } = await import('./pairing/index.js');
+    const { KLAUSBOT_HOME } = await import("./memory/home.js");
+    const { initPairingStore } = await import("./pairing/index.js");
     const store = initPairingStore(KLAUSBOT_HOME);
 
     const chatId = parseInt(chatIdStr, 10);
@@ -315,13 +318,13 @@ pairing
 
     // Add confirmation before revoking (unless --force)
     if (!options.force) {
-      const { confirm } = await import('@inquirer/prompts');
+      const { confirm } = await import("@inquirer/prompts");
       const confirmed = await confirm({
         message: `Revoke access for chat ID ${chatId}?`,
         default: false,
       });
       if (!confirmed) {
-        theme.info('Aborted.');
+        theme.info("Aborted.");
         process.exit(0);
       }
     }

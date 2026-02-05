@@ -3,13 +3,13 @@
  * Spawns Claude Code for job execution, notifies user, retries on failure
  */
 
-import { queryClaudeCode } from '../daemon/spawner.js';
-import { bot } from '../telegram/bot.js';
-import type { CronJob } from './types.js';
-import { createChildLogger } from '../utils/index.js';
-import { getJsonConfig } from '../config/index.js';
+import { queryClaudeCode } from "../daemon/spawner.js";
+import { bot } from "../telegram/bot.js";
+import type { CronJob } from "./types.js";
+import { createChildLogger } from "../utils/index.js";
+import { getJsonConfig } from "../config/index.js";
 
-const log = createChildLogger('cron-executor');
+const log = createChildLogger("cron-executor");
 
 /** Cron job timeout: 1 hour per CONTEXT.md */
 const CRON_TIMEOUT = 3600000;
@@ -36,7 +36,10 @@ export interface ExecutionResult {
 export async function executeCronJob(job: CronJob): Promise<ExecutionResult> {
   const startTime = Date.now();
 
-  log.info({ jobId: job.id, jobName: job.name, chatId: job.chatId }, 'Executing cron job');
+  log.info(
+    { jobId: job.id, jobName: job.name, chatId: job.chatId },
+    "Executing cron job",
+  );
 
   const jsonConfig = getJsonConfig();
 
@@ -59,12 +62,12 @@ Complete the task and provide a concise result summary.
     // Notify user of success
     await bot.api.sendMessage(
       job.chatId,
-      `[Cron: ${job.name}]\n${response.result}`
+      `[Cron: ${job.name}]\n${response.result}`,
     );
 
     log.info(
       { jobId: job.id, jobName: job.name, durationMs, cost: response.cost_usd },
-      'Cron job completed successfully'
+      "Cron job completed successfully",
     );
 
     return { success: true, result: response.result, durationMs };
@@ -72,7 +75,10 @@ Complete the task and provide a concise result summary.
     const durationMs = Date.now() - startTime;
     const errorMsg = error instanceof Error ? error.message : String(error);
 
-    log.warn({ jobId: job.id, jobName: job.name, error: errorMsg }, 'Cron job failed, retrying');
+    log.warn(
+      { jobId: job.id, jobName: job.name, error: errorMsg },
+      "Cron job failed, retrying",
+    );
 
     // Retry once after delay
     await new Promise((r) => setTimeout(r, RETRY_DELAY));
@@ -96,31 +102,50 @@ Complete the task and provide a concise result summary.
       // Notify user of success (after retry)
       await bot.api.sendMessage(
         job.chatId,
-        `[Cron: ${job.name}]\n${retryResponse.result}`
+        `[Cron: ${job.name}]\n${retryResponse.result}`,
       );
 
       log.info(
-        { jobId: job.id, jobName: job.name, durationMs: totalDurationMs, retried: true },
-        'Cron job completed after retry'
+        {
+          jobId: job.id,
+          jobName: job.name,
+          durationMs: totalDurationMs,
+          retried: true,
+        },
+        "Cron job completed after retry",
       );
 
-      return { success: true, result: retryResponse.result, durationMs: totalDurationMs };
+      return {
+        success: true,
+        result: retryResponse.result,
+        durationMs: totalDurationMs,
+      };
     } catch (retryError) {
       const totalDurationMs = Date.now() - startTime;
-      const retryErrorMsg = retryError instanceof Error ? retryError.message : String(retryError);
+      const retryErrorMsg =
+        retryError instanceof Error ? retryError.message : String(retryError);
 
       // Notify user of failure
       await bot.api.sendMessage(
         job.chatId,
-        `[Cron: ${job.name} FAILED]\n${retryErrorMsg}`
+        `[Cron: ${job.name} FAILED]\n${retryErrorMsg}`,
       );
 
       log.error(
-        { jobId: job.id, jobName: job.name, error: retryErrorMsg, durationMs: totalDurationMs },
-        'Cron job failed after retry'
+        {
+          jobId: job.id,
+          jobName: job.name,
+          error: retryErrorMsg,
+          durationMs: totalDurationMs,
+        },
+        "Cron job failed after retry",
       );
 
-      return { success: false, result: retryErrorMsg, durationMs: totalDurationMs };
+      return {
+        success: false,
+        result: retryErrorMsg,
+        durationMs: totalDurationMs,
+      };
     }
   }
 }

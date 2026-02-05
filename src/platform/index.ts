@@ -4,7 +4,12 @@
  * Provides platform detection, capability checking, and startup validation.
  */
 
-export { detectPlatform, type Platform, type PlatformInfo } from './detect.js';
+export {
+  detectPlatform,
+  isContainer,
+  type Platform,
+  type PlatformInfo,
+} from "./detect.js";
 
 export {
   capabilities,
@@ -13,9 +18,9 @@ export {
   type CheckResult,
   type Severity,
   type Status,
-} from './capabilities.js';
+} from "./capabilities.js";
 
 export {
   displayStartupChecklist,
   validateRequiredCapabilities,
-} from './startup.js';
+} from "./startup.js";

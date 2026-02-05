@@ -53,6 +53,7 @@ completed: 2026-01-29
 - **Files modified:** 2
 
 ## Accomplishments
+
 - Gateway initializes ~/.klausbot/ data home and identity files at startup
 - User messages logged before Claude processing
 - Assistant responses logged after successful processing (not on error)
@@ -67,10 +68,12 @@ Each task was committed atomically:
 2. **Task 2: Add init CLI subcommand** - `64d3db3` (feat)
 
 ## Files Created/Modified
+
 - `src/daemon/gateway.ts` - Added memory imports, initialization at startup, conversation logging in processMessage
 - `src/index.ts` - Added init subcommand, gateway alias, updated help text
 
 ## Decisions Made
+
 - Log user message before Claude processing (per CONTEXT.md: log original message)
 - Log assistant response only on success (failed messages don't get logged)
 - Use dynamic imports in init command to avoid loading config when not needed
@@ -88,10 +91,12 @@ None
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Core loop complete: message -> log -> Claude -> log -> response
 - Ready for 02-04: Claude Code spawner modifications (cwd, --append-system-prompt)
 - ~/.klausbot/ directory structure established and verified
 
 ---
-*Phase: 02-core-loop*
-*Completed: 2026-01-29*
+
+_Phase: 02-core-loop_
+_Completed: 2026-01-29_

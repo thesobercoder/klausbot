@@ -1,13 +1,13 @@
-import { existsSync, mkdirSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
-import type { Logger } from 'pino';
+import { existsSync, mkdirSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
+import type { Logger } from "pino";
 
 /** Base directory for all klausbot data */
-export const KLAUSBOT_HOME = join(homedir(), '.klausbot');
+export const KLAUSBOT_HOME = join(homedir(), ".klausbot");
 
 /** Subdirectories to create under KLAUSBOT_HOME */
-export const DIRS = ['config', 'identity', 'cron', 'images', 'logs'] as const;
+export const DIRS = ["config", "identity", "cron", "images", "logs"] as const;
 
 /**
  * Initialize the klausbot home directory structure
@@ -19,7 +19,7 @@ export function initializeHome(logger: Logger): void {
   // Create base directory
   if (!existsSync(KLAUSBOT_HOME)) {
     mkdirSync(KLAUSBOT_HOME, { recursive: true });
-    logger.info({ path: KLAUSBOT_HOME }, 'Created klausbot home directory');
+    logger.info({ path: KLAUSBOT_HOME }, "Created klausbot home directory");
   }
 
   // Create subdirectories
@@ -27,7 +27,7 @@ export function initializeHome(logger: Logger): void {
     const path = join(KLAUSBOT_HOME, dir);
     if (!existsSync(path)) {
       mkdirSync(path, { recursive: true });
-      logger.info({ path }, 'Created directory');
+      logger.info({ path }, "Created directory");
     }
   }
 }

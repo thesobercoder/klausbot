@@ -5,8 +5,20 @@
  * No external dependencies.
  */
 
-import os from 'os';
-import { existsSync, readFileSync } from 'fs';
+import os from "os";
+import { existsSync, readFileSync } from "fs";
+
+/**
+ * Detects if running in container mode.
+ *
+ * Detection: Check for KLAUSBOT_CONTAINER env var (set in Dockerfile).
+ * This is more explicit than checking /.dockerenv.
+ *
+ * @returns true if running in container mode, false otherwise
+ */
+export function isContainer(): boolean {
+  return process.env.KLAUSBOT_CONTAINER === "1";
+}
 
 /**
  * Supported platform types.
@@ -15,7 +27,7 @@ import { existsSync, readFileSync } from 'fs';
  * - wsl2: Windows Subsystem for Linux 2
  * - unsupported: Windows native or unknown platforms
  */
-export type Platform = 'macos' | 'linux' | 'wsl2' | 'unsupported';
+export type Platform = "macos" | "linux" | "wsl2" | "unsupported";
 
 /**
  * Detailed platform information for diagnostics and platform-specific behavior.
@@ -47,20 +59,20 @@ export interface PlatformInfo {
  */
 function isWSL2(): boolean {
   // Docker on WSL2 shows "microsoft" in kernel but isn't actually WSL2
-  if (existsSync('/.dockerenv')) {
+  if (existsSync("/.dockerenv")) {
     return false;
   }
 
   // Primary check: kernel release string
   const release = os.release().toLowerCase();
-  if (release.includes('microsoft')) {
+  if (release.includes("microsoft")) {
     return true;
   }
 
   // Fallback: /proc/version (some WSL2 versions)
   try {
-    const procVersion = readFileSync('/proc/version', 'utf8').toLowerCase();
-    return procVersion.includes('microsoft');
+    const procVersion = readFileSync("/proc/version", "utf8").toLowerCase();
+    return procVersion.includes("microsoft");
   } catch {
     // Not WSL2 or can't determine
     return false;
@@ -76,32 +88,32 @@ export function detectPlatform(): PlatformInfo {
   const osPlat = os.platform();
   const arch = os.arch();
   const nodeVersion = process.version;
-  const execPath = process.argv[1] ?? '';
+  const execPath = process.argv[1] ?? "";
 
   let platform: Platform;
   let displayName: string;
   let isWSL = false;
 
   switch (osPlat) {
-    case 'darwin':
-      platform = 'macos';
-      displayName = `macOS (${arch === 'arm64' ? 'Apple Silicon' : 'Intel'})`;
+    case "darwin":
+      platform = "macos";
+      displayName = `macOS (${arch === "arm64" ? "Apple Silicon" : "Intel"})`;
       break;
 
-    case 'linux':
+    case "linux":
       isWSL = isWSL2();
-      platform = isWSL ? 'wsl2' : 'linux';
-      displayName = isWSL ? 'Linux (WSL2)' : 'Linux';
+      platform = isWSL ? "wsl2" : "linux";
+      displayName = isWSL ? "Linux (WSL2)" : "Linux";
       break;
 
-    case 'win32':
+    case "win32":
       // Native Windows is unsupported; WSL2 is the supported path
-      platform = 'unsupported';
-      displayName = 'Windows (unsupported - use WSL2)';
+      platform = "unsupported";
+      displayName = "Windows (unsupported - use WSL2)";
       break;
 
     default:
-      platform = 'unsupported';
+      platform = "unsupported";
       displayName = `Unsupported (${osPlat})`;
   }
 

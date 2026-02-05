@@ -60,6 +60,7 @@ completed: 2026-01-31
 - **Files modified:** 3
 
 ## Accomplishments
+
 - Build verification: TypeScript compiles, cron module exports correctly, scheduler initializes
 - Human verification: User confirmed all cron and learning system functionality working
 - Companion persona: Added warm, natural communication style to system prompt
@@ -82,11 +83,13 @@ Each task was committed atomically:
 - `73af31d` - feat(mcp): clarify when to use memory tools in descriptions
 
 ## Files Created/Modified
+
 - `src/memory/context.ts` - Added companion persona, MCP tool guidance, removed history references
 - `src/memory/index.ts` - Removed conversations from DIRS array
 - `src/cli/commands/init.ts` - Reset clears SQLite conversations table instead of markdown folder
 
 ## Decisions Made
+
 - Companion persona: warm, natural, concise (avoid assistant-like formality)
 - No references to "conversation history" in responses (implementation detail)
 - MCP tools as primary retrieval mechanism for memories and conversations
@@ -97,21 +100,25 @@ Each task was committed atomically:
 ### Additional Work During Verification
 
 **1. Companion Persona (d7419cd)**
+
 - **Context:** User wanted more natural, less robotic responses
 - **Fix:** Added persona section to system prompt emphasizing warmth and concision
 - **Files:** src/memory/context.ts
 
 **2. Implementation Detail Leak Fix (281a35d)**
+
 - **Context:** Bot was mentioning "conversation history" to users
 - **Fix:** Removed references that expose internal implementation
 - **Files:** src/memory/context.ts
 
 **3. MCP Memory Tool Guidance (e84f997, 73af31d)**
+
 - **Context:** Claude needed guidance on when to use memory search tools
 - **Fix:** Added explicit instructions and improved MCP tool descriptions
 - **Files:** src/memory/context.ts, MCP tool descriptions
 
 **4. SQLite Migration Cleanup (f4c5b65, c7b2c3a)**
+
 - **Context:** Phase 7.2 moved to SQLite but old references remained
 - **Fix:** Removed deprecated conversations folder, updated init reset
 - **Files:** src/memory/index.ts, src/cli/commands/init.ts
@@ -133,15 +140,16 @@ None - no external service configuration required.
 
 Phase 5 (Proactive) is now complete with all 5 plans executed:
 
-| Plan | Name | Status |
-|------|------|--------|
-| 05-01 | Schedule Parsing | Complete |
-| 05-02 | Cron Job Service | Complete |
-| 05-03 | Gateway Integration | Complete |
-| 05-04 | Learning System | Complete |
+| Plan  | Name                    | Status   |
+| ----- | ----------------------- | -------- |
+| 05-01 | Schedule Parsing        | Complete |
+| 05-02 | Cron Job Service        | Complete |
+| 05-03 | Gateway Integration     | Complete |
+| 05-04 | Learning System         | Complete |
 | 05-05 | End-to-End Verification | Complete |
 
 **Phase deliverables:**
+
 - Cron scheduling with natural language parsing (chrono-node, croner)
 - Persistent JSON storage with 24-hour missed job recovery
 - Telegram notifications on cron execution
@@ -150,5 +158,6 @@ Phase 5 (Proactive) is now complete with all 5 plans executed:
 - Cron management via natural conversation
 
 ---
-*Phase: 05-proactive*
-*Completed: 2026-01-31*
+
+_Phase: 05-proactive_
+_Completed: 2026-01-31_

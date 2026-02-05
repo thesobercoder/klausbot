@@ -100,5 +100,6 @@ None - no external service configuration required.
 - Manual verification: run gateway, check Telegram / menu shows installed skills
 
 ---
-*Phase: 04-skills*
-*Completed: 2026-01-29*
+
+_Phase: 04-skills_
+_Completed: 2026-01-29_

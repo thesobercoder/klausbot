@@ -1,23 +1,23 @@
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { KLAUSBOT_HOME } from '../memory/home.js';
+import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { join } from "path";
+import { KLAUSBOT_HOME } from "../memory/home.js";
 
 // Re-export queue types and class
-export { MessageQueue } from './queue.js';
-export type { QueuedMessage, QueueStats, MessageStatus } from './queue.js';
+export { MessageQueue } from "./queue.js";
+export type { QueuedMessage, QueueStats, MessageStatus } from "./queue.js";
 
 // Re-export spawner types and function
-export { queryClaudeCode } from './spawner.js';
-export type { ClaudeResponse, SpawnerOptions } from './spawner.js';
+export { queryClaudeCode } from "./spawner.js";
+export type { ClaudeResponse, SpawnerOptions } from "./spawner.js";
 
 // Re-export transcript recovery for external use
-export { handleTimeout } from './transcript.js';
+export { handleTimeout } from "./transcript.js";
 
 // Re-export gateway functions
-export { startGateway, stopGateway } from './gateway.js';
+export { startGateway, stopGateway } from "./gateway.js";
 
 // Re-export media types for consumers
-export type { MediaAttachment } from '../media/index.js';
+export type { MediaAttachment } from "../media/index.js";
 
 /**
  * Ensure a data directory exists
@@ -30,8 +30,8 @@ export function ensureDataDir(path: string): void {
     mkdirSync(path, { recursive: true });
 
     // Create .gitkeep for git tracking of empty directory
-    const gitkeepPath = join(path, '.gitkeep');
-    writeFileSync(gitkeepPath, '');
+    const gitkeepPath = join(path, ".gitkeep");
+    writeFileSync(gitkeepPath, "");
   }
 }
 

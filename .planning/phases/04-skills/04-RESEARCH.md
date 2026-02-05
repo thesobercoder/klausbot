@@ -20,12 +20,12 @@ Telegram command registration via `setMyCommands` API enables skills to appear i
 
 Phase 4 uses existing stack. Skills are markdown files - no runtime libraries needed.
 
-| Component | Version | Purpose | Notes |
-|-----------|---------|---------|-------|
-| SKILL.md files | Agent Skills v1 | Skill definitions | YAML frontmatter + markdown |
-| fs module | built-in | Skill discovery/loading | readFileSync, readdirSync |
-| path module | built-in | Path resolution | join, basename |
-| grammy | 1.x (existing) | Telegram command registration | setMyCommands API |
+| Component      | Version         | Purpose                       | Notes                       |
+| -------------- | --------------- | ----------------------------- | --------------------------- |
+| SKILL.md files | Agent Skills v1 | Skill definitions             | YAML frontmatter + markdown |
+| fs module      | built-in        | Skill discovery/loading       | readFileSync, readdirSync   |
+| path module    | built-in        | Path resolution               | join, basename              |
+| grammy         | 1.x (existing)  | Telegram command registration | setMyCommands API           |
 
 ### Skill Format (Agent Skills Standard)
 
@@ -34,17 +34,18 @@ Phase 4 uses existing stack. Skills are markdown files - no runtime libraries ne
 name: skill-name
 description: What this skill does and when Claude should use it
 ---
-
 # Skill Instructions
 
 [Markdown instructions Claude follows when skill is invoked]
 ```
 
 **Required fields:**
+
 - `name`: lowercase, hyphens/underscores only, max 64 chars
 - `description`: Trigger criteria - Claude reads this to decide when to use skill
 
 **Optional fields:**
+
 - `disable-model-invocation: true` - User-only (not auto-selected)
 - `user-invocable: false` - Claude-only (not in slash menu)
 - `allowed-tools` - Restrict Claude's tool access when skill active
@@ -52,13 +53,14 @@ description: What this skill does and when Claude should use it
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| SKILL.md format | Custom JSON schema | Lose ecosystem compatibility |
-| LLM-based selection | Keyword matching | Lose semantic understanding, false positives |
-| Per-message skill loading | Startup-only load | Lose hot reload, gain simplicity |
+| Instead of                | Could Use          | Tradeoff                                     |
+| ------------------------- | ------------------ | -------------------------------------------- |
+| SKILL.md format           | Custom JSON schema | Lose ecosystem compatibility                 |
+| LLM-based selection       | Keyword matching   | Lose semantic understanding, false positives |
+| Per-message skill loading | Startup-only load  | Lose hot reload, gain simplicity             |
 
 **Installation (no runtime deps):**
+
 ```bash
 # Skills are markdown files, no packages needed
 # Skill-creator installs from Anthropic's repo:
@@ -94,10 +96,11 @@ Note: We use the standard Claude Code skills directory, not a klausbot-specific 
 **Source:** [Claude Code Skills Docs](https://code.claude.com/docs/en/skills)
 
 **Example:**
+
 ```typescript
-import { readdirSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import { parse as parseYaml } from 'yaml';  // Or simple regex extraction
+import { readdirSync, readFileSync, existsSync } from "fs";
+import { join } from "path";
+import { parse as parseYaml } from "yaml"; // Or simple regex extraction
 
 interface SkillMeta {
   name: string;
@@ -106,20 +109,20 @@ interface SkillMeta {
   userInvocable?: boolean;
 }
 
-const SKILLS_DIR = join(homedir(), '.claude', 'skills');
-const SKILLS_CHAR_BUDGET = 15000;  // Default context budget
+const SKILLS_DIR = join(homedir(), ".claude", "skills");
+const SKILLS_CHAR_BUDGET = 15000; // Default context budget
 
 function extractFrontmatter(content: string): Record<string, unknown> | null {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
 
   // Simple YAML parsing (or use yaml library)
-  const lines = match[1].split('\n');
+  const lines = match[1].split("\n");
   const result: Record<string, string> = {};
   for (const line of lines) {
-    const [key, ...valueParts] = line.split(':');
+    const [key, ...valueParts] = line.split(":");
     if (key && valueParts.length) {
-      result[key.trim()] = valueParts.join(':').trim();
+      result[key.trim()] = valueParts.join(":").trim();
     }
   }
   return result;
@@ -134,19 +137,20 @@ function discoverSkills(): SkillMeta[] {
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
 
-    const skillPath = join(SKILLS_DIR, entry.name, 'SKILL.md');
+    const skillPath = join(SKILLS_DIR, entry.name, "SKILL.md");
     if (!existsSync(skillPath)) continue;
 
-    const content = readFileSync(skillPath, 'utf-8');
+    const content = readFileSync(skillPath, "utf-8");
     const frontmatter = extractFrontmatter(content);
 
-    if (!frontmatter?.description) continue;  // Skip skills without description
+    if (!frontmatter?.description) continue; // Skip skills without description
 
     skills.push({
       name: String(frontmatter.name ?? entry.name),
       description: String(frontmatter.description),
-      disableModelInvocation: frontmatter['disable-model-invocation'] === 'true',
-      userInvocable: frontmatter['user-invocable'] !== 'false',
+      disableModelInvocation:
+        frontmatter["disable-model-invocation"] === "true",
+      userInvocable: frontmatter["user-invocable"] !== "false",
     });
   }
 
@@ -154,9 +158,9 @@ function discoverSkills(): SkillMeta[] {
 }
 
 function buildSkillsContext(skills: SkillMeta[]): string {
-  const autoSelectableSkills = skills.filter(s => !s.disableModelInvocation);
+  const autoSelectableSkills = skills.filter((s) => !s.disableModelInvocation);
 
-  let context = '<available_skills>\n';
+  let context = "<available_skills>\n";
   let charCount = context.length;
 
   for (const skill of autoSelectableSkills) {
@@ -166,7 +170,7 @@ function buildSkillsContext(skills: SkillMeta[]): string {
     charCount += entry.length;
   }
 
-  context += '</available_skills>';
+  context += "</available_skills>";
   return context;
 }
 ```
@@ -182,36 +186,39 @@ function buildSkillsContext(skills: SkillMeta[]): string {
 **Constraint:** Command names must be lowercase + underscores only (no hyphens). 1-32 chars.
 
 **Example:**
+
 ```typescript
-import type { Bot, BotCommand } from 'grammy';
+import type { Bot, BotCommand } from "grammy";
 
 function normalizeCommandName(skillName: string): string {
   // skill-name -> skill_name (Telegram requirement)
-  return skillName.toLowerCase().replace(/-/g, '_').slice(0, 32);
+  return skillName.toLowerCase().replace(/-/g, "_").slice(0, 32);
 }
 
 async function registerSkillCommands(
   bot: Bot,
-  skills: SkillMeta[]
+  skills: SkillMeta[],
 ): Promise<void> {
   const commands: BotCommand[] = [
     // Built-in commands first
-    { command: 'start', description: 'Start or check pairing status' },
-    { command: 'help', description: 'Show available commands' },
-    { command: 'status', description: 'Show queue status' },
-    { command: 'skill', description: 'Run a skill: /skill <name> [args]' },
+    { command: "start", description: "Start or check pairing status" },
+    { command: "help", description: "Show available commands" },
+    { command: "status", description: "Show queue status" },
+    { command: "skill", description: "Run a skill: /skill <name> [args]" },
   ];
 
   // Add user-invocable skills
-  const invocableSkills = skills.filter(s => s.userInvocable !== false);
+  const invocableSkills = skills.filter((s) => s.userInvocable !== false);
 
   for (const skill of invocableSkills) {
     const cmdName = normalizeCommandName(skill.name);
     // Telegram description max 256 chars
-    const desc = skill.description.slice(0, 250) + (skill.description.length > 250 ? '...' : '');
+    const desc =
+      skill.description.slice(0, 250) +
+      (skill.description.length > 250 ? "..." : "");
 
     // Avoid duplicate commands
-    if (!commands.some(c => c.command === cmdName)) {
+    if (!commands.some((c) => c.command === cmdName)) {
       commands.push({ command: cmdName, description: desc });
     }
   }
@@ -230,19 +237,22 @@ async function registerSkillCommands(
 **What:** Support both `/skill <name> [args]` and `/<skillname> [args]`.
 
 **Example:**
+
 ```typescript
-import type { Context } from 'grammy';
+import type { Context } from "grammy";
 
 // Handler for /skill command
 async function handleSkillCommand(ctx: Context): Promise<void> {
-  const text = ctx.message?.text ?? '';
+  const text = ctx.message?.text ?? "";
   const parts = text.split(/\s+/);
   const skillName = parts[1];
-  const args = parts.slice(2).join(' ');
+  const args = parts.slice(2).join(" ");
 
   if (!skillName) {
-    await ctx.reply('Usage: /skill <name> [args]\n\nAvailable skills:\n' +
-      skills.map(s => `- ${s.name}`).join('\n'));
+    await ctx.reply(
+      "Usage: /skill <name> [args]\n\nAvailable skills:\n" +
+        skills.map((s) => `- ${s.name}`).join("\n"),
+    );
     return;
   }
 
@@ -253,7 +263,7 @@ async function handleSkillCommand(ctx: Context): Promise<void> {
 async function handleDirectSkillCommand(
   ctx: Context,
   skillName: string,
-  args: string
+  args: string,
 ): Promise<void> {
   await invokeSkill(ctx, skillName, args);
 }
@@ -261,11 +271,12 @@ async function handleDirectSkillCommand(
 async function invokeSkill(
   ctx: Context,
   skillName: string,
-  args: string
+  args: string,
 ): Promise<void> {
-  const skill = skills.find(s =>
-    s.name === skillName ||
-    normalizeCommandName(s.name) === normalizeCommandName(skillName)
+  const skill = skills.find(
+    (s) =>
+      s.name === skillName ||
+      normalizeCommandName(s.name) === normalizeCommandName(skillName),
   );
 
   if (!skill) {
@@ -274,17 +285,18 @@ async function invokeSkill(
   }
 
   // Load full skill content
-  const skillPath = join(SKILLS_DIR, skill.name, 'SKILL.md');
-  const content = readFileSync(skillPath, 'utf-8');
-  const instructions = content.replace(/^---[\s\S]*?---\n*/, '');  // Remove frontmatter
+  const skillPath = join(SKILLS_DIR, skill.name, "SKILL.md");
+  const content = readFileSync(skillPath, "utf-8");
+  const instructions = content.replace(/^---[\s\S]*?---\n*/, ""); // Remove frontmatter
 
   // Replace $ARGUMENTS placeholder
   const prompt = args
     ? instructions.replace(/\$ARGUMENTS/g, args)
-    : instructions + (instructions.includes('$ARGUMENTS') ? '' : `\n\nARGUMENTS: ${args}`);
+    : instructions +
+      (instructions.includes("$ARGUMENTS") ? "" : `\n\nARGUMENTS: ${args}`);
 
   // Spawn Claude with skill prompt as additional instruction
-  const response = await queryClaudeCode(ctx.message?.text ?? '', {
+  const response = await queryClaudeCode(ctx.message?.text ?? "", {
     additionalInstructions: `<skill name="${skill.name}">\n${prompt}\n</skill>`,
   });
 
@@ -354,6 +366,7 @@ Never create skills without asking first. The user may prefer case-by-case handl
 **Source:** [anthropics/skills repository](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md)
 
 **Flow:**
+
 1. User approves skill creation suggestion
 2. Claude invokes `/skill-creator` or uses it via natural language
 3. skill-creator guides through: understanding examples, planning contents, initializing, editing, packaging
@@ -372,12 +385,12 @@ Never create skills without asking first. The user may prefer case-by-case handl
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Skill authoring | Custom skill format | Anthropic's skill-creator | Official tool, maintains standard compliance |
-| Intent classification | ML classifier, keyword matching | Claude's LLM reasoning | Semantic understanding, no training data needed |
-| YAML parsing | Custom parser | Simple regex or `yaml` lib | Frontmatter is simple key: value |
-| Command menu | Manual BotFather | setMyCommands API | Programmatic, auto-updates |
+| Problem               | Don't Build                     | Use Instead                | Why                                             |
+| --------------------- | ------------------------------- | -------------------------- | ----------------------------------------------- |
+| Skill authoring       | Custom skill format             | Anthropic's skill-creator  | Official tool, maintains standard compliance    |
+| Intent classification | ML classifier, keyword matching | Claude's LLM reasoning     | Semantic understanding, no training data needed |
+| YAML parsing          | Custom parser                   | Simple regex or `yaml` lib | Frontmatter is simple key: value                |
+| Command menu          | Manual BotFather                | setMyCommands API          | Programmatic, auto-updates                      |
 
 **Key insight:** The power of Phase 4 comes from Claude's native skill selection capability. Build the scaffolding (discovery, loading, invocation) but let Claude's LLM handle the intelligence.
 
@@ -431,12 +444,12 @@ Never create skills without asking first. The user may prefer case-by-case handl
 
 ```typescript
 // src/skills/loader.ts
-import { readdirSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import { KLAUSBOT_HOME } from '../memory/home.js';
-import { createChildLogger } from '../utils/logger.js';
+import { readdirSync, readFileSync, existsSync } from "fs";
+import { join } from "path";
+import { KLAUSBOT_HOME } from "../memory/home.js";
+import { createChildLogger } from "../utils/logger.js";
 
-const log = createChildLogger('skills');
+const log = createChildLogger("skills");
 
 export interface SkillMeta {
   name: string;
@@ -446,14 +459,14 @@ export interface SkillMeta {
   userInvocable: boolean;
 }
 
-const SKILLS_DIR = join(homedir(), '.claude', 'skills');
+const SKILLS_DIR = join(homedir(), ".claude", "skills");
 
 /**
  * Discover all skills from ~/.claude/skills/
  */
 export function discoverSkills(): SkillMeta[] {
   if (!existsSync(SKILLS_DIR)) {
-    log.info('Skills directory not found, creating');
+    log.info("Skills directory not found, creating");
     return [];
   }
 
@@ -466,23 +479,23 @@ export function discoverSkills(): SkillMeta[] {
       if (!entry.isDirectory()) continue;
 
       const skillDir = join(SKILLS_DIR, entry.name);
-      const skillPath = join(skillDir, 'SKILL.md');
+      const skillPath = join(skillDir, "SKILL.md");
 
       if (!existsSync(skillPath)) {
-        log.debug({ skill: entry.name }, 'No SKILL.md found, skipping');
+        log.debug({ skill: entry.name }, "No SKILL.md found, skipping");
         continue;
       }
 
-      const content = readFileSync(skillPath, 'utf-8');
+      const content = readFileSync(skillPath, "utf-8");
       const meta = parseSkillMeta(content, entry.name, skillPath);
 
       if (meta) {
         skills.push(meta);
-        log.info({ skill: meta.name }, 'Discovered skill');
+        log.info({ skill: meta.name }, "Discovered skill");
       }
     }
   } catch (err) {
-    log.error({ err }, 'Failed to discover skills');
+    log.error({ err }, "Failed to discover skills");
   }
 
   return skills;
@@ -491,7 +504,7 @@ export function discoverSkills(): SkillMeta[] {
 function parseSkillMeta(
   content: string,
   dirName: string,
-  path: string
+  path: string,
 ): SkillMeta | null {
   // Extract YAML frontmatter
   const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -507,18 +520,18 @@ function parseSkillMeta(
 
   const getDescription = () => {
     const m = frontmatter.match(/^description:\s*(.+)$/m);
-    return m ? m[1].trim() : '';
+    return m ? m[1].trim() : "";
   };
 
   const getBoolean = (key: string, defaultValue: boolean) => {
-    const m = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+    const m = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
     if (!m) return defaultValue;
-    return m[1].trim().toLowerCase() === 'true';
+    return m[1].trim().toLowerCase() === "true";
   };
 
   const description = getDescription();
   if (!description) {
-    log.warn({ path }, 'Skill missing description, skipping');
+    log.warn({ path }, "Skill missing description, skipping");
     return null;
   }
 
@@ -526,8 +539,8 @@ function parseSkillMeta(
     name: getName(),
     description,
     path,
-    disableModelInvocation: getBoolean('disable-model-invocation', false),
-    userInvocable: getBoolean('user-invocable', true),
+    disableModelInvocation: getBoolean("disable-model-invocation", false),
+    userInvocable: getBoolean("user-invocable", true),
   };
 }
 
@@ -535,27 +548,27 @@ function parseSkillMeta(
  * Load full skill content for invocation
  */
 export function loadSkillContent(skill: SkillMeta): string {
-  const content = readFileSync(skill.path, 'utf-8');
+  const content = readFileSync(skill.path, "utf-8");
   // Remove frontmatter, return body
-  return content.replace(/^---[\s\S]*?---\n*/, '');
+  return content.replace(/^---[\s\S]*?---\n*/, "");
 }
 
 /**
  * Build skills context for system prompt (descriptions only)
  */
 export function buildSkillsContext(skills: SkillMeta[]): string {
-  const autoSelectable = skills.filter(s => !s.disableModelInvocation);
+  const autoSelectable = skills.filter((s) => !s.disableModelInvocation);
 
-  if (autoSelectable.length === 0) return '';
+  if (autoSelectable.length === 0) return "";
 
-  const lines = autoSelectable.map(s => `- "${s.name}": ${s.description}`);
+  const lines = autoSelectable.map((s) => `- "${s.name}": ${s.description}`);
 
   return `<available_skills>
 ## Skills You Can Use
 
 When a user's request matches one of these skills, consider using it:
 
-${lines.join('\n')}
+${lines.join("\n")}
 
 To use a skill, the user can say "/skill <name>" or "/<name>", or you can suggest using it when relevant.
 </available_skills>`;
@@ -574,9 +587,9 @@ interface SkillRegistry {
   /** Installed skills metadata (cache of discovered skills) */
   installed: {
     [name: string]: {
-      installedAt: string;  // ISO date
-      source: 'builtin' | 'user' | 'curated';
-      lastUsed?: string;    // ISO date
+      installedAt: string; // ISO date
+      source: "builtin" | "user" | "curated";
+      lastUsed?: string; // ISO date
       useCount: number;
     };
   };
@@ -585,8 +598,8 @@ interface SkillRegistry {
   curated: {
     name: string;
     description: string;
-    source: string;  // URL or local path
-    category: 'productivity' | 'information' | 'utilities';
+    source: string; // URL or local path
+    category: "productivity" | "information" | "utilities";
   }[];
 }
 ```
@@ -595,12 +608,12 @@ interface SkillRegistry {
 
 Based on research, these skills from moltbot/awesome-moltbot-skills work without external deps:
 
-| Skill | Description | Category |
-|-------|-------------|----------|
-| skill-creator | Create new skills interactively | Utilities |
-| summarize | Condense text content | Information |
-| frontend-design | UI/design creation | Productivity |
-| session-logs | Activity tracking | Utilities |
+| Skill           | Description                     | Category     |
+| --------------- | ------------------------------- | ------------ |
+| skill-creator   | Create new skills interactively | Utilities    |
+| summarize       | Condense text content           | Information  |
+| frontend-design | UI/design creation              | Productivity |
+| session-logs    | Activity tracking               | Utilities    |
 
 **Recommendation:** Ship with `skill-creator` mandatory. Others optional via `klausbot skills` CLI picker.
 
@@ -608,9 +621,9 @@ Based on research, these skills from moltbot/awesome-moltbot-skills work without
 
 ```typescript
 // src/cli/skills.ts
-import { select } from '@inquirer/prompts';
-import { copySync, existsSync, mkdirSync } from 'fs-extra';
-import { join } from 'path';
+import { select } from "@inquirer/prompts";
+import { copySync, existsSync, mkdirSync } from "fs-extra";
+import { join } from "path";
 
 interface CuratedSkill {
   name: string;
@@ -620,26 +633,27 @@ interface CuratedSkill {
 
 const CURATED_SKILLS: CuratedSkill[] = [
   {
-    name: 'summarize',
-    description: 'Condense text content (zero dependencies)',
-    source: 'https://raw.githubusercontent.com/anthropics/skills/main/skills/summarize/SKILL.md',
+    name: "summarize",
+    description: "Condense text content (zero dependencies)",
+    source:
+      "https://raw.githubusercontent.com/anthropics/skills/main/skills/summarize/SKILL.md",
   },
   // Add more curated zero-dep skills
 ];
 
 export async function installSkillsInteractive(): Promise<void> {
-  const choices = CURATED_SKILLS.map(s => ({
+  const choices = CURATED_SKILLS.map((s) => ({
     name: `${s.name} - ${s.description}`,
     value: s.name,
   }));
 
   const selected = await select({
-    message: 'Select skills to install:',
+    message: "Select skills to install:",
     choices,
   });
 
   // Install selected skill
-  const skill = CURATED_SKILLS.find(s => s.name === selected);
+  const skill = CURATED_SKILLS.find((s) => s.name === selected);
   if (skill) {
     await installSkill(skill);
     console.log(`Installed: ${skill.name}`);
@@ -649,14 +663,15 @@ export async function installSkillsInteractive(): Promise<void> {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Custom plugin formats | Agent Skills standard | Dec 2025 | Cross-tool compatibility |
-| Keyword intent matching | LLM-based selection | Agent Skills v1 | Semantic understanding |
-| Manual BotFather setup | setMyCommands API | Always | Programmatic registration |
-| Global skill repos | Personal + project skills | Claude Code 2.x | Local-first, portable |
+| Old Approach            | Current Approach          | When Changed    | Impact                    |
+| ----------------------- | ------------------------- | --------------- | ------------------------- |
+| Custom plugin formats   | Agent Skills standard     | Dec 2025        | Cross-tool compatibility  |
+| Keyword intent matching | LLM-based selection       | Agent Skills v1 | Semantic understanding    |
+| Manual BotFather setup  | setMyCommands API         | Always          | Programmatic registration |
+| Global skill repos      | Personal + project skills | Claude Code 2.x | Local-first, portable     |
 
 **Current best practices:**
+
 - Use Agent Skills format for ecosystem compatibility
 - Keep skill descriptions in context, full content loaded on-demand
 - Progressive disclosure: metadata -> body -> resources
@@ -664,6 +679,7 @@ export async function installSkillsInteractive(): Promise<void> {
 - Ask before creating skills proactively
 
 **Deprecated/outdated:**
+
 - Custom JSON skill schemas (use YAML frontmatter + markdown)
 - Intent classifiers (LLM handles semantic matching)
 - Monolithic skill files (use references/ for detailed content)
@@ -693,16 +709,19 @@ export async function installSkillsInteractive(): Promise<void> {
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [Claude Code Skills Documentation](https://code.claude.com/docs/en/skills) - Official skill format, invocation, configuration
 - [anthropics/skills repository](https://github.com/anthropics/skills) - skill-creator, template, reference implementations
 - [Claude Agent Skills Deep Dive](https://leehanchung.github.io/blogs/2025/10/26/claude-skills-deep-dive/) - Implementation details on Skill tool mechanism
 
 ### Secondary (MEDIUM confidence)
+
 - [moltbot Telegram](https://docs.molt.bot/channels/telegram) - setMyCommands usage, command normalization
 - [moltbot Skills](https://docs.molt.bot/tools/skills) - Skill discovery, loading patterns
 - [VoltAgent/awesome-moltbot-skills](https://github.com/VoltAgent/awesome-moltbot-skills) - Skill catalog, dependency analysis
 
 ### Tertiary (LOW confidence - needs validation)
+
 - Proactive pattern detection thresholds - requires empirical testing
 - Hot reload implementation - deferred, needs design
 - Skill context budget optimization - monitor in production
@@ -710,6 +729,7 @@ export async function installSkillsInteractive(): Promise<void> {
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - Agent Skills is well-documented open standard
 - Architecture patterns: HIGH - follows Claude Code + moltbot proven patterns
 - Pitfalls: MEDIUM - some require production validation (context budget, pattern detection)

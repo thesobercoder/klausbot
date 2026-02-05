@@ -34,34 +34,39 @@ Skills system cleaned up with separation of concerns and network resilience.
 ## What Changed
 
 ### 1. skills.ts Refactored
+
 **Removed:**
+
 - `REGISTRY` constant and `RegistrySkill` interface
 - `browseSkills()`, `runSkillsCLI()`, `checkForUpdate()`
 - `getInstalledHash()`, `formatChoice()`, `getInstalledSkills()`
 - Inquirer imports (select, search, confirm)
 
 **Added:**
+
 - `withRetry` wrapper on all 4 GitHub fetch calls
 - Retry config: 3 attempts, 1000ms base delay (exponential)
 
 **Result:** 260 lines -> 106 lines, exports only `ensureSkillCreator`
 
 ### 2. Separation of Concerns
+
 - **Gateway:** No longer installs skill-creator (removed import + call)
 - **Install Wizard:** Now installs skill-creator at end of setup
 - Non-fatal error handling - network failure doesn't block install
 
 ### 3. CLI Routing Updated
+
 - Removed `case 'skills'` from index.ts dispatcher
 - Updated help text with note: "Skills: npx skills or manually add to ~/.claude/skills/"
 - Updated cli/index.ts exports (removed browseSkills, runSkillsCLI)
 
 ## Commits
 
-| Commit | Description |
-|--------|-------------|
-| 143399e | Clean up skills.ts - remove registry and CLI, add retry |
-| e33e111 | Move skill-creator install from gateway to wizard |
+| Commit  | Description                                                |
+| ------- | ---------------------------------------------------------- |
+| 143399e | Clean up skills.ts - remove registry and CLI, add retry    |
+| e33e111 | Move skill-creator install from gateway to wizard          |
 | 32183fe | Remove skills CLI routing, update help with external tools |
 
 ## Verification
@@ -80,6 +85,7 @@ None - plan executed exactly as written.
 ## Architecture Notes
 
 **Before:**
+
 ```
 Gateway startup
   -> ensureSkillCreator()
@@ -88,6 +94,7 @@ Gateway startup
 ```
 
 **After:**
+
 ```
 Install wizard
   -> ensureSkillCreator() at end

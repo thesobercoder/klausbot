@@ -1,8 +1,8 @@
-import type { MyContext } from '../telegram/bot.js';
-import { PairingStore, ALREADY_APPROVED } from './store.js';
-import { createChildLogger } from '../utils/index.js';
+import type { MyContext } from "../telegram/bot.js";
+import { PairingStore, ALREADY_APPROVED } from "./store.js";
+import { createChildLogger } from "../utils/index.js";
 
-const log = createChildLogger('pairing');
+const log = createChildLogger("pairing");
 
 /** Module-level store instance (initialized lazily) */
 let store: PairingStore | null = null;
@@ -15,7 +15,7 @@ let store: PairingStore | null = null;
 export function initPairingStore(dataDir: string): PairingStore {
   if (!store) {
     store = new PairingStore(dataDir);
-    log.info({ dataDir }, 'Pairing store initialized');
+    log.info({ dataDir }, "Pairing store initialized");
   }
   return store;
 }
@@ -26,7 +26,9 @@ export function initPairingStore(dataDir: string): PairingStore {
  */
 export function getPairingStore(): PairingStore {
   if (!store) {
-    throw new Error('Pairing store not initialized. Call initPairingStore() first.');
+    throw new Error(
+      "Pairing store not initialized. Call initPairingStore() first.",
+    );
   }
   return store;
 }
@@ -37,7 +39,7 @@ export function getPairingStore(): PairingStore {
 export async function handleStartCommand(ctx: MyContext): Promise<void> {
   const chatId = ctx.chat?.id;
   if (!chatId) {
-    log.warn('handleStartCommand called without chat context');
+    log.warn("handleStartCommand called without chat context");
     return;
   }
 
@@ -54,15 +56,15 @@ export async function handleStartCommand(ctx: MyContext): Promise<void> {
 
   // New pairing code generated
   const message = [
-    'Welcome! To complete pairing, run this command on the server:',
-    '',
+    "Welcome! To complete pairing, run this command on the server:",
+    "",
     `\`klausbot pairing approve ${result}\``,
-    '',
+    "",
     `Your chat ID: \`${chatId}\``,
-  ].join('\n');
+  ].join("\n");
 
-  await ctx.reply(message, { parse_mode: 'Markdown' });
-  log.info({ chatId, username, code: result }, 'Pairing code shown to user');
+  await ctx.reply(message, { parse_mode: "Markdown" });
+  log.info({ chatId, username, code: result }, "Pairing code shown to user");
 }
 
 /**
@@ -88,13 +90,16 @@ export function createPairingMiddleware() {
     // Check if this is /start command - allow through for pairing flow
     // The command is handled separately, so we just pass it
     const text = ctx.message?.text;
-    if (text?.startsWith('/start')) {
+    if (text?.startsWith("/start")) {
       return next();
     }
 
     // Block unapproved users with instructions
-    log.info({ chatId, username: ctx.from?.username }, 'Blocked unapproved user');
-    await ctx.reply('Waiting for approval. Use /start to get a pairing code.');
+    log.info(
+      { chatId, username: ctx.from?.username },
+      "Blocked unapproved user",
+    );
+    await ctx.reply("Waiting for approval. Use /start to get a pairing code.");
     // Do NOT call next() - block the message
   };
 }

@@ -48,12 +48,12 @@ Media types, Telegram file download, and Whisper transcription with retry suppor
 
 ### Created Files
 
-| File | Purpose |
-|------|---------|
-| `src/media/types.ts` | MediaType, MediaAttachment, TranscriptionResult types |
-| `src/media/download.ts` | hydrateFilesOnBot, downloadFile for Telegram files |
+| File                      | Purpose                                               |
+| ------------------------- | ----------------------------------------------------- |
+| `src/media/types.ts`      | MediaType, MediaAttachment, TranscriptionResult types |
+| `src/media/download.ts`   | hydrateFilesOnBot, downloadFile for Telegram files    |
 | `src/media/transcribe.ts` | isTranscriptionAvailable, transcribeAudio via Whisper |
-| `src/media/retry.ts` | withRetry, isTransientError for exponential backoff |
+| `src/media/retry.ts`      | withRetry, isTransientError for exponential backoff   |
 
 ### Dependencies Added
 
@@ -61,11 +61,11 @@ Media types, Telegram file download, and Whisper transcription with retry suppor
 
 ## Task Completion
 
-| Task | Name | Commit | Status |
-|------|------|--------|--------|
-| 1 | Media types and download helper | b03b5dd | Done |
-| 2 | Whisper transcription | 6fb377b | Done |
-| 3 | Exponential backoff retry utility | 00ca36f | Done |
+| Task | Name                              | Commit  | Status |
+| ---- | --------------------------------- | ------- | ------ |
+| 1    | Media types and download helper   | b03b5dd | Done   |
+| 2    | Whisper transcription             | 6fb377b | Done   |
+| 3    | Exponential backoff retry utility | 00ca36f | Done   |
 
 ## Decisions Made
 
@@ -82,11 +82,12 @@ None - plan executed exactly as written.
 - `hydrateFiles` plugin adds `download()` method to File objects at runtime
 - Type assertion `as typeof file & HydratedFile` bridges static types to runtime behavior
 - Whisper auto-detects language (no language parameter passed)
-- Retry backoff: 1s, 2s, 4s (baseDelayMs * 2^attempt)
+- Retry backoff: 1s, 2s, 4s (baseDelayMs \* 2^attempt)
 
 ## Next Phase Readiness
 
 Ready for 06-02 (voice message handler):
+
 - Types available for attachment processing
 - Download utility ready for voice file retrieval
 - Transcription available with proper error handling

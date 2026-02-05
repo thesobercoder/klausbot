@@ -14,6 +14,7 @@ Unified CLI output formatting with consistent colors, helper methods, and visual
 ## Implementation Decisions
 
 ### Color Scheme
+
 - Muted aesthetic — softer, pastel-like tones (not vibrant/bold)
 - Success: muted green (standard recognition)
 - Headers/titles: bold + color (prominent but not harsh)
@@ -21,6 +22,7 @@ Unified CLI output formatting with consistent colors, helper methods, and visual
 - Auto-detect terminal capabilities (256 color, truecolor) with graceful fallback
 
 ### Helper Methods
+
 - Custom wrapper around chalk (no external table/spinner libraries)
 - Full suite of helpers: success(), error(), warn(), info(), header(), list(), table(), keyValue(), spinner(), progress(), box(), divider()
 - ASCII art header method for "klausbot" branding
@@ -28,27 +30,32 @@ Unified CLI output formatting with consistent colors, helper methods, and visual
 - Helpers output directly (console.log internally) — not return strings
 
 ### Output Discipline
+
 - User-facing output: theme helpers ONLY
 - System logs: pino logger ONLY
 - No raw console.log calls anywhere in application
 
 ### Configuration
+
 - No user customization — single hardcoded theme
 - Singleton pattern: `import { theme } from './theme'`
 - Module location: Claude's discretion based on project structure
 
 ### ASCII Art
+
 - "klausbot" in stylized ASCII art
 - Displays on: `klausbot --help` and `klausbot init` (setup wizard)
 - Not on every command
 
 ### Migration
+
 - All at once — single phase replaces all chalk calls
 - Hide chalk entirely — all color needs through theme helpers only
 - Adopt new theme — output may look different but will be consistent
 - All user-facing console.log calls use theme (no exceptions)
 
 ### Claude's Discretion
+
 - Exact muted color hex values / ANSI codes
 - Theme module file location
 - Helper method signatures and API design
@@ -74,5 +81,5 @@ None — discussion stayed within phase scope
 
 ---
 
-*Phase: 08-cli-theme-system*
-*Context gathered: 2026-01-31*
+_Phase: 08-cli-theme-system_
+_Context gathered: 2026-01-31_

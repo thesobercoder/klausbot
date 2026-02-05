@@ -1,11 +1,11 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { randomUUID } from 'crypto';
-import { Logger } from 'pino';
-import { createChildLogger } from '../utils/logger.js';
-import type { MediaAttachment } from '../media/index.js';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { randomUUID } from "crypto";
+import { Logger } from "pino";
+import { createChildLogger } from "../utils/logger.js";
+import type { MediaAttachment } from "../media/index.js";
 
 /** Message status in queue lifecycle */
-export type MessageStatus = 'pending' | 'processing' | 'done' | 'failed';
+export type MessageStatus = "pending" | "processing" | "done" | "failed";
 
 /** Queued message structure */
 export interface QueuedMessage {
@@ -46,7 +46,7 @@ export class MessageQueue {
     }
 
     this.path = `${dataDir}/queue.json`;
-    this.logger = createChildLogger('queue');
+    this.logger = createChildLogger("queue");
     this.load();
   }
 
@@ -55,41 +55,47 @@ export class MessageQueue {
    */
   private load(): void {
     if (!existsSync(this.path)) {
-      this.logger.debug('No existing queue file, starting fresh');
+      this.logger.debug("No existing queue file, starting fresh");
       return;
     }
 
     try {
-      const data = readFileSync(this.path, 'utf-8');
+      const data = readFileSync(this.path, "utf-8");
       const loaded: QueuedMessage[] = JSON.parse(data);
 
       // Filter out 'done' messages older than 1 hour
       const oneHourAgo = Date.now() - 3600000;
       this.queue = loaded.filter(
-        (m) => m.status !== 'done' || m.timestamp > oneHourAgo
+        (m) => m.status !== "done" || m.timestamp > oneHourAgo,
       );
 
       // Reset 'processing' messages to 'pending' (crash recovery)
       let recovered = 0;
       for (const msg of this.queue) {
-        if (msg.status === 'processing') {
-          msg.status = 'pending';
+        if (msg.status === "processing") {
+          msg.status = "pending";
           recovered++;
         }
       }
 
       if (recovered > 0) {
-        this.logger.info({ recovered }, 'Recovered processing messages to pending');
+        this.logger.info(
+          { recovered },
+          "Recovered processing messages to pending",
+        );
       }
 
       this.logger.info(
         { total: this.queue.length, stats: this.getStats() },
-        'Loaded queue from disk'
+        "Loaded queue from disk",
       );
 
       this.persist();
     } catch (err) {
-      this.logger.error({ err, path: this.path }, 'Failed to load queue, starting fresh');
+      this.logger.error(
+        { err, path: this.path },
+        "Failed to load queue, starting fresh",
+      );
       this.queue = [];
     }
   }
@@ -102,7 +108,7 @@ export class MessageQueue {
       writeFileSync(this.path, JSON.stringify(this.queue, null, 2));
     } catch (err) {
       // Log but don't throw - persist failures shouldn't crash the app
-      this.logger.error({ err, path: this.path }, 'Failed to persist queue');
+      this.logger.error({ err, path: this.path }, "Failed to persist queue");
     }
   }
 
@@ -120,7 +126,7 @@ export class MessageQueue {
       chatId,
       text,
       timestamp: Date.now(),
-      status: 'pending',
+      status: "pending",
       media,
     };
 
@@ -129,7 +135,7 @@ export class MessageQueue {
 
     this.logger.debug(
       { id, chatId, textLength: text.length },
-      'Added message to queue'
+      "Added message to queue",
     );
 
     return id;
@@ -140,15 +146,18 @@ export class MessageQueue {
    * @returns Next pending message or undefined if queue empty
    */
   take(): QueuedMessage | undefined {
-    const msg = this.queue.find((m) => m.status === 'pending');
+    const msg = this.queue.find((m) => m.status === "pending");
     if (!msg) {
       return undefined;
     }
 
-    msg.status = 'processing';
+    msg.status = "processing";
     this.persist();
 
-    this.logger.debug({ id: msg.id, chatId: msg.chatId }, 'Took message for processing');
+    this.logger.debug(
+      { id: msg.id, chatId: msg.chatId },
+      "Took message for processing",
+    );
 
     return msg;
   }
@@ -160,14 +169,14 @@ export class MessageQueue {
   complete(id: string): void {
     const msg = this.queue.find((m) => m.id === id);
     if (!msg) {
-      this.logger.warn({ id }, 'Complete called for unknown message ID');
+      this.logger.warn({ id }, "Complete called for unknown message ID");
       return;
     }
 
-    msg.status = 'done';
+    msg.status = "done";
     this.persist();
 
-    this.logger.debug({ id }, 'Marked message as done');
+    this.logger.debug({ id }, "Marked message as done");
   }
 
   /**
@@ -178,15 +187,15 @@ export class MessageQueue {
   fail(id: string, error: string): void {
     const msg = this.queue.find((m) => m.id === id);
     if (!msg) {
-      this.logger.warn({ id }, 'Fail called for unknown message ID');
+      this.logger.warn({ id }, "Fail called for unknown message ID");
       return;
     }
 
-    msg.status = 'failed';
+    msg.status = "failed";
     msg.error = error;
     this.persist();
 
-    this.logger.error({ id, error }, 'Marked message as failed');
+    this.logger.error({ id, error }, "Marked message as failed");
   }
 
   /**
@@ -194,7 +203,9 @@ export class MessageQueue {
    * @returns Copy of pending messages
    */
   getPending(): QueuedMessage[] {
-    return this.queue.filter((m) => m.status === 'pending').map((m) => ({ ...m }));
+    return this.queue
+      .filter((m) => m.status === "pending")
+      .map((m) => ({ ...m }));
   }
 
   /**
@@ -207,9 +218,9 @@ export class MessageQueue {
     let failed = 0;
 
     for (const msg of this.queue) {
-      if (msg.status === 'pending') pending++;
-      else if (msg.status === 'processing') processing++;
-      else if (msg.status === 'failed') failed++;
+      if (msg.status === "pending") pending++;
+      else if (msg.status === "processing") processing++;
+      else if (msg.status === "failed") failed++;
     }
 
     return { pending, processing, failed };

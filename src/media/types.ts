@@ -3,7 +3,7 @@
  */
 
 /** Supported media types */
-export type MediaType = 'voice' | 'photo';
+export type MediaType = "voice" | "photo";
 
 /** Attachment with optional processing results */
 export interface MediaAttachment {
