@@ -32,6 +32,10 @@ RUN npm ci --omit=dev
 # Copy built application
 COPY dist ./dist
 
+# Create klausbot alias
+RUN printf '#!/bin/sh\nnode /app/dist/index.js "$@"\n' > /usr/local/bin/klausbot \
+    && chmod +x /usr/local/bin/klausbot
+
 # Set ownership
 RUN chown -R klausbot:klausbot /app
 

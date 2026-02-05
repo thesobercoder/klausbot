@@ -49,7 +49,7 @@ docker compose up -d
 2. Send `/start` — the bot displays a 6-character pairing code
 3. Approve the pairing:
    ```bash
-   docker compose exec klausbot node dist/index.js pairing approve XXXXXX
+   docker compose exec klausbot klausbot pairing approve XXXXXX
    ```
 4. You're connected! Send any message to chat with Claude.
 
@@ -66,22 +66,22 @@ docker compose logs -f
 
 List pending/approved users:
 ```bash
-docker compose exec klausbot node dist/index.js pairing list
+docker compose exec klausbot klausbot pairing list
 ```
 
 Approve pairing request:
 ```bash
-docker compose exec klausbot node dist/index.js pairing approve <code>
+docker compose exec klausbot klausbot pairing approve <code>
 ```
 
 Reject pairing request:
 ```bash
-docker compose exec klausbot node dist/index.js pairing reject <code>
+docker compose exec klausbot klausbot pairing reject <code>
 ```
 
 Revoke user access:
 ```bash
-docker compose exec klausbot node dist/index.js pairing revoke <chatId>
+docker compose exec klausbot klausbot pairing revoke <chatId>
 ```
 
 Restart:
@@ -148,7 +148,7 @@ Then restart: `docker compose restart`
 2. Codes expire after 15 minutes — send `/start` again for a new one
 3. Check pending requests:
    ```bash
-   docker compose exec klausbot node dist/index.js pairing list
+   docker compose exec klausbot klausbot pairing list
    ```
 
 ### Need more help?
