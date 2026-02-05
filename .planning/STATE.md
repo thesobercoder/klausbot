@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** v1.1 Production Ready — Phase 12 (Heartbeat System)
+**Current focus:** v1.1 Production Ready — Phase 14 (Testing Framework)
 
 ## Current Position
 
-Phase: 12 of 14 (Heartbeat System)
-Plan: 3/3 complete
+Phase: 13.1 of 14 (Dockerfile Dependencies)
+Plan: 1/1 complete
 Status: Phase complete
-Last activity: 2026-02-05 — Heartbeat note collection
+Last activity: 2026-02-05 — Dockerfile dependencies (Python, uv, pnpm, agent tools)
 
-Progress: [████████████░] 83% (phases 9, 10, 11, 12, 13 complete; 14 remaining)
+Progress: [█████████████░] 86% (phases 9, 10, 11, 12, 13, 13.1 complete; 14 remaining)
 
 ## Milestone Summary
 
@@ -100,6 +100,10 @@ _Updated after each plan completion_
 - Heartbeat: Gateway integration keeps cron and heartbeat schedulers together in lifecycle
 - Heartbeat: Note collection uses regex triggers; Claude interprets intent (not verbatim storage)
 
+### Roadmap Evolution
+
+- Phase 13.1 inserted after Phase 13: Dockerfile Dependencies (URGENT) — Python + other runtime deps
+
 ### Pending Todos
 
 None.
@@ -111,14 +115,14 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Completed 12-03-PLAN.md (Note Collection)
+Stopped at: Completed Phase 13.1 (Dockerfile Dependencies)
 Resume file: None
 
 ## Next Steps
 
-1. `/gsd:plan-phase 14` — Plan testing framework (final phase)
+1. `/gsd:plan-phase 14` — Plan testing framework (final phase of v1.1)
 
 ---
 
-_State updated: 2026-02-05 (Phase 12 complete)_
+_State updated: 2026-02-05 (Phase 13.1 complete)_
 _v1.1 in progress_

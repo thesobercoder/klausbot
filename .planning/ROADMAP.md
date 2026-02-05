@@ -122,6 +122,22 @@ Plans:
 - [x] 13-01-PLAN.md - Documentation files (LICENSE, .env.example, README.md)
 - [x] 13-02-PLAN.md - User review checkpoint (fill story, add screenshots)
 
+#### Phase 13.1: Dockerfile Dependencies (INSERTED)
+
+**Goal**: Dockerfile includes Python and other runtime dependencies
+**Depends on**: Phase 13 (Docker & Release)
+**Success Criteria** (what must be TRUE):
+
+1. Dockerfile includes Python 3 + pip
+2. Dockerfile includes uv (fast Python package manager)
+3. Dockerfile includes pnpm via corepack
+4. Dockerfile includes agent tools (poppler, ffmpeg, ripgrep, jq, imagemagick, pandoc)
+   **Plans**: 1 plan (direct execution)
+
+Plans:
+
+- [x] Direct execution — added apt packages, uv, pnpm to Dockerfile
+
 #### Phase 14: Testing Framework
 
 **Goal**: Comprehensive tests ensure "tests pass = app works" confidence
@@ -145,7 +161,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14
+Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 13.1 -> 14
 
 | Phase                  | Milestone | Plans Complete | Status      | Completed  |
 | ---------------------- | --------- | -------------- | ----------- | ---------- |
@@ -154,6 +170,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 14
 | 11. Telegram Threading | v1.1      | 1/1            | Complete    | 2026-02-05 |
 | 12. Heartbeat System   | v1.1      | 3/3            | Complete    | 2026-02-05 |
 | 13. Docker & Release   | v1.1      | 2/2            | Complete    | 2026-02-05 |
+| 13.1 Dockerfile Deps   | v1.1      | 1/1            | Complete    | 2026-02-05 |
 | 14. Testing Framework  | v1.1      | 0/4            | Not started | -          |
 
 ---
