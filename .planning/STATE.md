@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 
 ## Current Position
 
-Phase: 13 of 14 (Docker & Release) — COMPLETE
-Plan: 2/2 complete
-Status: Phase 13 complete, ready for Phase 14
-Last activity: 2026-02-05 — Removed phases 10-12 (Doctor/Setup/Service), simplified CLI
+Phase: 10 of 14 (Telegram Streaming) — IN PROGRESS
+Plan: 1/3 complete
+Status: Plan 01 complete, ready for Plan 02
+Last activity: 2026-02-05 — Streaming infrastructure with throttler and Claude CLI spawner
 
-Progress: [█████████░] 83% (phases 9 + 13 complete, 10-12 + 14 remaining)
+Progress: [█████████░] 87% (phases 9 + 13 complete, 10-01 done, 10-02/03 + 11-12 + 14 remaining)
 
 ## Milestone Summary
 
@@ -41,15 +41,16 @@ Progress: [█████████░] 83% (phases 9 + 13 complete, 10-12 + 
 
 **Velocity:**
 
-- Total plans completed: 5 (v1.1)
+- Total plans completed: 6 (v1.1)
 - Average duration: 3m 03s
-- Total execution time: 15m 16s
+- Total execution time: 18m 16s
 
 **By Phase:**
 
 | Phase                  | Plans | Total   | Avg/Plan |
 | ---------------------- | ----- | ------- | -------- |
 | 09-platform-foundation | 3/3   | 11m 14s | 3m 45s   |
+| 10-telegram-streaming  | 1/3   | 3m 00s  | 3m 00s   |
 | 13-docker-release      | 2/2   | 4m 02s  | 2m 01s   |
 
 _Updated after each plan completion_
@@ -82,6 +83,9 @@ _Updated after each plan completion_
 - XML input wrapping: User messages wrapped in `<user_message>` tags before passing to Claude CLI (security fix)
 - Phase 13 removed: Claude Code handles prompt injection; only needed XML escaping
 - Dockerfile: Uses native Claude Code installer (curl), runs as non-root klausbot user
+- Streaming: Callback pattern over generator for return value access
+- Streaming: No MCP/hooks (SessionStart/End don't apply to streams)
+- Throttler: minTime 100ms allows fast drafts, lets Telegram reject if needed
 
 ### Pending Todos
 
@@ -94,13 +98,13 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-05
-Stopped at: Container-first philosophy pivot complete
-Resume file: .planning/phases/13-docker-release/.continue-here.md
+Stopped at: Completed 10-01-PLAN.md (Streaming Infrastructure)
+Resume file: None
 
 ## Next Steps
 
-1. `/gsd:plan-phase 14` — Plan testing framework
-2. Or plan phases 10-12 (Telegram streaming/threading, Heartbeat)
+1. `/gsd:execute-phase 10` — Continue with Plan 02 (Gateway Integration)
+2. Or plan remaining phases (11-12, 14)
 
 ---
 
