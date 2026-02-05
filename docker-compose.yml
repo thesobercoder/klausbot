@@ -1,5 +1,5 @@
 services:
-  app:
+  bot:
     build: .
     env_file: .env
     volumes:
