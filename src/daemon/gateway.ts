@@ -31,7 +31,7 @@ import {
 import { needsBootstrap, BOOTSTRAP_INSTRUCTIONS } from "../bootstrap/index.js";
 import { validateRequiredCapabilities } from "../platform/index.js";
 import { startScheduler, stopScheduler, loadCronStore } from "../cron/index.js";
-import { startHeartbeat, stopHeartbeat } from "../heartbeat/index.js";
+import { startHeartbeat, stopHeartbeat, shouldCollectNote, getNoteCollectionInstructions } from "../heartbeat/index.js";
 import {
   MediaAttachment,
   transcribeAudio,
@@ -627,9 +627,16 @@ Current chat ID: ${msg.chatId}
 Use this chatId when creating cron jobs.
 </session-context>`;
 
+    // Check for heartbeat note collection trigger (skip during bootstrap)
+    let noteInstructions = "";
+    if (!isBootstrap && shouldCollectNote(effectiveText)) {
+      noteInstructions = "\n\n" + getNoteCollectionInstructions(effectiveText);
+      log.info({ chatId: msg.chatId }, "Heartbeat note collection triggered");
+    }
+
     const additionalInstructions = isBootstrap
       ? chatIdContext + "\n\n" + BOOTSTRAP_INSTRUCTIONS
-      : chatIdContext;
+      : chatIdContext + noteInstructions;
 
     // Get config and check streaming
     const jsonConfig = getJsonConfig();
