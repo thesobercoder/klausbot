@@ -32,8 +32,8 @@ Requirements for v1.1 Production Ready release.
 
 ### Telegram
 
-- [ ] **TELE-01**: Thread support for single conversation (message_thread_id)
-- [ ] **TELE-02**: Replies properly threaded to maintain conversation context
+- [x] **TELE-01**: Thread support for single conversation (message_thread_id)
+- [x] **TELE-02**: Replies properly threaded to maintain conversation context
 
 ### Security
 
@@ -158,8 +158,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRM-02     | Phase 10 | Complete |
 | STRM-03     | Phase 10 | Complete |
 | STRM-04     | Phase 10 | Complete |
-| TELE-01     | Phase 11 | Pending  |
-| TELE-02     | Phase 11 | Pending  |
+| TELE-01     | Phase 11 | Complete |
+| TELE-02     | Phase 11 | Complete |
 | HRTB-01     | Phase 12 | Pending  |
 | HRTB-02     | Phase 12 | Pending  |
 | HRTB-03     | Phase 12 | Pending  |
