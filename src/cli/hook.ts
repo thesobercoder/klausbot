@@ -75,36 +75,13 @@ export async function handleHookStart(): Promise<void> {
   const input = await readStdin();
   hookLog(`[start] session=${input.session_id}`);
 
-  // Dynamic import to avoid loading DB on every CLI call
-  const { getRecentConversations } = await import("../memory/conversations.js");
-
-  // Get current datetime
+  // Lightweight session metadata only
+  // Conversation history is now injected via --append-system-prompt in the gateway
   const datetime = new Date().toISOString();
 
-  // Get recent conversation summaries (last 3, filtered by chat)
-  const chatId = process.env.KLAUSBOT_CHAT_ID
-    ? Number(process.env.KLAUSBOT_CHAT_ID)
-    : undefined;
-  let summariesText = "";
-  try {
-    const recent = getRecentConversations(3, undefined, chatId);
-    if (recent.length > 0) {
-      summariesText = recent
-        .map((c) => {
-          const date = new Date(c.endedAt).toLocaleDateString();
-          return `- ${date}: ${c.summary}`;
-        })
-        .join("\n");
-    }
-  } catch {
-    // Ignore errors - may be first run before tables exist
-  }
-
-  // Build context block
   const context = `<session-context>
 Current datetime: ${datetime}
 Session ID: ${input.session_id}
-${summariesText ? `\nRecent conversations:\n${summariesText}` : ""}
 </session-context>`;
 
   // Write to stdout - Claude adds this to context
