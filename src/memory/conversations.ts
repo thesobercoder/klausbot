@@ -3,7 +3,7 @@
  * Stores and retrieves conversation transcripts with summaries
  */
 
-import { eq, desc, gte, and } from "drizzle-orm";
+import { eq, desc, gte, and, isNotNull } from "drizzle-orm";
 import { getDrizzle } from "./db.js";
 import { conversations } from "./schema.js";
 import OpenAI from "openai";
@@ -232,6 +232,24 @@ export function getConversationsForContext(
     )
     .orderBy(desc(conversations.endedAt))
     .all() as ConversationRecord[];
+}
+
+/**
+ * Get the chatId from the most recent conversation (fallback for heartbeat routing)
+ * Returns null if no conversations exist or all have null chatId
+ */
+export function getMostRecentChatId(): number | null {
+  const db = getDrizzle();
+
+  const row = db
+    .select({ chatId: conversations.chatId })
+    .from(conversations)
+    .where(isNotNull(conversations.chatId))
+    .orderBy(desc(conversations.endedAt))
+    .limit(1)
+    .get();
+
+  return (row?.chatId as number) ?? null;
 }
 
 /**

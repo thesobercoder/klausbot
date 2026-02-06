@@ -39,6 +39,7 @@ export {
   getRecentConversations,
   getConversationsForContext,
   getConversationBySessionId,
+  getMostRecentChatId,
   parseTranscript,
   extractConversationText,
   generateSummary,

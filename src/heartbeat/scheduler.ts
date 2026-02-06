@@ -7,6 +7,7 @@ import { getJsonConfig } from "../config/index.js";
 import { executeHeartbeat } from "./executor.js";
 import { getLastActiveChatId } from "../daemon/gateway.js";
 import { getPairingStore } from "../pairing/index.js";
+import { getMostRecentChatId } from "../memory/conversations.js";
 import { createChildLogger } from "../utils/index.js";
 
 const log = createChildLogger("heartbeat");
@@ -69,10 +70,11 @@ async function tick(): Promise<void> {
     return;
   }
 
-  // Resolve target chat: config override → last active → first approved
+  // Resolve target chat: config → in-memory last active → DB last active → first approved
   const targetChatId =
     config.heartbeat.chatId ??
     getLastActiveChatId() ??
+    getMostRecentChatId() ??
     getPairingStore().listApproved()[0]?.chatId ??
     null;
 
