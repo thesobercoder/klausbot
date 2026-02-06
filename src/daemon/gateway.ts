@@ -39,6 +39,7 @@ import {
   runMigrations,
   getOrchestrationInstructions,
   storeConversation,
+  buildConversationContext,
 } from "../memory/index.js";
 import {
   needsBootstrap,
@@ -836,6 +837,24 @@ Current chat ID: ${msg.chatId}
 Use this chatId when creating cron jobs or background tasks.
 </session-context>`;
 
+      // Conversation history injection
+      let conversationContext = "";
+      try {
+        conversationContext = buildConversationContext(msg.chatId);
+        if (conversationContext) {
+          log.debug(
+            { chatId: msg.chatId, contextLength: conversationContext.length },
+            "Injected conversation context",
+          );
+        }
+      } catch (err) {
+        log.warn(
+          { err, chatId: msg.chatId },
+          "Failed to build conversation context",
+        );
+        // Non-fatal: continue without history
+      }
+
       // Heartbeat note collection
       let noteInstructions = "";
       if (shouldCollectNote(effectiveText)) {
@@ -851,7 +870,10 @@ Use this chatId when creating cron jobs or background tasks.
       }
 
       additionalInstructions =
-        chatIdContext + noteInstructions + orchestrationInstructions;
+        chatIdContext +
+        conversationContext +
+        noteInstructions +
+        orchestrationInstructions;
     }
 
     // Check streaming
