@@ -5,7 +5,6 @@
 
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { queryClaudeCode } from "../daemon/spawner.js";
-import { getPairingStore } from "../pairing/index.js";
 import { getHomePath } from "../memory/index.js";
 import { createChildLogger, markdownToTelegramHtml } from "../utils/index.js";
 
@@ -87,11 +86,13 @@ You have full tool access. Take actions, don't just report.
 /**
  * Execute heartbeat check
  * - Reads HEARTBEAT.md (auto-creates if missing)
- * - Invokes Claude with heartbeat prompt
+ * - Invokes Claude with heartbeat prompt + per-chat context
  * - Suppresses HEARTBEAT_OK response
- * - Sends non-OK responses to all approved users
+ * - Sends non-OK responses to target chat
  */
-export async function executeHeartbeat(): Promise<HeartbeatResult> {
+export async function executeHeartbeat(
+  targetChatId: number,
+): Promise<HeartbeatResult> {
   log.info("Starting heartbeat check");
 
   // Ensure HEARTBEAT.md exists
@@ -105,9 +106,10 @@ export async function executeHeartbeat(): Promise<HeartbeatResult> {
   const prompt = buildHeartbeatPrompt(heartbeatContent);
 
   try {
-    // Invoke Claude with timeout
+    // Invoke Claude with timeout + per-chat conversation context
     const response = await queryClaudeCode(prompt, {
       timeout: HEARTBEAT_TIMEOUT,
+      chatId: targetChatId,
     });
 
     const result = response.result.trim();
@@ -118,38 +120,26 @@ export async function executeHeartbeat(): Promise<HeartbeatResult> {
       return { ok: true, suppressed: true };
     }
 
-    // Non-OK response - send to all approved users
+    // Non-OK response - send to target chat
     log.info(
-      { responseLength: result.length },
+      { responseLength: result.length, targetChatId },
       "Heartbeat has items to report",
     );
 
     // Get bot instance dynamically (avoid circular import)
     const { bot } = await import("../telegram/index.js");
 
-    // Get all approved users
-    const store = getPairingStore();
-    const approved = store.listApproved();
-
-    if (approved.length === 0) {
-      log.warn("No approved users to send heartbeat to");
-      return { ok: true, suppressed: false, response: result };
-    }
-
     // Format message with [Heartbeat] prefix
     const message = `[Heartbeat]\n${markdownToTelegramHtml(result)}`;
 
-    // Send to each approved user
-    for (const user of approved) {
-      try {
-        await bot.api.sendMessage(user.chatId, message, { parse_mode: "HTML" });
-        log.debug({ chatId: user.chatId }, "Sent heartbeat to user");
-      } catch (err) {
-        log.error(
-          { err, chatId: user.chatId },
-          "Failed to send heartbeat to user",
-        );
-      }
+    try {
+      await bot.api.sendMessage(targetChatId, message, { parse_mode: "HTML" });
+      log.debug({ chatId: targetChatId }, "Sent heartbeat to target chat");
+    } catch (err) {
+      log.error(
+        { err, chatId: targetChatId },
+        "Failed to send heartbeat to target chat",
+      );
     }
 
     return { ok: true, suppressed: false, response: result };
@@ -157,24 +147,15 @@ export async function executeHeartbeat(): Promise<HeartbeatResult> {
     const errorMsg = err instanceof Error ? err.message : String(err);
     log.error({ err }, "Heartbeat execution failed");
 
-    // Notify users of failure (per CONTEXT.md)
+    // Notify target chat of failure (per CONTEXT.md)
     try {
       const { bot } = await import("../telegram/index.js");
-      const store = getPairingStore();
-      const approved = store.listApproved();
-
-      for (const user of approved) {
-        try {
-          await bot.api.sendMessage(
-            user.chatId,
-            `Heartbeat check failed: ${errorMsg}`,
-          );
-        } catch {
-          // Ignore send errors
-        }
-      }
+      await bot.api.sendMessage(
+        targetChatId,
+        `Heartbeat check failed: ${errorMsg}`,
+      );
     } catch {
-      // Ignore import/send errors
+      // Ignore send errors
     }
 
     return { ok: false, suppressed: false, error: errorMsg };

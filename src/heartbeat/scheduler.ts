@@ -5,6 +5,8 @@
 
 import { getJsonConfig } from "../config/index.js";
 import { executeHeartbeat } from "./executor.js";
+import { getLastActiveChatId } from "../daemon/gateway.js";
+import { getPairingStore } from "../pairing/index.js";
 import { createChildLogger } from "../utils/index.js";
 
 const log = createChildLogger("heartbeat");
@@ -67,9 +69,25 @@ async function tick(): Promise<void> {
     return;
   }
 
+  // Resolve target chat: config override → last active → first approved
+  const targetChatId =
+    config.heartbeat.chatId ??
+    getLastActiveChatId() ??
+    getPairingStore().listApproved()[0]?.chatId ??
+    null;
+
+  if (targetChatId === null) {
+    log.warn(
+      "No target chat for heartbeat (no config, no activity, no approved chats)",
+    );
+    return;
+  }
+
+  log.debug({ targetChatId }, "Resolved heartbeat target");
+
   isExecuting = true;
   try {
-    await executeHeartbeat();
+    await executeHeartbeat(targetChatId);
   } catch (err) {
     log.error({ err }, "Heartbeat tick error");
   } finally {
