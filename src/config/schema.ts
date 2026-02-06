@@ -68,6 +68,8 @@ export const jsonConfigSchema = z
         enabled: z.boolean().default(true),
         /** Interval between checks in ms (min 60000, default 1800000 = 30 min) */
         intervalMs: z.number().min(60000).default(1800000),
+        /** Explicit target chatId override (when unset, uses last active chat) */
+        chatId: z.number().optional(),
       })
       .default({ enabled: true, intervalMs: 1800000 }),
     /** Background agent orchestration configuration */
