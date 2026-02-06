@@ -74,6 +74,14 @@ let isProcessing = false;
 let shouldStop = false;
 let stopTaskWatcher: (() => void) | null = null;
 
+/** Most recently active chat — used by heartbeat for target resolution */
+let lastActiveChatId: number | null = null;
+
+/** Get the most recently active chatId (null if no messages received yet) */
+export function getLastActiveChatId(): number | null {
+  return lastActiveChatId;
+}
+
 /** Bot instance (loaded dynamically after config validation) */
 let bot: Awaited<typeof import("../telegram/index.js")>["bot"];
 
@@ -778,6 +786,7 @@ async function processQueue(): Promise<void> {
  * Process a single queued message
  */
 async function processMessage(msg: QueuedMessage): Promise<void> {
+  lastActiveChatId = msg.chatId;
   const startTime = Date.now();
 
   // Send typing indicator continuously while processing
