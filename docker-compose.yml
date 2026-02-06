@@ -3,8 +3,5 @@ services:
     build: .
     env_file: .env
     volumes:
-      - klausbot-data:/home/klausbot/.klausbot
+      - ./data:/home/klausbot/.klausbot
     restart: unless-stopped
-
-volumes:
-  klausbot-data:

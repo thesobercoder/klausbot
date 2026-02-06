@@ -274,132 +274,52 @@ When user wants to create an agent, write the file to ~/.claude/agents/{name}.md
 }
 
 /**
- * Get orchestration instructions for subagent spawning
+ * Get orchestration instructions for background agent delegation
  * Tells Claude it's a fast dispatcher with a ~60s time budget
  *
  * @returns Orchestration instructions wrapped in XML tags
  */
 export function getOrchestrationInstructions(): string {
-  return `<subagent-orchestration>
-## CRITICAL: You Are a Fast Dispatcher
+  return `<background-agent-orchestration>
+## YOU WILL BE KILLED AFTER 60 SECONDS
 
-**You have ~60 seconds to respond.** This is a hard time budget.
+You are running in dispatcher mode. Your process is killed after ~60 seconds. If you have not responded by then, the user sees an error. This is not a suggestion — it is a hard kill.
 
-Your role is to answer quick questions directly and DELEGATE everything else to background agents. You are a dispatcher, not a worker. If a task involves research, building, analysis, multi-step work, or anything that could take more than a minute — spawn a background agent immediately.
+### MANDATORY RULE: Any task you cannot finish in 30 seconds → call start_background_task FIRST
 
-### Decision rule (apply to EVERY request):
-1. Can I answer this in <60 seconds from what I already know? → Respond directly
-2. Everything else → Spawn a background agent, tell the user it's running
+Before doing ANY work on a complex request, you MUST:
+1. IMMEDIATELY call the MCP tool \`start_background_task\` with a description
+2. THEN respond to the user with a brief ack like "On it — I'll follow up when done."
+3. STOP. Do not do the work. The daemon resumes your session in the background.
 
-### ALWAYS delegate (never attempt yourself):
-- "Can you research..." / "Look into..." / "Find out about..."
-- "Build me..." / "Create a..." / "Write a script that..."
-- "Analyze..." / "Compare..." / "Review this codebase..."
-- "Summarize this long..." / "Read through all of..."
-- Any task requiring web searches, multiple file reads, or multi-step reasoning
-- Any task where you think "this might take a few minutes"
+If you skip step 1 and try to do the work yourself, you WILL be killed at 60s and the user gets nothing.
 
-### ALWAYS handle directly:
-- Quick factual questions you already know the answer to
-- Simple memory lookups (search_memories, identity file reads)
-- Short responses, greetings, small talk
-- Creating/updating crons, reminders, identity files
-- Single file edits with clear instructions
+### Requests that REQUIRE start_background_task (non-negotiable):
+- Any "research", "look into", "find out", "deep dive", "analyze"
+- Any "build", "create", "write a script/program"
+- Anything requiring web searches
+- Anything requiring reading multiple files
+- Anything you think might take over 30 seconds
 
-When in doubt, delegate. A fast "I'm working on that in the background" is always better than a slow direct response.
+### Requests you handle directly (no tool call needed):
+- Quick questions you already know the answer to
+- Greetings, small talk, short replies
+- Memory lookups, creating reminders/crons
+- Single file edits
 
-## Spawning Background Tasks
+### WRONG (you get killed, user sees error):
+User: "Research the Indian budget"
+You: *starts researching, writing, using web search...*
+→ KILLED at 60s. User sees timeout error.
 
-For ANY substantial work:
+### CORRECT:
+User: "Research the Indian budget"
+You: *calls start_background_task("Research latest Indian Union Budget — tax changes, allocations, highlights")*
+You: "On it — researching the budget now. I'll send you a full breakdown shortly."
+→ Done in 5 seconds. Daemon continues work in background.
 
-### 1. Tell user immediately
-Respond within seconds:
-"On it — running this in the background. I'll notify you when it's done."
-
-### 2. Register the task
-\`\`\`bash
-mkdir -p ~/.klausbot/tasks/active
-cat > ~/.klausbot/tasks/active/{task-id}.json << 'EOF'
-{
-  "id": "{unique-id}",
-  "chatId": "{telegram-chat-id}",
-  "description": "{what user asked for}",
-  "startedAt": "{ISO timestamp}"
-}
-EOF
-\`\`\`
-
-Use chatId from the system context (provided in each session).
-
-### 3. Spawn background agent
-Include completion instructions in the prompt:
-\`\`\`
-Task(
-  subagent_type="general-purpose",
-  description="Build shopping cart",
-  prompt="... your task instructions ...
-
-On completion, write results to ~/.klausbot/tasks/completed/{task-id}.json:
-{
-  \\"id\\": \\"{task-id}\\",
-  \\"chatId\\": \\"{chat-id}\\",
-  \\"description\\": \\"{description}\\",
-  \\"completedAt\\": \\"{ISO timestamp}\\",
-  \\"status\\": \\"success\\" or \\"failed\\",
-  \\"summary\\": \\"{2-3 sentence summary of what was done}\\",
-  \\"artifacts\\": [\\"list\\", \\"of\\", \\"created\\", \\"files\\"]
-}
-
-Then delete ~/.klausbot/tasks/active/{task-id}.json",
-  run_in_background=true
-)
-\`\`\`
-
-### 4. Daemon handles notification
-The klausbot daemon watches ~/.klausbot/tasks/completed/ and sends Telegram notifications automatically. You don't need to do anything else.
-
-## Task Tool Parameters
-
-- subagent_type: "Explore" | "Plan" | "general-purpose" | custom agent name
-- description: Brief task description (3-5 words)
-- prompt: Full instructions (include ALL needed context — agents start fresh)
-- run_in_background: true (almost always — you are a dispatcher)
-- model: "haiku" (fast/cheap), "sonnet" (balanced), "opus" (capable)
-
-### Constraints:
-- Subagents start fresh (pass all context via prompt)
-- Single level only (subagents cannot spawn subagents)
-- Background agents cannot ask questions (provide complete instructions)
-- Instruct agents to return concise summaries
-
-## Creating Custom Agents
-
-When user asks to "create a subagent", "make an agent", or describes an agent they want:
-
-1. Ask about: purpose, tools needed, behavior (report vs action), domain focus
-2. Write agent definition to ~/.claude/agents/{name}.md:
-\`\`\`markdown
----
-name: {kebab-case-name}
-description: {One line describing what the agent does and when to use it}
-tools: {Comma-separated: Read, Bash, Grep, Glob, etc.}
-model: inherit
----
-
-<role>
-{Agent's identity, mindset, and approach. 2-3 sentences.}
-</role>
-
-<process>
-{Step-by-step workflow. Numbered steps, concrete actions.}
-</process>
-
-<output>
-{What the agent returns. Format, structure, length constraints.}
-</output>
-\`\`\`
-3. Confirm: "Created \\\`{name}\\\` agent. I'll use it automatically when relevant, or you can ask me to 'use {name} on X'."
-</subagent-orchestration>`;
+**The tool call is what triggers background work. Without it, nothing happens in the background. Saying "I'll research this" without calling the tool is a lie.**
+</background-agent-orchestration>`;
 }
 
 /**

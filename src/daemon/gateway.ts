@@ -1,10 +1,17 @@
+import { randomUUID } from "crypto";
 import type { MyContext } from "../telegram/index.js";
 import {
   streamToTelegram,
   canStreamToChat,
   type StreamConfig,
 } from "../telegram/index.js";
-import { MessageQueue, queryClaudeCode, ensureDataDir } from "./index.js";
+import {
+  MessageQueue,
+  queryClaudeCode,
+  ensureDataDir,
+  spawnBackgroundAgent,
+  type ToolUseEntry,
+} from "./index.js";
 import { getJsonConfig } from "../config/index.js";
 import type { QueuedMessage, ThreadingContext } from "./queue.js";
 import {
@@ -20,6 +27,7 @@ import {
   createChildLogger,
   sendLongMessage,
   markdownToTelegramHtml,
+  splitTelegramMessage,
 } from "../utils/index.js";
 import { autoCommitChanges } from "../utils/git.js";
 import {
@@ -30,6 +38,7 @@ import {
   invalidateIdentityCache,
   runMigrations,
   getOrchestrationInstructions,
+  storeConversation,
 } from "../memory/index.js";
 import {
   needsBootstrap,
@@ -198,6 +207,34 @@ function buildPromptWithMedia(text: string, media: MediaAttachment[]): string {
 }
 
 /**
+ * Check if Claude called start_background_task and spawn a background agent.
+ * Scans toolUse entries for the MCP tool call and extracts description.
+ */
+function maybeSpawnBackgroundAgent(
+  toolUse: ToolUseEntry[] | undefined,
+  sessionId: string,
+  chatId: number,
+  model?: string,
+): void {
+  if (!toolUse) return;
+
+  const bgTool = toolUse.find(
+    (t) => t.name === "mcp__klausbot__start_background_task",
+  );
+  if (!bgTool) return;
+
+  const description = (bgTool.input.description as string) ?? "Background task";
+  const taskId = randomUUID();
+
+  log.info(
+    { taskId, sessionId, chatId, description },
+    "Spawning background agent from tool call",
+  );
+
+  spawnBackgroundAgent({ sessionId, chatId, taskId, description, model });
+}
+
+/**
  * Start the gateway daemon
  * Initializes all components and begins processing
  */
@@ -264,7 +301,50 @@ export async function startGateway(): Promise<void> {
   // Initialize background task watcher
   stopTaskWatcher = startTaskWatcher({
     sendMessage: async (chatId: string, text: string) => {
-      await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
+      try {
+        await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
+      } catch {
+        // HTML parse failed — strip tags and send as plain text
+        await bot.api.sendMessage(chatId, text.replace(/<[^>]*>/g, ""));
+      }
+    },
+    onNotified: async (task) => {
+      const transcript = [
+        JSON.stringify({
+          type: "user",
+          message: {
+            role: "user",
+            content: [
+              { type: "text", text: `[Background task] ${task.description}` },
+            ],
+          },
+          timestamp: task.startedAt,
+        }),
+        JSON.stringify({
+          type: "assistant",
+          message: {
+            role: "assistant",
+            content: [
+              { type: "text", text: task.summary || "Task completed." },
+            ],
+          },
+          timestamp: task.completedAt || new Date().toISOString(),
+        }),
+      ].join("\n");
+
+      const summary =
+        `Background task: ${task.description}` +
+        (task.summary ? ` — ${task.summary.slice(0, 150)}` : "");
+
+      storeConversation({
+        sessionId: `bg-task-${task.id}`,
+        startedAt: task.startedAt,
+        endedAt: task.completedAt || new Date().toISOString(),
+        transcript,
+        summary: summary.slice(0, 300),
+        messageCount: 2,
+        chatId: Number(task.chatId),
+      });
     },
   });
   log.info("Background task watcher initialized");
@@ -608,21 +688,53 @@ export async function stopGateway(): Promise<void> {
 }
 
 /**
- * Retry once when Claude returns empty text (file-only operations).
- * Uses batch mode with a short nudge prompt — no tools, no subagents.
+ * Summarize tool-use entries for retry context.
+ * e.g. "Wrote to USER.md, Called search_memories"
  */
-async function retryForText(
+function summarizeToolUse(toolUse: ToolUseEntry[]): string {
+  return toolUse
+    .map((t) => {
+      // Extract meaningful context from common tools
+      if (t.name === "Write" || t.name === "Edit") {
+        const filePath = (t.input.file_path as string) ?? "a file";
+        const fileName = filePath.split("/").pop() ?? filePath;
+        return `Updated ${fileName}`;
+      }
+      if (t.name === "Read") {
+        const filePath = (t.input.file_path as string) ?? "a file";
+        const fileName = filePath.split("/").pop() ?? filePath;
+        return `Read ${fileName}`;
+      }
+      return `Used ${t.name}`;
+    })
+    .join(", ");
+}
+
+/**
+ * Retry with Claude when primary call returned empty text but performed tool-use.
+ * Passes tool-use context so Claude can acknowledge what it did naturally.
+ * Uses short timeout and no additional instructions to minimize tool-use risk.
+ */
+async function retryWithToolContext(
   originalPrompt: string,
-  additionalInstructions: string,
+  toolUse: ToolUseEntry[],
   model?: string,
 ): Promise<string | null> {
-  log.warn("Empty response, retrying with text nudge");
+  const summary = summarizeToolUse(toolUse);
+  log.warn(
+    { toolUseSummary: summary },
+    "Empty response, retrying with tool-use context",
+  );
+
   try {
-    const nudge = `You just processed this message but only updated files without responding. The user is waiting for a reply. Respond naturally to: "${originalPrompt}"`;
+    const nudge =
+      `You just handled a user message and performed these actions: ${summary}\n` +
+      `But you forgot to reply with text. The user said: "${originalPrompt}"\n\n` +
+      `Now respond naturally in 1-2 sentences acknowledging what you did. Be casual and warm.`;
+
     const retry = await queryClaudeCode(nudge, {
-      additionalInstructions,
       model,
-      timeout: 30000,
+      timeout: 15000,
     });
     if (retry.result) {
       log.info({ resultLength: retry.result.length }, "Retry produced text");
@@ -714,11 +826,8 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
     // Build additional instructions (skip everything during bootstrap — BOOTSTRAP.md is the system prompt)
     let additionalInstructions = "";
     const jsonConfig = getJsonConfig();
-    const subagentsEnabled =
+    const backgroundAgentsEnabled =
       !isBootstrap && (jsonConfig.subagents?.enabled ?? true);
-    const subagentsPrefix =
-      jsonConfig.subagents?.taskListIdPrefix ?? "klausbot";
-    let taskListId: string | undefined;
 
     if (!isBootstrap) {
       // Chat ID context for cron and background tasks
@@ -735,13 +844,9 @@ Use this chatId when creating cron jobs or background tasks.
         log.info({ chatId: msg.chatId }, "Heartbeat note collection triggered");
       }
 
-      // Subagent orchestration
-      taskListId = subagentsEnabled
-        ? `${subagentsPrefix}-${msg.chatId}-${Date.now()}`
-        : undefined;
-
+      // Background agent orchestration
       let orchestrationInstructions = "";
-      if (subagentsEnabled) {
+      if (backgroundAgentsEnabled) {
         orchestrationInstructions = "\n\n" + getOrchestrationInstructions();
       }
 
@@ -774,8 +879,6 @@ Use this chatId when creating cron jobs or background tasks.
             model: jsonConfig.model,
             additionalInstructions,
             messageThreadId: msg.threading?.messageThreadId,
-            enableSubagents: subagentsEnabled,
-            taskListId,
             chatId: msg.chatId,
           },
         );
@@ -783,17 +886,27 @@ Use this chatId when creating cron jobs or background tasks.
         // Stop typing indicator
         clearInterval(typingInterval);
 
+        // Check for background task delegation
+        if (backgroundAgentsEnabled) {
+          maybeSpawnBackgroundAgent(
+            streamResult.toolUse,
+            streamResult.session_id,
+            msg.chatId,
+            jsonConfig.model,
+          );
+        }
+
         // Mark as complete
         queue.complete(msg.id);
 
         // Send final message (replaces draft in UI)
         if (streamResult.result) {
           await splitAndSend(msg.chatId, streamResult.result, msg.threading);
-        } else {
-          // Empty response — retry via batch with explicit nudge
-          const retryResult = await retryForText(
+        } else if (streamResult.toolUse && streamResult.toolUse.length > 0) {
+          // Empty text but tool-use happened — retry with context
+          const retryResult = await retryWithToolContext(
             effectiveText,
-            additionalInstructions,
+            streamResult.toolUse,
             jsonConfig.model,
           );
           if (retryResult) {
@@ -806,6 +919,13 @@ Use this chatId when creating cron jobs or background tasks.
                 : undefined,
             });
           }
+        } else {
+          await bot.api.sendMessage(msg.chatId, "[Empty response]", {
+            message_thread_id: msg.threading?.messageThreadId,
+            reply_parameters: msg.threading?.replyToMessageId
+              ? { message_id: msg.threading.replyToMessageId }
+              : undefined,
+          });
         }
 
         // Invalidate identity cache
@@ -854,13 +974,21 @@ Use this chatId when creating cron jobs or background tasks.
     const response = await queryClaudeCode(effectiveText, {
       additionalInstructions,
       model: jsonConfig.model,
-      enableSubagents: subagentsEnabled,
-      taskListId,
       chatId: msg.chatId,
     });
 
     // Stop typing indicator
     clearInterval(typingInterval);
+
+    // Check for background task delegation
+    if (backgroundAgentsEnabled) {
+      maybeSpawnBackgroundAgent(
+        response.toolUse,
+        response.session_id,
+        msg.chatId,
+        jsonConfig.model,
+      );
+    }
 
     // Mark as complete
     queue.complete(msg.id);
@@ -892,11 +1020,11 @@ Use this chatId when creating cron jobs or background tasks.
           { chatId: msg.chatId, chunks: messages },
           "Sent response chunks",
         );
-      } else {
-        // Empty response — retry with explicit nudge
-        const retryResult = await retryForText(
+      } else if (response.toolUse && response.toolUse.length > 0) {
+        // Empty text but tool-use happened — retry with context
+        const retryResult = await retryWithToolContext(
           effectiveText,
-          additionalInstructions,
+          response.toolUse,
           jsonConfig.model,
         );
         if (retryResult) {
@@ -909,6 +1037,13 @@ Use this chatId when creating cron jobs or background tasks.
               : undefined,
           });
         }
+      } else {
+        await bot.api.sendMessage(msg.chatId, "[Empty response]", {
+          message_thread_id: msg.threading?.messageThreadId,
+          reply_parameters: msg.threading?.replyToMessageId
+            ? { message_id: msg.threading.replyToMessageId }
+            : undefined,
+        });
       }
 
       // Notify user of non-fatal media errors
@@ -979,36 +1114,10 @@ async function splitAndSend(
   threading?: ThreadingContext,
 ): Promise<number> {
   const MAX_LENGTH = 4096;
-  const chunks: string[] = [];
 
-  // Convert Markdown to Telegram HTML
+  // Convert Markdown to Telegram HTML, then split
   const html = markdownToTelegramHtml(text);
-
-  let remaining = html;
-  while (remaining.length > 0) {
-    if (remaining.length <= MAX_LENGTH) {
-      chunks.push(remaining);
-      break;
-    }
-
-    // Try to split at paragraph boundary (double newline)
-    let splitPoint = remaining.lastIndexOf("\n\n", MAX_LENGTH);
-    if (splitPoint === -1 || splitPoint < MAX_LENGTH * 0.3) {
-      // Try sentence boundary
-      splitPoint = remaining.lastIndexOf(". ", MAX_LENGTH);
-    }
-    if (splitPoint === -1 || splitPoint < MAX_LENGTH * 0.3) {
-      // Try word boundary
-      splitPoint = remaining.lastIndexOf(" ", MAX_LENGTH);
-    }
-    if (splitPoint === -1 || splitPoint < MAX_LENGTH * 0.3) {
-      // Hard split
-      splitPoint = MAX_LENGTH;
-    }
-
-    chunks.push(remaining.slice(0, splitPoint + 1));
-    remaining = remaining.slice(splitPoint + 1);
-  }
+  const chunks = splitTelegramMessage(html, MAX_LENGTH);
 
   // Send chunks with delay, using HTML parse mode
   for (let i = 0; i < chunks.length; i++) {

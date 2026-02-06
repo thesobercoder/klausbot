@@ -9,7 +9,12 @@ import fs from "fs";
 import path from "path";
 
 import { KLAUSBOT_HOME } from "../memory/home.js";
-import { createChildLogger } from "../utils/index.js";
+import {
+  createChildLogger,
+  markdownToTelegramHtml,
+  escapeHtml,
+  splitTelegramMessage,
+} from "../utils/index.js";
 
 const logger = createChildLogger("task-watcher");
 
@@ -38,6 +43,8 @@ export interface TaskWatcherOptions {
   pollInterval?: number;
   /** Function to send Telegram message */
   sendMessage: (chatId: string, text: string) => Promise<void>;
+  /** Called after successful notification — use for conversation history storage */
+  onNotified?: (task: BackgroundTask) => Promise<void>;
 }
 
 /**
@@ -52,40 +59,33 @@ function ensureDirectories(): void {
 /**
  * Format task completion message for Telegram
  */
-function formatCompletionMessage(task: BackgroundTask): string {
+/** Telegram message length limit */
+const MAX_MESSAGE_LENGTH = 4096;
+
+function formatCompletionMessage(task: BackgroundTask): string[] {
   const statusEmoji = task.status === "success" ? "✓" : "✗";
-  const lines: string[] = [];
+  const header =
+    `${statusEmoji} <b>Background task complete</b>\n\n` +
+    `<b>Task:</b> ${escapeHtml(task.description)}`;
 
-  lines.push(`${statusEmoji} <b>Background task complete</b>`);
-  lines.push("");
-  lines.push(`<b>Task:</b> ${escapeHtml(task.description)}`);
-
-  if (task.summary) {
-    lines.push("");
-    lines.push(escapeHtml(task.summary));
-  }
-
+  const footer: string[] = [];
   if (task.artifacts && task.artifacts.length > 0) {
-    lines.push("");
-    lines.push(`<b>Created:</b> ${task.artifacts.length} files`);
+    footer.push(`<b>Created:</b> ${task.artifacts.length} files`);
   }
-
   if (task.error) {
-    lines.push("");
-    lines.push(`<b>Error:</b> ${escapeHtml(task.error)}`);
+    footer.push(`<b>Error:</b> ${escapeHtml(task.error)}`);
+  }
+  const footerText = footer.length > 0 ? "\n\n" + footer.join("\n") : "";
+
+  if (!task.summary) {
+    return [header + footerText];
   }
 
-  return lines.join("\n");
-}
+  // Convert markdown summary to Telegram HTML
+  const summaryHtml = markdownToTelegramHtml(task.summary);
+  const fullMessage = header + "\n\n" + summaryHtml + footerText;
 
-/**
- * Escape HTML special characters for Telegram
- */
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return splitTelegramMessage(fullMessage, MAX_MESSAGE_LENGTH);
 }
 
 /**
@@ -94,6 +94,7 @@ function escapeHtml(text: string): string {
 async function processCompletedTask(
   filePath: string,
   sendMessage: (chatId: string, text: string) => Promise<void>,
+  onNotified?: (task: BackgroundTask) => Promise<void>,
 ): Promise<boolean> {
   const filename = path.basename(filePath);
 
@@ -108,12 +109,27 @@ async function processCompletedTask(
       return false;
     }
 
-    // Send notification
-    const message = formatCompletionMessage(task);
-    await sendMessage(task.chatId, message);
+    // Send notification (may be split across multiple messages)
+    const messages = formatCompletionMessage(task);
+    for (const message of messages) {
+      await sendMessage(task.chatId, message);
+    }
 
     // Move to notified directory
     fs.renameSync(filePath, path.join(NOTIFIED_DIR, filename));
+
+    // Store conversation history
+    if (onNotified) {
+      try {
+        await onNotified(task);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.warn(
+          { taskId: task.id, err: msg },
+          "onNotified callback failed",
+        );
+      }
+    }
 
     logger.info(
       { taskId: task.id, chatId: task.chatId, status: task.status },
@@ -145,6 +161,7 @@ async function processCompletedTask(
  */
 async function pollCompletedTasks(
   sendMessage: (chatId: string, text: string) => Promise<void>,
+  onNotified?: (task: BackgroundTask) => Promise<void>,
 ): Promise<number> {
   ensureDirectories();
 
@@ -157,7 +174,11 @@ async function pollCompletedTasks(
 
     for (const file of files) {
       const filePath = path.join(COMPLETED_DIR, file);
-      const success = await processCompletedTask(filePath, sendMessage);
+      const success = await processCompletedTask(
+        filePath,
+        sendMessage,
+        onNotified,
+      );
       if (success) processed++;
     }
   } catch (err) {
@@ -184,7 +205,10 @@ export function startTaskWatcher(options: TaskWatcherOptions): () => void {
   const poll = async () => {
     if (!running) return;
 
-    const processed = await pollCompletedTasks(options.sendMessage);
+    const processed = await pollCompletedTasks(
+      options.sendMessage,
+      options.onNotified,
+    );
     if (processed > 0) {
       logger.debug({ processed }, "Processed completed tasks");
     }

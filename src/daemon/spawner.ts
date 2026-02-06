@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import { createInterface } from "readline";
 import { writeFileSync } from "fs";
 import os from "os";
 import path from "path";
@@ -101,6 +102,12 @@ export function writeMcpConfigFile(): string {
   return configPath;
 }
 
+/** Tool use entry captured from stream events */
+export interface ToolUseEntry {
+  name: string;
+  input: Record<string, unknown>;
+}
+
 /** Claude Code response structure */
 export interface ClaudeResponse {
   /** Response text from Claude */
@@ -113,6 +120,8 @@ export interface ClaudeResponse {
   duration_ms: number;
   /** Whether the response is an error */
   is_error: boolean;
+  /** Tool uses performed during the session (captured from stream events) */
+  toolUse?: ToolUseEntry[];
 }
 
 /** Options for spawning Claude Code */
@@ -123,10 +132,6 @@ export interface SpawnerOptions {
   model?: string;
   /** Additional instructions appended to system prompt (for bootstrap mode) */
   additionalInstructions?: string;
-  /** Enable Task tool for subagent spawning (default: false) */
-  enableSubagents?: boolean;
-  /** Task list ID for multi-session coordination */
-  taskListId?: string;
   /** Telegram chat ID — propagated to hooks/MCP for per-chat memory isolation */
   chatId?: number;
 }
@@ -184,15 +189,19 @@ export async function queryClaudeCode(
 
     // Wrap user prompt in XML tags for security
     // Prevents shell injection and prompt injection from Telegram input
-    const wrappedPrompt = `<user_message>\n${prompt}\n</user_message>`;
+    // The reminder after </user_message> ensures Claude always outputs text
+    // even when performing tool-use (file writes, memory updates, etc.)
+    const wrappedPrompt = `<user_message>\n${prompt}\n</user_message>\n<reminder>You MUST include a conversational text response. If you performed any actions (file writes, memory updates, etc.), acknowledge them naturally. NEVER return empty.</reminder>`;
 
     // Build command arguments
+    // Use stream-json to capture tool-use events (needed for empty-response context)
     const args = [
       "--dangerously-skip-permissions",
       "-p",
       wrappedPrompt,
       "--output-format",
-      "json",
+      "stream-json",
+      "--verbose",
       "--append-system-prompt",
       systemPrompt,
       "--mcp-config",
@@ -204,18 +213,13 @@ export async function queryClaudeCode(
       args.push("--model", options.model);
     }
 
-    // Enable Task tool if requested (for subagent orchestration)
-    if (options.enableSubagents) {
-      args.push("--allowedTools", "Task");
-    }
+    // Block Task tool — background work uses --resume via daemon
+    args.push("--disallowedTools", "Task,TaskOutput");
 
     logger.debug({ hooksConfig: hooksSettings }, "Hook configuration");
 
-    // Build environment with optional task list ID and chat ID
+    // Build environment with chat ID
     const env = { ...process.env };
-    if (options.taskListId) {
-      env.CLAUDE_CODE_TASK_LIST_ID = options.taskListId;
-    }
     if (options.chatId !== undefined) {
       env.KLAUSBOT_CHAT_ID = String(options.chatId);
     }
@@ -227,9 +231,19 @@ export async function queryClaudeCode(
       env,
     });
 
-    let stdout = "";
     let stderr = "";
     let timedOut = false;
+
+    // NDJSON stream state
+    let accumulated = "";
+    let costUsd = 0;
+    let sessionId = "";
+    let isError = false;
+    const toolUseEntries: ToolUseEntry[] = [];
+
+    // Track current tool_use content block being built
+    let currentToolName = "";
+    let currentToolInput = "";
 
     // Set up timeout
     const timeoutId = setTimeout(() => {
@@ -244,38 +258,112 @@ export async function queryClaudeCode(
       }, 5000);
     }, timeout);
 
-    // Collect stdout
-    claude.stdout.on("data", (data: Buffer) => {
-      stdout += data.toString();
+    // Parse NDJSON events from stream-json output
+    const rl = createInterface({ input: claude.stdout! });
+
+    rl.on("line", (line) => {
+      try {
+        const event = JSON.parse(line);
+
+        // Text delta — accumulate response text
+        if (event.type === "content_block_delta" && event.delta?.text) {
+          accumulated += event.delta.text;
+        }
+
+        // Tool use start — capture tool name
+        if (
+          event.type === "content_block_start" &&
+          event.content_block?.type === "tool_use"
+        ) {
+          currentToolName = event.content_block.name ?? "";
+          currentToolInput = "";
+        }
+
+        // Tool use input delta — accumulate JSON input
+        if (
+          event.type === "content_block_delta" &&
+          event.delta?.type === "input_json_delta"
+        ) {
+          currentToolInput += event.delta.partial_json ?? "";
+        }
+
+        // Tool use block end — save entry
+        if (event.type === "content_block_stop" && currentToolName) {
+          let parsedInput: Record<string, unknown> = {};
+          try {
+            parsedInput = JSON.parse(currentToolInput);
+          } catch {
+            // Partial or malformed input — store raw
+            parsedInput = { _raw: currentToolInput };
+          }
+          toolUseEntries.push({ name: currentToolName, input: parsedInput });
+          currentToolName = "";
+          currentToolInput = "";
+        }
+
+        // MCP tool calls arrive as "assistant" message events with tool_use content blocks
+        const eventAny = event as Record<string, unknown>;
+        if (
+          eventAny.type === "assistant" &&
+          (eventAny.message as Record<string, unknown>)?.content
+        ) {
+          const content = (eventAny.message as Record<string, unknown>)
+            .content as Array<{
+            type: string;
+            name?: string;
+            input?: Record<string, unknown>;
+          }>;
+          for (const block of content) {
+            if (block.type === "tool_use" && block.name) {
+              toolUseEntries.push({
+                name: block.name,
+                input: block.input ?? {},
+              });
+            }
+          }
+        }
+
+        // Final result event — use authoritative values
+        if (event.type === "result") {
+          if (event.result !== undefined) accumulated = event.result;
+          // CLI v2.1+ uses total_cost_usd, older versions use cost_usd
+          const eventCost =
+            (event as Record<string, unknown>).total_cost_usd ?? event.cost_usd;
+          if (eventCost !== undefined) costUsd = eventCost as number;
+          if (event.session_id !== undefined) sessionId = event.session_id;
+          if (event.is_error !== undefined) isError = event.is_error;
+        }
+      } catch {
+        // Skip non-JSON lines
+      }
     });
 
     // Collect stderr
-    claude.stderr.on("data", (data: Buffer) => {
+    claude.stderr!.on("data", (data: Buffer) => {
       stderr += data.toString();
     });
 
-    // Handle process completion
+    // Single resolution point: process close
     claude.on("close", (code) => {
       clearTimeout(timeoutId);
       const duration_ms = Date.now() - startTime;
 
       // Handle timeout
       if (timedOut) {
-        // Attempt to recover response from Claude CLI transcript
         const recovered = handleTimeout(KLAUSBOT_HOME);
         if (recovered) {
           logger.info({ duration_ms }, "Recovered response from timeout");
           resolve({
             result: recovered,
-            cost_usd: 0, // Unknown cost for recovered response
+            cost_usd: 0,
             session_id: "recovered",
             duration_ms,
             is_error: false,
+            toolUse: toolUseEntries.length > 0 ? toolUseEntries : undefined,
           });
           return;
         }
 
-        // Original timeout error if recovery fails
         const timeoutSec = Math.round(timeout / 1000);
         const error = `Response timed out after ${timeoutSec}s — if a background task was started, you'll still be notified when it completes`;
         logger.error({ timeout, duration_ms }, "Claude timed out, no recovery");
@@ -293,42 +381,33 @@ export async function queryClaudeCode(
         return;
       }
 
-      // Parse JSON response
-      try {
-        const parsed = JSON.parse(stdout);
+      const response: ClaudeResponse = {
+        result: accumulated,
+        cost_usd: costUsd,
+        session_id: sessionId,
+        duration_ms,
+        is_error: isError,
+        toolUse: toolUseEntries.length > 0 ? toolUseEntries : undefined,
+      };
 
-        const response: ClaudeResponse = {
-          result: parsed.result ?? "",
-          cost_usd: parsed.cost_usd ?? 0,
-          session_id: parsed.session_id ?? "",
+      const truncatedResult =
+        response.result.length > 200
+          ? `${response.result.slice(0, 200)}...`
+          : response.result;
+      logger.info(
+        {
           duration_ms,
-          is_error: parsed.is_error ?? false,
-        };
+          cost_usd: response.cost_usd,
+          session_id: response.session_id,
+          is_error: response.is_error,
+          resultLength: response.result.length,
+          result: truncatedResult,
+          toolUseCount: toolUseEntries.length,
+        },
+        "Claude Code responded",
+      );
 
-        const truncatedResult =
-          response.result.length > 200
-            ? `${response.result.slice(0, 200)}...`
-            : response.result;
-        logger.info(
-          {
-            duration_ms,
-            cost_usd: response.cost_usd,
-            session_id: response.session_id,
-            is_error: response.is_error,
-            resultLength: response.result.length,
-            result: truncatedResult,
-          },
-          "Claude Code responded",
-        );
-
-        resolve(response);
-      } catch (parseErr) {
-        const stdoutTruncated =
-          stdout.length > 100 ? `${stdout.slice(0, 100)}...` : stdout;
-        const error = `Failed to parse Claude response: ${stdoutTruncated}`;
-        logger.error({ stdout: stdoutTruncated, duration_ms }, error);
-        reject(new Error(error));
-      }
+      resolve(response);
     });
 
     // Handle spawn errors (e.g., claude not found)

@@ -13,13 +13,21 @@ export {
   getHooksConfig,
   writeMcpConfigFile,
 } from "./spawner.js";
-export type { ClaudeResponse, SpawnerOptions } from "./spawner.js";
+export type {
+  ClaudeResponse,
+  SpawnerOptions,
+  ToolUseEntry,
+} from "./spawner.js";
 
 // Re-export transcript recovery for external use
 export { handleTimeout } from "./transcript.js";
 
 // Re-export gateway functions
 export { startGateway, stopGateway } from "./gateway.js";
+
+// Re-export background agent
+export { spawnBackgroundAgent } from "./background-agent.js";
+export type { BackgroundAgentOptions } from "./background-agent.js";
 
 // Re-export media types for consumers
 export type { MediaAttachment } from "../media/index.js";

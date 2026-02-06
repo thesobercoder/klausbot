@@ -45,7 +45,7 @@ export interface HeartbeatResult {
  * Get path to HEARTBEAT.md file
  */
 export function getHeartbeatPath(): string {
-  return getHomePath("HEARTBEAT.md");
+  return getHomePath("identity", "HEARTBEAT.md");
 }
 
 /**

@@ -3,7 +3,11 @@ import { createInterface } from "readline";
 import { Bot } from "grammy";
 import { createChildLogger } from "../utils/index.js";
 import { KLAUSBOT_HOME, buildSystemPrompt } from "../memory/index.js";
-import { writeMcpConfigFile, getHooksConfig } from "../daemon/index.js";
+import {
+  writeMcpConfigFile,
+  getHooksConfig,
+  type ToolUseEntry,
+} from "../daemon/index.js";
 
 const log = createChildLogger("streaming");
 
@@ -19,10 +23,21 @@ export interface StreamConfig {
 /** NDJSON event from Claude CLI stream-json output */
 interface StreamEvent {
   type: string;
-  delta?: { text?: string };
+  delta?: { text?: string; type?: string; partial_json?: string };
+  content_block?: { type?: string; name?: string };
+  /** Present in "assistant" message events — contains tool_use blocks for MCP calls */
+  message?: {
+    content?: Array<{
+      type: string;
+      name?: string;
+      input?: Record<string, unknown>;
+    }>;
+  };
   result?: string; // Present in final "result" event
-  cost_usd?: number; // Present in final "result" event
+  cost_usd?: number; // Present in final "result" event (older CLI versions)
+  total_cost_usd?: number; // Present in final "result" event (CLI v2.1+)
   session_id?: string; // Present in final "result" event
+  is_error?: boolean; // Present in final "result" event
 }
 
 /** Options for streaming Claude response */
@@ -30,10 +45,6 @@ export interface StreamOptions {
   model?: string;
   additionalInstructions?: string;
   signal?: AbortSignal;
-  /** Enable Task tool for subagent spawning (default: false) */
-  enableSubagents?: boolean;
-  /** Task list ID for multi-session coordination */
-  taskListId?: string;
   /** Telegram chat ID — propagated to hooks/MCP for per-chat memory isolation */
   chatId?: number;
 }
@@ -42,6 +53,10 @@ export interface StreamOptions {
 export interface StreamResult {
   result: string;
   cost_usd: number;
+  /** Session ID for --resume */
+  session_id: string;
+  /** Tool uses performed during the session */
+  toolUse?: ToolUseEntry[];
 }
 
 /**
@@ -67,7 +82,8 @@ export async function streamClaudeResponse(
   }
 
   // Wrap prompt in XML tags for security (same as spawner.ts)
-  const wrappedPrompt = `<user_message>\n${prompt}\n</user_message>`;
+  // Reminder ensures text output even when tool-use occurs
+  const wrappedPrompt = `<user_message>\n${prompt}\n</user_message>\n<reminder>You MUST include a conversational text response. If you performed any actions (file writes, memory updates, etc.), acknowledge them naturally. NEVER return empty.</reminder>`;
 
   // Write MCP config and hooks settings (same as batch path)
   const mcpConfigPath = writeMcpConfigFile();
@@ -92,17 +108,12 @@ export async function streamClaudeResponse(
     args.push("--model", options.model);
   }
 
-  // Enable Task tool if requested (for subagent orchestration)
-  if (options.enableSubagents) {
-    args.push("--allowedTools", "Task");
-  }
+  // Block Task tool — background work uses --resume via daemon
+  args.push("--disallowedTools", "Task,TaskOutput");
 
   return new Promise((resolve, reject) => {
-    // Build environment with optional task list ID and chat ID
+    // Build environment with chat ID
     const env = { ...process.env };
-    if (options.taskListId) {
-      env.CLAUDE_CODE_TASK_LIST_ID = options.taskListId;
-    }
     if (options.chatId !== undefined) {
       env.KLAUSBOT_CHAT_ID = String(options.chatId);
     }
@@ -118,6 +129,11 @@ export async function streamClaudeResponse(
     let costUsd = 0;
     let sessionId = "";
     let timedOut = false;
+
+    // Tool-use tracking
+    const toolUseEntries: ToolUseEntry[] = [];
+    let currentToolName = "";
+    let currentToolInput = "";
 
     // Set up timeout (90s — fast dispatcher limit)
     const timeoutId = setTimeout(() => {
@@ -155,13 +171,57 @@ export async function streamClaudeResponse(
           onChunk(event.delta.text);
         }
 
+        // Tool use start — capture tool name
+        if (
+          event.type === "content_block_start" &&
+          event.content_block?.type === "tool_use"
+        ) {
+          currentToolName = event.content_block.name ?? "";
+          currentToolInput = "";
+        }
+
+        // Tool use input delta
+        if (
+          event.type === "content_block_delta" &&
+          event.delta?.type === "input_json_delta"
+        ) {
+          currentToolInput += event.delta.partial_json ?? "";
+        }
+
+        // Tool use block end — save entry
+        if (event.type === "content_block_stop" && currentToolName) {
+          let parsedInput: Record<string, unknown> = {};
+          try {
+            parsedInput = JSON.parse(currentToolInput);
+          } catch {
+            parsedInput = { _raw: currentToolInput };
+          }
+          toolUseEntries.push({ name: currentToolName, input: parsedInput });
+          currentToolName = "";
+          currentToolInput = "";
+        }
+
+        // MCP tool calls arrive as "assistant" message events with tool_use content blocks
+        if (event.type === "assistant" && event.message?.content) {
+          for (const block of event.message.content) {
+            if (block.type === "tool_use" && block.name) {
+              toolUseEntries.push({
+                name: block.name,
+                input: block.input ?? {},
+              });
+            }
+          }
+        }
+
         // Final "result" event contains metadata
-        // Event type is "result" and has result, cost_usd, session_id fields
         if (event.type === "result") {
           if (event.result !== undefined) {
-            accumulated = event.result; // Use final result (may differ from accumulated deltas)
+            accumulated = event.result;
           }
-          if (event.cost_usd !== undefined) {
+          // CLI v2.1+ uses total_cost_usd, older versions use cost_usd
+          if (event.total_cost_usd !== undefined) {
+            costUsd = event.total_cost_usd;
+          } else if (event.cost_usd !== undefined) {
             costUsd = event.cost_usd;
           }
           if (event.session_id !== undefined) {
@@ -176,8 +236,9 @@ export async function streamClaudeResponse(
     rl.on("close", () => {
       clearTimeout(timeoutId);
 
+      const toolUse = toolUseEntries.length > 0 ? toolUseEntries : undefined;
+
       if (timedOut) {
-        // Append timeout notice so user knows what happened
         const timeoutNotice =
           "\n\n[Response timed out — if a background task was started, you'll still be notified when it completes]";
         const result = accumulated + timeoutNotice;
@@ -185,17 +246,23 @@ export async function streamClaudeResponse(
           { resultLength: accumulated.length },
           "Stream timed out, returning partial result with notice",
         );
-        resolve({ result, cost_usd: 0 });
+        resolve({ result, cost_usd: 0, session_id: sessionId, toolUse });
       } else {
         log.info(
           {
             resultLength: accumulated.length,
             cost_usd: costUsd,
             session_id: sessionId,
+            toolUseCount: toolUseEntries.length,
           },
           "Stream completed",
         );
-        resolve({ result: accumulated, cost_usd: costUsd });
+        resolve({
+          result: accumulated,
+          cost_usd: costUsd,
+          session_id: sessionId,
+          toolUse,
+        });
       }
     });
 
@@ -235,10 +302,6 @@ export interface StreamToTelegramOptions {
   model?: string;
   additionalInstructions?: string;
   messageThreadId?: number;
-  /** Enable Task tool for subagent spawning (default: false) */
-  enableSubagents?: boolean;
-  /** Task list ID for multi-session coordination */
-  taskListId?: string;
   /** Telegram chat ID — propagated for per-chat memory isolation */
   chatId?: number;
 }
@@ -260,7 +323,7 @@ export async function streamToTelegram(
   prompt: string,
   config: StreamConfig,
   options?: StreamToTelegramOptions,
-): Promise<{ result: string; cost_usd: number }> {
+): Promise<StreamResult> {
   const draftId = ++draftIdCounter;
   const controller = new AbortController();
 
@@ -292,8 +355,6 @@ export async function streamToTelegram(
         model: options?.model,
         additionalInstructions: options?.additionalInstructions,
         signal: controller.signal,
-        enableSubagents: options?.enableSubagents,
-        taskListId: options?.taskListId,
         chatId: options?.chatId,
       },
       onChunk,
@@ -313,7 +374,7 @@ export async function streamToTelegram(
     // On error, still try to return accumulated partial result
     if (accumulated.length > 0) {
       log.error({ err, chatId }, "Stream error, returning partial result");
-      return { result: accumulated, cost_usd: 0 };
+      return { result: accumulated, cost_usd: 0, session_id: "" };
     }
 
     throw err;

@@ -5,9 +5,15 @@
  * Uses mtime checking for efficient hot reload (cheap to call frequently)
  */
 
-import { existsSync, readFileSync, statSync } from "fs";
+import {
+  existsSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+  mkdirSync,
+} from "fs";
 import { homedir } from "os";
-import { join } from "path";
+import { join, dirname } from "path";
 import { jsonConfigSchema, type JsonConfig } from "./schema.js";
 
 /** Path to JSON config file */
@@ -27,18 +33,23 @@ let configMtime: number = 0;
 /**
  * Load JSON config with mtime-based caching
  *
- * - If file doesn't exist: returns defaults
+ * - If file doesn't exist: seeds defaults to disk, returns them
  * - If file exists and cache valid (same mtime): returns cache
  * - If file exists and cache stale: reloads, validates, caches
  *
  * @throws Error on JSON parse failure or validation failure
  */
 export function loadJsonConfig(): JsonConfig {
-  // File doesn't exist - return defaults
+  // File doesn't exist — seed defaults to disk so user can edit
   if (!existsSync(JSON_CONFIG_PATH)) {
-    if (configCache === null) {
-      configCache = jsonConfigSchema.parse({});
+    const defaults = jsonConfigSchema.parse({});
+    try {
+      mkdirSync(dirname(JSON_CONFIG_PATH), { recursive: true });
+      writeFileSync(JSON_CONFIG_PATH, JSON.stringify(defaults, null, 2) + "\n");
+    } catch {
+      // Non-fatal — in-memory defaults still work
     }
+    configCache = defaults;
     return configCache;
   }
 
