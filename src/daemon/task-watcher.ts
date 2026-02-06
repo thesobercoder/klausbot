@@ -63,29 +63,23 @@ function ensureDirectories(): void {
 const MAX_MESSAGE_LENGTH = 4096;
 
 function formatCompletionMessage(task: BackgroundTask): string[] {
-  const statusEmoji = task.status === "success" ? "✓" : "✗";
-  const header =
-    `${statusEmoji} <b>Background task complete</b>\n\n` +
-    `<b>Task:</b> ${escapeHtml(task.description)}`;
-
-  const footer: string[] = [];
-  if (task.artifacts && task.artifacts.length > 0) {
-    footer.push(`<b>Created:</b> ${task.artifacts.length} files`);
+  // Failed tasks get a brief error notice
+  if (task.status !== "success") {
+    const errorMsg = task.error
+      ? escapeHtml(task.error)
+      : "Task did not complete successfully";
+    return [
+      `Couldn't finish that — ${escapeHtml(task.description)}\n\n${errorMsg}`,
+    ];
   }
-  if (task.error) {
-    footer.push(`<b>Error:</b> ${escapeHtml(task.error)}`);
-  }
-  const footerText = footer.length > 0 ? "\n\n" + footer.join("\n") : "";
 
+  // Success: send the summary directly as a natural message (no header chrome)
   if (!task.summary) {
-    return [header + footerText];
+    return [`Done with that — ${escapeHtml(task.description)}`];
   }
 
-  // Convert markdown summary to Telegram HTML
   const summaryHtml = markdownToTelegramHtml(task.summary);
-  const fullMessage = header + "\n\n" + summaryHtml + footerText;
-
-  return splitTelegramMessage(fullMessage, MAX_MESSAGE_LENGTH);
+  return splitTelegramMessage(summaryHtml, MAX_MESSAGE_LENGTH);
 }
 
 /**

@@ -29,7 +29,13 @@ Continue with the background work you described when you called start_background
 
 For complex tasks that benefit from parallel investigation (research from multiple angles, competing hypotheses, multi-part analysis), consider using an agent team — spawn teammates to work different aspects simultaneously, then synthesize their findings.
 
-When finished, output a concise summary of what you accomplished and any results. This summary will be delivered to the user as a follow-up message.`;
+When finished, output ONLY your final result or summary — this is delivered directly to the user as a follow-up message.
+
+## Output Discipline
+- Start directly with the content. No preamble, no "Here's what I found", no "Let me compile this".
+- Do NOT include internal reasoning, planning notes, or transition phrases.
+- Write as if you're sending the user a message — conversational, natural, concise.
+- If the task produced a report or analysis, lead with the key finding, then details.`;
 
 const CODING_ADDENDUM = `
 
