@@ -21,25 +21,25 @@ Key technical domains:
 
 ### Core (Already Installed)
 
-| Library                 | Version | Purpose              | Why Standard                                  |
-| ----------------------- | ------- | -------------------- | --------------------------------------------- |
-| grammy                  | 1.39.3  | Telegram framework   | Already installed; includes sendMessageDraft  |
-| @grammyjs/auto-retry    | 2.0.2   | Retry on rate limits | Already configured; handles 429s              |
-| @grammyjs/runner        | 2.0.3   | Long polling         | Already configured                            |
-| readline (node:readline)| built-in| NDJSON parsing       | Native, handles streaming line-by-line        |
+| Library                  | Version  | Purpose              | Why Standard                                 |
+| ------------------------ | -------- | -------------------- | -------------------------------------------- |
+| grammy                   | 1.39.3   | Telegram framework   | Already installed; includes sendMessageDraft |
+| @grammyjs/auto-retry     | 2.0.2    | Retry on rate limits | Already configured; handles 429s             |
+| @grammyjs/runner         | 2.0.3    | Long polling         | Already configured                           |
+| readline (node:readline) | built-in | NDJSON parsing       | Native, handles streaming line-by-line       |
 
 ### New Dependencies
 
-| Library                        | Version | Purpose                   | Why                                         |
-| ------------------------------ | ------- | ------------------------- | ------------------------------------------- |
-| @grammyjs/transformer-throttler| 1.2.1   | Outbound rate limiting    | Prevents 429s on rapid draft updates        |
+| Library                         | Version | Purpose                | Why                                  |
+| ------------------------------- | ------- | ---------------------- | ------------------------------------ |
+| @grammyjs/transformer-throttler | 1.2.1   | Outbound rate limiting | Prevents 429s on rapid draft updates |
 
 ### Alternatives Considered
 
-| Instead of          | Could Use          | Tradeoff                                              |
-| ------------------- | ------------------ | ----------------------------------------------------- |
-| Manual throttling   | transformer-throttler | Manual is error-prone; throttler handles edge cases |
-| Custom NDJSON parser| readline           | readline is built-in, handles backpressure           |
+| Instead of           | Could Use             | Tradeoff                                            |
+| -------------------- | --------------------- | --------------------------------------------------- |
+| Manual throttling    | transformer-throttler | Manual is error-prone; throttler handles edge cases |
+| Custom NDJSON parser | readline              | readline is built-in, handles backpressure          |
 
 **Installation:**
 
@@ -75,7 +75,11 @@ import { spawn } from "child_process";
 import { createInterface } from "readline";
 
 interface StreamEvent {
-  type: "content_block_delta" | "message_start" | "message_delta" | "message_stop";
+  type:
+    | "content_block_delta"
+    | "message_start"
+    | "message_delta"
+    | "message_stop";
   delta?: { text?: string };
   message?: { id: string };
 }
@@ -86,10 +90,13 @@ async function* streamClaudeCode(
 ): AsyncGenerator<string, void, unknown> {
   const args = [
     "--dangerously-skip-permissions",
-    "-p", prompt,
-    "--output-format", "stream-json",
+    "-p",
+    prompt,
+    "--output-format",
+    "stream-json",
     "--include-partial-messages",
-    "--append-system-prompt", systemPrompt,
+    "--append-system-prompt",
+    systemPrompt,
   ];
 
   const claude = spawn("claude", args, {
@@ -252,12 +259,12 @@ async function processMessageWithStreaming(
 
 ## Don't Hand-Roll
 
-| Problem             | Don't Build              | Use Instead                    | Why                                    |
-| ------------------- | ------------------------ | ------------------------------ | -------------------------------------- |
-| Rate limiting       | Manual delay counters    | @grammyjs/transformer-throttler| Handles Bottleneck config, edge cases  |
-| NDJSON parsing      | Custom stream parser     | node:readline                  | Built-in, handles backpressure         |
-| Draft ID tracking   | Complex state machine    | Simple counter                 | Telegram overwrites by ID              |
-| Retry on 429        | Custom retry loop        | @grammyjs/auto-retry           | Already configured in codebase         |
+| Problem           | Don't Build           | Use Instead                     | Why                                   |
+| ----------------- | --------------------- | ------------------------------- | ------------------------------------- |
+| Rate limiting     | Manual delay counters | @grammyjs/transformer-throttler | Handles Bottleneck config, edge cases |
+| NDJSON parsing    | Custom stream parser  | node:readline                   | Built-in, handles backpressure        |
+| Draft ID tracking | Complex state machine | Simple counter                  | Telegram overwrites by ID             |
+| Retry on 429      | Custom retry loop     | @grammyjs/auto-retry            | Already configured in codebase        |
 
 **Key insight:** grammY ecosystem handles most complexity. Focus on Claude streaming integration.
 
@@ -338,7 +345,7 @@ const log = createChildLogger("streaming");
 
 export interface StreamConfig {
   enabled: boolean;
-  throttleMs: number;  // Default: 500
+  throttleMs: number; // Default: 500
 }
 
 interface StreamEvent {
@@ -359,10 +366,13 @@ async function* streamClaudeResponse(
 ): AsyncGenerator<string, { result: string; cost_usd: number }, unknown> {
   const args = [
     "--dangerously-skip-permissions",
-    "-p", prompt,
-    "--output-format", "stream-json",
+    "-p",
+    prompt,
+    "--output-format",
+    "stream-json",
     "--include-partial-messages",
-    "--append-system-prompt", systemPrompt,
+    "--append-system-prompt",
+    systemPrompt,
   ];
 
   const claude = spawn("claude", args, {
@@ -434,7 +444,10 @@ export async function streamToTelegram(
 
   try {
     let done = false;
-    let returnValue: { result: string; cost_usd: number } = { result: "", cost_usd: 0 };
+    let returnValue: { result: string; cost_usd: number } = {
+      result: "",
+      cost_usd: 0,
+    };
 
     while (!done) {
       const { value, done: isDone } = await generator.next();
@@ -462,12 +475,13 @@ export async function streamToTelegram(
     }
 
     // Final draft before sending real message
-    await bot.api.sendMessageDraft(chatId, draftId, accumulated, {
-      message_thread_id: messageThreadId,
-    }).catch(() => {});
+    await bot.api
+      .sendMessageDraft(chatId, draftId, accumulated, {
+        message_thread_id: messageThreadId,
+      })
+      .catch(() => {});
 
     return returnValue;
-
   } catch (err) {
     controller.abort();
     throw err;
@@ -495,13 +509,17 @@ export async function canStreamToChat(
 
 ```typescript
 // Extend src/config/schema.ts
-export const jsonConfigSchema = z.object({
-  model: z.string().optional(),
-  streaming: z.object({
-    enabled: z.boolean().default(true),
-    throttleMs: z.number().min(100).max(2000).default(500),
-  }).default({ enabled: true, throttleMs: 500 }),
-}).strict();
+export const jsonConfigSchema = z
+  .object({
+    model: z.string().optional(),
+    streaming: z
+      .object({
+        enabled: z.boolean().default(true),
+        throttleMs: z.number().min(100).max(2000).default(500),
+      })
+      .default({ enabled: true, throttleMs: 500 }),
+  })
+  .strict();
 ```
 
 ### Bot Throttler Integration
@@ -511,12 +529,14 @@ export const jsonConfigSchema = z.object({
 import { apiThrottler } from "@grammyjs/transformer-throttler";
 
 // Add after autoRetry
-bot.api.config.use(apiThrottler({
-  out: {
-    maxConcurrent: 1,
-    minTime: 100,  // Allow faster for drafts, let Telegram reject
-  },
-}));
+bot.api.config.use(
+  apiThrottler({
+    out: {
+      maxConcurrent: 1,
+      minTime: 100, // Allow faster for drafts, let Telegram reject
+    },
+  }),
+);
 ```
 
 ### Gateway Integration
@@ -550,11 +570,11 @@ async function processMessage(msg: QueuedMessage): Promise<void> {
 
 ## State of the Art
 
-| Old Approach              | Current Approach          | When Changed      | Impact                        |
-| ------------------------- | ------------------------- | ----------------- | ----------------------------- |
-| Batch-only responses      | Draft streaming           | Bot API 9.3 (Dec 2025) | Real-time UX            |
-| --output-format json      | stream-json + partial     | Claude Code 2025  | Token-level streaming         |
-| Manual delay loops        | transformer-throttler     | grammY 2024+      | Automatic rate limiting       |
+| Old Approach         | Current Approach      | When Changed           | Impact                  |
+| -------------------- | --------------------- | ---------------------- | ----------------------- |
+| Batch-only responses | Draft streaming       | Bot API 9.3 (Dec 2025) | Real-time UX            |
+| --output-format json | stream-json + partial | Claude Code 2025       | Token-level streaming   |
+| Manual delay loops   | transformer-throttler | grammY 2024+           | Automatic rate limiting |
 
 **Deprecated/outdated:**
 

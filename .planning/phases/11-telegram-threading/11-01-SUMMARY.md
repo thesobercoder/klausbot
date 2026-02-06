@@ -82,6 +82,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Fixed TypeScript null safety for ctx.msg access**
+
 - **Found during:** Task 2 (Wire threading through gateway)
 - **Issue:** `ctx.msg` can be undefined in grammY types, causing TS2304 errors
 - **Fix:** Changed `ctx.msg.message_thread_id` to `ctx.msg?.message_thread_id`
@@ -109,5 +110,6 @@ None - no external service configuration required.
 - Non-forum chats continue working (undefined thread ID handled gracefully)
 
 ---
-*Phase: 11-telegram-threading*
-*Completed: 2026-02-05*
+
+_Phase: 11-telegram-threading_
+_Completed: 2026-02-05_

@@ -47,14 +47,14 @@ Progress: [██████████████░] 93% (phases 9, 10, 11,
 
 **By Phase:**
 
-| Phase                      | Plans | Total   | Avg/Plan |
-| -------------------------- | ----- | ------- | -------- |
-| 09-platform-foundation     | 3/3   | 11m 14s | 3m 45s   |
-| 10-telegram-streaming      | 2/2   | 7m 29s  | 3m 45s   |
-| 11-telegram-threading      | 1/1   | 4m 00s  | 4m 00s   |
-| 13-docker-release          | 2/2   | 4m 02s  | 2m 01s   |
-| 12-heartbeat-system        | 3/3   | 6m 35s  | 2m 12s   |
-| 13.2-subagent-orchestration| 1/1   | 4m 00s  | 4m 00s   |
+| Phase                       | Plans | Total   | Avg/Plan |
+| --------------------------- | ----- | ------- | -------- |
+| 09-platform-foundation      | 3/3   | 11m 14s | 3m 45s   |
+| 10-telegram-streaming       | 2/2   | 7m 29s  | 3m 45s   |
+| 11-telegram-threading       | 1/1   | 4m 00s  | 4m 00s   |
+| 13-docker-release           | 2/2   | 4m 02s  | 2m 01s   |
+| 12-heartbeat-system         | 3/3   | 6m 35s  | 2m 12s   |
+| 13.2-subagent-orchestration | 1/1   | 4m 00s  | 4m 00s   |
 
 _Updated after each plan completion_
 

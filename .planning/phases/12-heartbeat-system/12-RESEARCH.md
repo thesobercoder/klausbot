@@ -16,27 +16,27 @@ Implementation follows established patterns from the cron scheduler (setInterval
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| Node.js setInterval | built-in | Periodic tick loop | Matches cron scheduler pattern |
-| fs module | built-in | HEARTBEAT.md read/write | Matches identity file pattern |
-| Existing spawner | internal | Claude invocation | Already handles timeout, MCP, hooks |
-| Existing config | internal | heartbeat.intervalMs, heartbeat.enabled | Hot reload via mtime |
+| Library             | Version  | Purpose                                 | Why Standard                        |
+| ------------------- | -------- | --------------------------------------- | ----------------------------------- |
+| Node.js setInterval | built-in | Periodic tick loop                      | Matches cron scheduler pattern      |
+| fs module           | built-in | HEARTBEAT.md read/write                 | Matches identity file pattern       |
+| Existing spawner    | internal | Claude invocation                       | Already handles timeout, MCP, hooks |
+| Existing config     | internal | heartbeat.intervalMs, heartbeat.enabled | Hot reload via mtime                |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| pino logger | existing | Structured logging | All heartbeat operations |
+| Library          | Version  | Purpose                | When to Use                |
+| ---------------- | -------- | ---------------------- | -------------------------- |
+| pino logger      | existing | Structured logging     | All heartbeat operations   |
 | Telegram bot API | existing | Send messages to users | Non-OK heartbeat responses |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| setInterval | node-cron | Overkill - we only need fixed interval, not cron expressions |
+| Instead of         | Could Use       | Tradeoff                                                      |
+| ------------------ | --------------- | ------------------------------------------------------------- |
+| setInterval        | node-cron       | Overkill - we only need fixed interval, not cron expressions  |
 | Separate scheduler | Merge with cron | Conceptually distinct - heartbeat is awareness, cron is tasks |
-| JSON file | Markdown file | User decisions specify free-form markdown |
+| JSON file          | Markdown file   | User decisions specify free-form markdown                     |
 
 **Installation:**
 No new packages needed - all infrastructure exists.
@@ -44,6 +44,7 @@ No new packages needed - all infrastructure exists.
 ## Architecture Patterns
 
 ### Recommended Project Structure
+
 ```
 src/
 ├── heartbeat/
@@ -60,14 +61,15 @@ src/
 **What:** Heartbeat scheduler runs alongside cron scheduler, both started in gateway.ts
 **When to use:** Always - they're independent services
 **Example:**
+
 ```typescript
 // gateway.ts startup
-startScheduler();      // cron
-startHeartbeat();      // heartbeat
+startScheduler(); // cron
+startHeartbeat(); // heartbeat
 
 // gateway.ts shutdown
-stopScheduler();       // cron
-stopHeartbeat();       // heartbeat
+stopScheduler(); // cron
+stopHeartbeat(); // heartbeat
 ```
 
 ### Pattern 2: First Interval Wait (No Immediate Check)
@@ -75,6 +77,7 @@ stopHeartbeat();       // heartbeat
 **What:** Unlike cron which runs immediately to recover missed jobs, heartbeat waits for first interval
 **When to use:** Always - per user decision in CONTEXT.md
 **Example:**
+
 ```typescript
 // heartbeat/scheduler.ts
 export function startHeartbeat(): void {
@@ -97,6 +100,7 @@ export function startHeartbeat(): void {
 **What:** Parse Claude response for exact string, suppress Telegram message if matches
 **When to use:** Every heartbeat response
 **Example:**
+
 ```typescript
 // heartbeat/executor.ts
 const HEARTBEAT_OK = "HEARTBEAT_OK";
@@ -125,6 +129,7 @@ export async function executeHeartbeat(): Promise<HeartbeatResult> {
 **What:** Detect trigger phrases during normal message processing, append to HEARTBEAT.md
 **When to use:** In gateway processMessage flow, before Claude invocation
 **Example:**
+
 ```typescript
 // heartbeat/notes.ts
 const TRIGGER_PHRASES = [
@@ -136,7 +141,7 @@ const TRIGGER_PHRASES = [
 ];
 
 export function shouldCollectNote(text: string): boolean {
-  return TRIGGER_PHRASES.some(p => p.test(text));
+  return TRIGGER_PHRASES.some((p) => p.test(text));
 }
 
 // This adds to additionalInstructions, not direct file write
@@ -160,6 +165,7 @@ HEARTBEAT.md format is free-form markdown. Include any expiry dates if mentioned
 **What:** Create HEARTBEAT.md with template on first heartbeat check if missing
 **When to use:** At start of each heartbeat tick
 **Example:**
+
 ```typescript
 // heartbeat/executor.ts
 const HEARTBEAT_TEMPLATE = `# Heartbeat Reminders
@@ -196,13 +202,13 @@ function ensureHeartbeatFile(): void {
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Interval scheduling | Custom timer logic | setInterval + config | Standard Node.js pattern |
-| Claude invocation | New spawner | Existing queryClaudeCode | Already handles timeout, MCP, etc. |
-| File persistence | Custom store | Direct fs read/write | Simple markdown, no structured data |
-| User messaging | Custom notification | Existing bot.api.sendMessage | Already works for cron |
-| Config hot reload | New config loader | Extend existing getJsonConfig | mtime-based reload already works |
+| Problem             | Don't Build         | Use Instead                   | Why                                 |
+| ------------------- | ------------------- | ----------------------------- | ----------------------------------- |
+| Interval scheduling | Custom timer logic  | setInterval + config          | Standard Node.js pattern            |
+| Claude invocation   | New spawner         | Existing queryClaudeCode      | Already handles timeout, MCP, etc.  |
+| File persistence    | Custom store        | Direct fs read/write          | Simple markdown, no structured data |
+| User messaging      | Custom notification | Existing bot.api.sendMessage  | Already works for cron              |
+| Config hot reload   | New config loader   | Extend existing getJsonConfig | mtime-based reload already works    |
 
 **Key insight:** This phase is mostly wiring - almost all infrastructure exists.
 
@@ -246,6 +252,7 @@ function ensureHeartbeatFile(): void {
 ## Code Examples
 
 ### Config Schema Extension
+
 ```typescript
 // config/schema.ts
 export const jsonConfigSchema = z
@@ -263,6 +270,7 @@ export const jsonConfigSchema = z
 ```
 
 ### Heartbeat Prompt Structure
+
 ```typescript
 // heartbeat/executor.ts
 function buildHeartbeatPrompt(heartbeatContent: string): string {
@@ -289,6 +297,7 @@ You have full tool access. Take actions, don't just report.
 ```
 
 ### Scheduler Module
+
 ```typescript
 // heartbeat/scheduler.ts
 import { getJsonConfig } from "../config/index.js";
@@ -351,13 +360,14 @@ async function tick(): Promise<void> {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Cron for reminders | Separate heartbeat | This phase | Clearer separation of concerns |
-| REMINDERS.md | HEARTBEAT.md | This phase | Different purpose, different file |
-| Manual reminder check | Periodic autonomous check | This phase | Bot becomes proactive |
+| Old Approach          | Current Approach          | When Changed | Impact                            |
+| --------------------- | ------------------------- | ------------ | --------------------------------- |
+| Cron for reminders    | Separate heartbeat        | This phase   | Clearer separation of concerns    |
+| REMINDERS.md          | HEARTBEAT.md              | This phase   | Different purpose, different file |
+| Manual reminder check | Periodic autonomous check | This phase   | Bot becomes proactive             |
 
 **Deprecated/outdated:**
+
 - None - this is net new functionality
 
 ## Open Questions
@@ -380,21 +390,25 @@ async function tick(): Promise<void> {
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - Existing cron/scheduler.ts - setInterval pattern, concurrent execution prevention
 - Existing daemon/spawner.ts - queryClaudeCode API, timeout handling
 - Existing config/schema.ts - Zod schema extension pattern
 - Existing pairing/store.ts - listApproved() for message recipients
 
 ### Secondary (MEDIUM confidence)
+
 - CONTEXT.md decisions - 30 min interval, wait-for-first-interval, HEARTBEAT_OK contract
 - Existing identity file patterns - markdown format, auto-create with template
 
 ### Tertiary (LOW confidence)
+
 - None - all patterns verified against existing codebase
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - all existing infrastructure
 - Architecture: HIGH - patterns match existing cron/identity systems
 - Pitfalls: HIGH - derived from similar existing features

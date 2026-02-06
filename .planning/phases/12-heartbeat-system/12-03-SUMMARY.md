@@ -38,6 +38,7 @@ Natural language trigger detection + gateway integration for users to add remind
 ## What Was Built
 
 ### Notes Module (src/heartbeat/notes.ts)
+
 - `TRIGGER_PHRASES`: Array of 7 regex patterns for common reminder phrases
   - "remind me", "don't forget", "check on", "remember to"
   - "heartbeat:", "add...reminder", "keep track of"
@@ -48,9 +49,11 @@ Natural language trigger detection + gateway integration for users to add remind
   - Includes format guidance for checkboxes and expiry dates
 
 ### Module Index Update (src/heartbeat/index.ts)
+
 Added export: `shouldCollectNote`, `getNoteCollectionInstructions`
 
 ### Gateway Integration (src/daemon/gateway.ts)
+
 - Updated import to include note functions
 - Added note collection check in `processMessage()`:
   - Skipped during bootstrap mode (identity files must exist first)
@@ -66,10 +69,10 @@ Added export: `shouldCollectNote`, `getNoteCollectionInstructions`
 
 ## Commits
 
-| Hash | Type | Description |
-|------|------|-------------|
-| 4ad71e0 | feat | create heartbeat notes module with trigger detection |
-| 322334c | feat | export notes functions from heartbeat module index |
+| Hash    | Type | Description                                               |
+| ------- | ---- | --------------------------------------------------------- |
+| 4ad71e0 | feat | create heartbeat notes module with trigger detection      |
+| 322334c | feat | export notes functions from heartbeat module index        |
 | 013f8eb | feat | integrate note collection into gateway message processing |
 
 ## Deviations from Plan
@@ -90,4 +93,4 @@ None - plan executed exactly as written.
 
 ---
 
-*Plan: 12-03 | Completed: 2026-02-05 | Duration: 1m 20s*
+_Plan: 12-03 | Completed: 2026-02-05 | Duration: 1m 20s_

@@ -87,6 +87,7 @@ Klausbot periodically reads `~/.klausbot/HEARTBEAT.md` and acts on its contents.
 - **Note collection**: Tell the bot "remind me to check on X" or "don't forget about Y" and it adds structured notes to the heartbeat file
 
 Example `HEARTBEAT.md`:
+
 ```markdown
 - [ ] Check if backup completed [expires: 2026-02-10]
 - [ ] Review PR #42 when tests pass
@@ -109,6 +110,7 @@ Conversations in threaded Telegram chats stay organized. Replies are linked to t
 The main bot operates as a **fast dispatcher** with a ~60 second time budget. For anything that takes longer - research, building, analysis, multi-step work - it automatically spawns a background agent.
 
 How it works:
+
 1. You ask for something substantial ("research X", "build me Y")
 2. The bot acknowledges immediately and spawns a background Claude process
 3. The daemon watches for task completion
@@ -205,15 +207,15 @@ Configure in `.env` file:
 
 Optional configuration at `~/.klausbot/config/klausbot.json`:
 
-| Key                            | Default      | Description                                    |
-| ------------------------------ | ------------ | ---------------------------------------------- |
-| `model`                        | (inherited)  | AI model: `opus`, `sonnet`, or `haiku`         |
-| `streaming.enabled`            | `true`       | Enable real-time draft streaming               |
-| `streaming.throttleMs`         | `500`        | Draft update interval (100-2000ms)             |
-| `heartbeat.enabled`            | `true`       | Enable periodic heartbeat checks               |
-| `heartbeat.intervalMs`         | `1800000`    | Heartbeat interval in ms (min: 60000 = 1 min)  |
-| `subagents.enabled`            | `true`       | Allow spawning background agents               |
-| `subagents.taskListIdPrefix`   | `"klausbot"` | Prefix for task list IDs                       |
+| Key                          | Default      | Description                                   |
+| ---------------------------- | ------------ | --------------------------------------------- |
+| `model`                      | (inherited)  | AI model: `opus`, `sonnet`, or `haiku`        |
+| `streaming.enabled`          | `true`       | Enable real-time draft streaming              |
+| `streaming.throttleMs`       | `500`        | Draft update interval (100-2000ms)            |
+| `heartbeat.enabled`          | `true`       | Enable periodic heartbeat checks              |
+| `heartbeat.intervalMs`       | `1800000`    | Heartbeat interval in ms (min: 60000 = 1 min) |
+| `subagents.enabled`          | `true`       | Allow spawning background agents              |
+| `subagents.taskListIdPrefix` | `"klausbot"` | Prefix for task list IDs                      |
 
 Unknown keys cause validation failure (strict mode). Config supports hot-reload - changes take effect without restart.
 
@@ -243,13 +245,13 @@ Telegram  -->  Gateway (grammY)  -->  Claude Code CLI
 
 ### Platform Support
 
-| Platform        | Status    | Notes                     |
-| --------------- | --------- | ------------------------- |
-| macOS           | Supported | Intel and Apple Silicon   |
-| Linux           | Supported | Native                    |
-| WSL2            | Supported | Detected via kernel check |
-| Docker          | Supported | Primary deployment target |
-| Windows (native)| Not supported | Use WSL2              |
+| Platform         | Status        | Notes                     |
+| ---------------- | ------------- | ------------------------- |
+| macOS            | Supported     | Intel and Apple Silicon   |
+| Linux            | Supported     | Native                    |
+| WSL2             | Supported     | Detected via kernel check |
+| Docker           | Supported     | Primary deployment target |
+| Windows (native) | Not supported | Use WSL2                  |
 
 Capabilities (Claude CLI, Telegram, OpenAI embeddings) are detected at startup with clear status messages.
 
@@ -278,6 +280,7 @@ Then restart: `docker compose restart`
 ### Streaming not working?
 
 Streaming requires **Threaded Mode** enabled in BotFather:
+
 1. Open @BotFather
 2. Select your bot
 3. Bot Settings > Group Privacy > Enable "Threaded Mode"

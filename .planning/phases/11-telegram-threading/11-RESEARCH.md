@@ -20,10 +20,10 @@ Key technical domains:
 
 ### Core (Already Installed)
 
-| Library              | Version | Purpose              | Why Standard               |
-| -------------------- | ------- | -------------------- | -------------------------- |
-| grammy               | 1.39.3  | Telegram framework   | Already handles threading  |
-| @grammyjs/auto-retry | 2.0.2   | Retry on rate limits | Already configured         |
+| Library              | Version | Purpose              | Why Standard              |
+| -------------------- | ------- | -------------------- | ------------------------- |
+| grammy               | 1.39.3  | Telegram framework   | Already handles threading |
+| @grammyjs/auto-retry | 2.0.2   | Retry on rate limits | Already configured        |
 
 ### No New Dependencies Required
 
@@ -102,8 +102,8 @@ interface QueuedMessage {
   error?: string;
   media?: MediaAttachment[];
   // NEW: Threading context
-  messageThreadId?: number;    // Forum topic thread ID
-  replyToMessageId?: number;   // Original message to reply to
+  messageThreadId?: number; // Forum topic thread ID
+  replyToMessageId?: number; // Original message to reply to
 }
 ```
 
@@ -139,11 +139,11 @@ function normalizeThreadId(
 
 ## Don't Hand-Roll
 
-| Problem             | Don't Build             | Use Instead                   | Why                                |
-| ------------------- | ----------------------- | ----------------------------- | ---------------------------------- |
-| Thread extraction   | Manual parsing          | ctx.msg.message_thread_id     | grammY exposes it directly         |
-| Reply linking       | reply_to_message_id     | reply_parameters object       | Modern API, more features          |
-| Thread validation   | Complex state tracking  | Pass undefined when absent    | Telegram ignores undefined params  |
+| Problem           | Don't Build            | Use Instead                | Why                               |
+| ----------------- | ---------------------- | -------------------------- | --------------------------------- |
+| Thread extraction | Manual parsing         | ctx.msg.message_thread_id  | grammY exposes it directly        |
+| Reply linking     | reply_to_message_id    | reply_parameters object    | Modern API, more features         |
+| Thread validation | Complex state tracking | Pass undefined when absent | Telegram ignores undefined params |
 
 **Key insight:** Threading is a "pass-through" feature - extract from incoming, include in outgoing.
 
@@ -157,6 +157,7 @@ function normalizeThreadId(
 **Warning signs:** Bot responses jump between topics
 
 **Affected methods in codebase:**
+
 - `bot.api.sendMessage`
 - `bot.api.sendMessageDraft` (streaming)
 - `ctx.reply`
@@ -178,7 +179,9 @@ await bot.api.sendMessage(chatId, text, {
 
 // WRONG - don't skip the option based on presence
 if (messageThreadId) {
-  await bot.api.sendMessage(chatId, text, { message_thread_id: messageThreadId });
+  await bot.api.sendMessage(chatId, text, {
+    message_thread_id: messageThreadId,
+  });
 } else {
   await bot.api.sendMessage(chatId, text);
 }
@@ -291,9 +294,10 @@ async function splitAndSend(
         parse_mode: "HTML",
         message_thread_id: threading?.messageThreadId,
         // Only reply to original message for first chunk
-        reply_parameters: i === 0 && threading?.replyToMessageId
-          ? { message_id: threading.replyToMessageId }
-          : undefined,
+        reply_parameters:
+          i === 0 && threading?.replyToMessageId
+            ? { message_id: threading.replyToMessageId }
+            : undefined,
       });
     } catch (err) {
       // ... error handling ...
@@ -311,7 +315,7 @@ Streaming already supports `messageThreadId` via `StreamToTelegramOptions`:
 export interface StreamToTelegramOptions {
   model?: string;
   additionalInstructions?: string;
-  messageThreadId?: number;  // Already exists!
+  messageThreadId?: number; // Already exists!
 }
 ```
 
@@ -326,18 +330,18 @@ const streamResult = await streamToTelegram(
   {
     model: jsonConfig.model,
     additionalInstructions,
-    messageThreadId: msg.threading?.messageThreadId,  // Pass through
+    messageThreadId: msg.threading?.messageThreadId, // Pass through
   },
 );
 ```
 
 ## State of the Art
 
-| Old Approach           | Current Approach       | When Changed | Impact                    |
-| ---------------------- | ---------------------- | ------------ | ------------------------- |
-| reply_to_message_id    | reply_parameters       | Bot API 7.0  | More features, quotes     |
-| No forum support       | message_thread_id      | Bot API 6.1  | Forum topic organization  |
-| Manual thread tracking | Pass-through pattern   | Best practice| Simpler, more reliable    |
+| Old Approach           | Current Approach     | When Changed  | Impact                   |
+| ---------------------- | -------------------- | ------------- | ------------------------ |
+| reply_to_message_id    | reply_parameters     | Bot API 7.0   | More features, quotes    |
+| No forum support       | message_thread_id    | Bot API 6.1   | Forum topic organization |
+| Manual thread tracking | Pass-through pattern | Best practice | Simpler, more reliable   |
 
 **Deprecated/outdated:**
 
@@ -395,6 +399,7 @@ Based on requirements TELE-01 and TELE-02:
    - Maintain visual reply chain in Telegram UI
 
 **Estimated changes:**
+
 - `queue.ts`: Add threading fields to QueuedMessage
 - `gateway.ts`: Extract threading context from all handlers, pass to responses
 - `streaming.ts`: Already supports messageThreadId (just need to wire it up)

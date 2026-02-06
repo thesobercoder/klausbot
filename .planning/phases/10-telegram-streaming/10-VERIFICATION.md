@@ -26,12 +26,12 @@ human_verification:
 
 ### Observable Truths
 
-| # | Truth | Status | Evidence |
-|---|-------|--------|----------|
-| 1 | User sees draft message updating as Claude generates response | ✓ VERIFIED | streamToTelegram calls sendMessageDraft with throttled updates (streaming.ts:239) |
-| 2 | Draft updates are throttled to avoid Telegram API rate limits | ✓ VERIFIED | Throttling logic at streaming.ts:237 checks `now - lastUpdateTime >= config.throttleMs` |
-| 3 | Final message replaces draft when streaming completes | ✓ VERIFIED | splitAndSend called after streaming (gateway.ts:633), sends final message via bot.api.sendMessage |
-| 4 | Streaming can be disabled via config | ✓ VERIFIED | Gateway checks `jsonConfig.streaming?.enabled` (gateway.ts:600-601), falls back to batch (gateway.ts:677) |
+| #   | Truth                                                         | Status     | Evidence                                                                                                  |
+| --- | ------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1   | User sees draft message updating as Claude generates response | ✓ VERIFIED | streamToTelegram calls sendMessageDraft with throttled updates (streaming.ts:239)                         |
+| 2   | Draft updates are throttled to avoid Telegram API rate limits | ✓ VERIFIED | Throttling logic at streaming.ts:237 checks `now - lastUpdateTime >= config.throttleMs`                   |
+| 3   | Final message replaces draft when streaming completes         | ✓ VERIFIED | splitAndSend called after streaming (gateway.ts:633), sends final message via bot.api.sendMessage         |
+| 4   | Streaming can be disabled via config                          | ✓ VERIFIED | Gateway checks `jsonConfig.streaming?.enabled` (gateway.ts:600-601), falls back to batch (gateway.ts:677) |
 
 **Score:** 4/4 truths verified
 
@@ -39,20 +39,20 @@ human_verification:
 
 #### Plan 10-01 Artifacts
 
-| Artifact | Expected | Status | Details |
-|----------|----------|--------|---------|
-| `src/telegram/streaming.ts` | Claude stream spawner + draft streaming logic | ✓ VERIFIED | 281 lines, exports streamClaudeResponse, streamToTelegram, canStreamToChat, types |
-| `src/config/schema.ts` | Extended jsonConfigSchema with streaming options | ✓ VERIFIED | Lines 54-61 define streaming object with enabled and throttleMs |
-| `src/telegram/bot.ts` | Bot with throttler transformer | ✓ VERIFIED | Lines 31-38 configure apiThrottler after autoRetry |
-| `package.json` | @grammyjs/transformer-throttler dependency | ✓ VERIFIED | Installed v1.2.1 (verified via npm ls) |
+| Artifact                    | Expected                                         | Status     | Details                                                                           |
+| --------------------------- | ------------------------------------------------ | ---------- | --------------------------------------------------------------------------------- |
+| `src/telegram/streaming.ts` | Claude stream spawner + draft streaming logic    | ✓ VERIFIED | 281 lines, exports streamClaudeResponse, streamToTelegram, canStreamToChat, types |
+| `src/config/schema.ts`      | Extended jsonConfigSchema with streaming options | ✓ VERIFIED | Lines 54-61 define streaming object with enabled and throttleMs                   |
+| `src/telegram/bot.ts`       | Bot with throttler transformer                   | ✓ VERIFIED | Lines 31-38 configure apiThrottler after autoRetry                                |
+| `package.json`              | @grammyjs/transformer-throttler dependency       | ✓ VERIFIED | Installed v1.2.1 (verified via npm ls)                                            |
 
 #### Plan 10-02 Artifacts
 
-| Artifact | Expected | Status | Details |
-|----------|----------|--------|---------|
+| Artifact                    | Expected                                       | Status     | Details                                                     |
+| --------------------------- | ---------------------------------------------- | ---------- | ----------------------------------------------------------- |
 | `src/telegram/streaming.ts` | streamToTelegram and canStreamToChat functions | ✓ VERIFIED | Lines 185-196 (canStreamToChat), 219-280 (streamToTelegram) |
-| `src/daemon/gateway.ts` | Gateway with streaming/batch path selection | ✓ VERIFIED | Lines 600-676 implement streaming path with fallback |
-| `src/telegram/index.ts` | Exports streaming functions | ✓ VERIFIED | Lines 10-17 export streaming functions and types |
+| `src/daemon/gateway.ts`     | Gateway with streaming/batch path selection    | ✓ VERIFIED | Lines 600-676 implement streaming path with fallback        |
+| `src/telegram/index.ts`     | Exports streaming functions                    | ✓ VERIFIED | Lines 10-17 export streaming functions and types            |
 
 ### Key Link Verification
 
@@ -63,6 +63,7 @@ human_verification:
 **Status:** ✓ WIRED
 
 **Evidence:**
+
 - Line 84: `spawn("claude", args, ...)` with stdio configuration
 - Lines 67-76: args include `"--output-format", "stream-json"`
 - Lines 116-144: NDJSON parsing with readline interface
@@ -75,6 +76,7 @@ human_verification:
 **Status:** ✓ WIRED
 
 **Evidence:**
+
 - Line 4: `import { apiThrottler } from "@grammyjs/transformer-throttler"`
 - Lines 31-38: `bot.api.config.use(apiThrottler({...}))`
 - Configuration: maxConcurrent: 1, minTime: 100ms
@@ -82,11 +84,12 @@ human_verification:
 
 #### Link 3: src/daemon/gateway.ts → src/telegram/streaming.ts
 
-**Pattern:** streamToTelegram.*chatId
+**Pattern:** streamToTelegram.\*chatId
 
 **Status:** ✓ WIRED
 
 **Evidence:**
+
 - Lines 3-6: Import streamToTelegram, canStreamToChat
 - Lines 600-602: Check streaming enabled and chat capability
 - Lines 604-623: Call streamToTelegram with bot, chatId, config
@@ -95,11 +98,12 @@ human_verification:
 
 #### Link 4: src/telegram/streaming.ts → bot.api.sendMessageDraft
 
-**Pattern:** sendMessageDraft.*draftId
+**Pattern:** sendMessageDraft.\*draftId
 
 **Status:** ✓ WIRED
 
 **Evidence:**
+
 - Lines 233-247: onChunk callback with throttle logic
 - Line 239: `bot.api.sendMessageDraft(chatId, draftId, accumulated, {...})`
 - Line 237: Throttling check `now - lastUpdateTime >= config.throttleMs`
@@ -107,11 +111,12 @@ human_verification:
 
 #### Link 5: src/telegram/streaming.ts → bot.api.sendMessage
 
-**Pattern:** sendMessage.*result
+**Pattern:** sendMessage.\*result
 
 **Status:** ✓ WIRED (via gateway)
 
 **Evidence:**
+
 - Gateway handles final message sending (not streaming module)
 - Line 633: `splitAndSend(msg.chatId, streamResult.result)`
 - Line 784: splitAndSend calls `bot.api.sendMessage(chatId, chunk)`
@@ -120,6 +125,7 @@ human_verification:
 ### Requirements Coverage
 
 No requirements explicitly mapped to Phase 10 in REQUIREMENTS.md, but ROADMAP.md lists:
+
 - STRM-01: Draft streaming via sendMessageDraft — ✓ SATISFIED
 - STRM-02: Throttled updates (configurable) — ✓ SATISFIED
 - STRM-03: Final message after streaming — ✓ SATISFIED
@@ -130,6 +136,7 @@ No requirements explicitly mapped to Phase 10 in REQUIREMENTS.md, but ROADMAP.md
 **None detected.**
 
 Scan results:
+
 - No TODO/FIXME comments in streaming.ts or gateway.ts streaming path
 - No placeholder content
 - No stub patterns (empty returns, console.log-only implementations)
@@ -142,12 +149,14 @@ Scan results:
 #### 1. Draft Streaming Visual Experience
 
 **Test:**
+
 1. Open @BotFather in Telegram
 2. Run: /mybots → Select bot → Bot Settings → Topics in Private Chats → Turn On
 3. Send a message to bot in private chat
 4. Observe draft bubble behavior
 
 **Expected:**
+
 - Draft bubble appears within 1-2 seconds
 - Draft updates approximately every 500ms with new text
 - Draft shows progressive response generation
@@ -159,12 +168,14 @@ Scan results:
 #### 2. Streaming Configuration Toggle
 
 **Test:**
+
 1. Edit ~/.klausbot/config/klausbot.json
 2. Set `"streaming": { "enabled": false }`
 3. Restart klausbot
 4. Send message to bot
 
 **Expected:**
+
 - Typing indicator appears (not draft)
 - Wait for full response generation
 - Message appears all at once (batch mode)
@@ -175,12 +186,14 @@ Scan results:
 #### 3. Throttle Configuration Effect
 
 **Test:**
+
 1. Set `"streaming": { "enabled": true, "throttleMs": 2000 }`
 2. Restart klausbot
 3. Send message requiring long response
 4. Observe draft update frequency
 
 **Expected:**
+
 - Draft updates approximately every 2 seconds (not 500ms)
 - Fewer draft updates total
 - Final message still correct and complete
@@ -190,10 +203,12 @@ Scan results:
 #### 4. Timeout and Partial Results
 
 **Test:**
+
 1. Send very complex prompt likely to exceed 5 minute timeout
 2. Wait for timeout
 
 **Expected:**
+
 - After 5 minutes, process terminates
 - Partial accumulated result sent as final message
 - cost_usd = 0 for timed out response
@@ -204,10 +219,12 @@ Scan results:
 #### 5. Streaming Unavailable Fallback
 
 **Test:**
+
 1. Send message from group chat (not private chat)
 2. OR send message without forum topics enabled
 
 **Expected:**
+
 - Log shows "Using batch mode" or streaming disabled
 - Typing indicator appears
 - Response sent as regular message (not draft)
@@ -220,6 +237,7 @@ Scan results:
 **No gaps found.** All automated verification passed:
 
 **Streaming Infrastructure (Plan 01):**
+
 - ✓ Config schema extended with streaming options (enabled, throttleMs)
 - ✓ Throttler transformer configured on bot
 - ✓ streamClaudeResponse spawns Claude with stream-json output
@@ -227,6 +245,7 @@ Scan results:
 - ✓ Callback pattern implemented (onChunk called for each delta)
 
 **Gateway Integration (Plan 02):**
+
 - ✓ canStreamToChat checks private chat + topics capability
 - ✓ streamToTelegram sends throttled draft updates
 - ✓ Gateway checks streaming config and chat capability
@@ -242,14 +261,14 @@ All success criteria from ROADMAP.md are structurally verified in code. Human te
 
 **Added post-verification:** Markdown responses are now converted to Telegram HTML format for proper rendering.
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Markdown → HTML converter | ✓ VERIFIED | src/utils/telegram-html.ts (markdownToTelegramHtml function) |
-| Code blocks converted | ✓ VERIFIED | `<pre><code class="language-X">` output |
-| Inline code, bold, italic | ✓ VERIFIED | Conversion for backticks, **, * patterns |
-| Links, headers, blockquotes | ✓ VERIFIED | Full markdown pattern support |
-| parse_mode: "HTML" used | ✓ VERIFIED | gateway.ts:793 uses parse_mode in sendMessage |
-| Fallback on parse error | ✓ VERIFIED | gateway.ts:796 catches and sends plain text |
+| Feature                     | Status     | Evidence                                                     |
+| --------------------------- | ---------- | ------------------------------------------------------------ |
+| Markdown → HTML converter   | ✓ VERIFIED | src/utils/telegram-html.ts (markdownToTelegramHtml function) |
+| Code blocks converted       | ✓ VERIFIED | `<pre><code class="language-X">` output                      |
+| Inline code, bold, italic   | ✓ VERIFIED | Conversion for backticks, \*_, _ patterns                    |
+| Links, headers, blockquotes | ✓ VERIFIED | Full markdown pattern support                                |
+| parse_mode: "HTML" used     | ✓ VERIFIED | gateway.ts:793 uses parse_mode in sendMessage                |
+| Fallback on parse error     | ✓ VERIFIED | gateway.ts:796 catches and sends plain text                  |
 
 **Human verification needed:** Confirm code blocks, bold, italic render properly in Telegram client.
 

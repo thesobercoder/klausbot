@@ -39,17 +39,21 @@ Heartbeat config schema + scheduler loop + executor with HEARTBEAT_OK suppressio
 ## What Was Built
 
 ### Config Schema Extension
+
 Added `heartbeat` object to `jsonConfigSchema`:
+
 - `enabled`: boolean (default: true)
 - `intervalMs`: number (min 60000, default 1800000 = 30 min)
 
 ### Scheduler Module (src/heartbeat/scheduler.ts)
+
 - `startHeartbeat()`: Creates setInterval, no immediate tick
 - `stopHeartbeat()`: Clears interval
 - Concurrent execution prevention (`isExecuting` flag)
 - Hot reload support via config re-check each tick
 
 ### Executor Module (src/heartbeat/executor.ts)
+
 - `executeHeartbeat()`: Invokes Claude with heartbeat prompt
 - Auto-creates HEARTBEAT.md with template if missing
 - 5 minute timeout (matches batch spawner)
@@ -58,6 +62,7 @@ Added `heartbeat` object to `jsonConfigSchema`:
 - Failure notification sent per CONTEXT.md requirements
 
 ### Module Index (src/heartbeat/index.ts)
+
 Re-exports: `startHeartbeat`, `stopHeartbeat`, `executeHeartbeat`, `getHeartbeatPath`, `HeartbeatResult`
 
 ## Key Design Decisions
@@ -69,10 +74,10 @@ Re-exports: `startHeartbeat`, `stopHeartbeat`, `executeHeartbeat`, `getHeartbeat
 
 ## Commits
 
-| Hash | Type | Description |
-|------|------|-------------|
-| f6b740a | feat | add heartbeat config schema |
-| a25c379 | feat | create heartbeat scheduler module |
+| Hash    | Type | Description                                |
+| ------- | ---- | ------------------------------------------ |
+| f6b740a | feat | add heartbeat config schema                |
+| a25c379 | feat | create heartbeat scheduler module          |
 | 673712b | feat | create heartbeat executor and module index |
 
 ## Deviations from Plan
@@ -80,6 +85,7 @@ Re-exports: `startHeartbeat`, `stopHeartbeat`, `executeHeartbeat`, `getHeartbeat
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Fixed import path for markdownToTelegramHtml**
+
 - **Found during:** Task 3
 - **Issue:** Plan specified `../utils/markdown.js` but function is in `../utils/telegram-html.ts` (exported via `../utils/index.js`)
 - **Fix:** Changed import to `import { createChildLogger, markdownToTelegramHtml } from "../utils/index.js"`
@@ -99,4 +105,4 @@ Re-exports: `startHeartbeat`, `stopHeartbeat`, `executeHeartbeat`, `getHeartbeat
 
 ---
 
-*Plan: 12-01 | Completed: 2026-02-05 | Duration: 3m 45s*
+_Plan: 12-01 | Completed: 2026-02-05 | Duration: 3m 45s_
