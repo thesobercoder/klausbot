@@ -154,6 +154,24 @@ Plans:
 
 - [x] 13.2-01-PLAN.md — Enable Task tool in spawner, orchestration instructions, config integration
 
+#### Phase 13.3: Infinite Conversation Context (INSERTED)
+
+**Goal**: Eliminate multi-turn context loss by injecting timestamped conversation history into every session with thread detection and retrieval-first instructions
+**Depends on**: Phase 13.2 (Subagent Orchestration)
+**Success Criteria** (what must be TRUE):
+
+1. Active conversation thread detected by time proximity and full transcript injected
+2. Conversation history injected with XML tags, timestamps, and relative time labels (today/yesterday/older)
+3. Tiered injection: full transcripts for recent, summaries for older, within 30K token budget
+4. Retrieval instructions rewritten to enforce "search first, never say I don't remember"
+5. Claude knows it's in a continuation vs new conversation
+   **Plans**: 2 plans
+
+Plans:
+
+- [ ] 13.3-01-PLAN.md — Conversation context engine (query layer, thread detection, tiered formatting, retrieval rewrite)
+- [ ] 13.3-02-PLAN.md — Gateway integration and hook simplification
+
 #### Phase 14: Testing Framework
 
 **Goal**: Comprehensive tests ensure "tests pass = app works" confidence
@@ -177,7 +195,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 13.1 -> 13.2 -> 14
+Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 13.1 -> 13.2 -> 13.3 -> 14
 
 | Phase                  | Milestone | Plans Complete | Status      | Completed  |
 | ---------------------- | --------- | -------------- | ----------- | ---------- |
@@ -188,6 +206,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 13.1 -> 13.2 -> 14
 | 13. Docker & Release   | v1.1      | 2/2            | Complete    | 2026-02-05 |
 | 13.1 Dockerfile Deps   | v1.1      | 1/1            | Complete    | 2026-02-05 |
 | 13.2 Subagent Orch     | v1.1      | 1/1            | Complete    | 2026-02-05 |
+| 13.3 Infinite Context  | v1.1      | 0/2            | Not started | -          |
 | 14. Testing Framework  | v1.1      | 0/4            | Not started | -          |
 
 ---
