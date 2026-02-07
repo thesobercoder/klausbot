@@ -174,24 +174,22 @@ Plans:
 
 #### Phase 14: Testing Framework
 
-**Goal**: Comprehensive tests ensure "tests pass = app works" confidence
+**Goal**: Unit tests for deterministic logic + LLM evals for behavioral quality ensure "tests pass = app works" confidence
 **Depends on**: Phase 13 (all features and docs complete)
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
+**Requirements**: TEST-01, TEST-02, TEST-03
 **Success Criteria** (what must be TRUE):
 
-1. Unit tests exist for core modules (gateway, spawner, memory, cron)
-2. E2E tests cover critical flows (onboard, message handling, cron execution)
+1. Unit tests exist for core modules (cron, utils, config, queue, memory, context)
+2. Evalite eval suite covers LLM behavior (system prompt personality, heartbeat, cron output quality)
 3. Test coverage gives confidence that passing tests = working app
-4. CI/CD pipeline runs tests on push
-   **Plans**: 5 plans
+   **Plans**: 4 plans
 
 Plans:
 
 - [ ] 14-01-PLAN.md — Test infrastructure (Vitest config, helpers, npm scripts)
 - [ ] 14-02-PLAN.md — Unit tests: pure logic (cron/parse, cron/schedule, utils/split, utils/telegram-html, config/schema)
 - [ ] 14-03-PLAN.md — Unit tests: stateful modules (daemon/queue, daemon/spawner, daemon/gateway, memory/conversations, memory/context)
-- [ ] 14-04-PLAN.md — CI/CD pipeline (GitHub Actions workflow, check integration)
-- [ ] 14-05-PLAN.md — Integration tests: message flow and cron execution flow (mocked boundaries)
+- [ ] 14-04-PLAN.md — Evalite eval suite (system prompt, heartbeat, cron LLM behavior evals)
 
 ## Progress
 
@@ -208,9 +206,9 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 13.1 -> 13.2 -> 13
 | 13.1 Dockerfile Deps   | v1.1      | 1/1            | Complete    | 2026-02-05 |
 | 13.2 Subagent Orch     | v1.1      | 1/1            | Complete    | 2026-02-05 |
 | 13.3 Infinite Context  | v1.1      | 2/2            | Complete    | 2026-02-06 |
-| 14. Testing Framework  | v1.1      | 0/5            | Planned     | -          |
+| 14. Testing Framework  | v1.1      | 0/4            | Planned     | -          |
 
 ---
 
 _Roadmap created: 2026-01-31_
-_v1.1 milestone: 6 phases, 17 plans (after removing Doctor/Setup/Service phases)_
+_v1.1 milestone: 6 phases, 16 plans (after removing Doctor/Setup/Service phases)_
