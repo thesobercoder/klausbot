@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 24/7 personal assistant that never forgets, never loses context, and self-improves through use.
-**Current focus:** v1.1 Production Ready — Phase 14 (Testing Framework)
+**Current focus:** v1.1 Production Ready — Phase 14 (Testing Framework) COMPLETE
 
 ## Current Position
 
 Phase: 14 of 14 (Testing Framework)
-Plan: 3/4 complete
-Status: In progress — executing Phase 14 plans
-Last activity: 2026-02-07 — Completed 14-03-PLAN.md (daemon + memory unit tests)
+Plan: 4/4 complete
+Status: Phase 14 complete — v1.1 Production Ready milestone done
+Last activity: 2026-02-07 — Completed 14-04-PLAN.md (Evalite eval suite)
 
-Progress: [███████████████] 97% (14-01, 14-02, 14-03 complete; 14-04 remaining)
+Progress: [████████████████] 100% (all plans complete)
 
 ## Milestone Summary
 
 **v1.1 Production Ready:**
 
 - 6 phases (9-14)
-- 15 planned plans
+- 18 planned plans — ALL COMPLETE
 
 **Scope:**
 
@@ -41,9 +41,9 @@ Progress: [███████████████] 97% (14-01, 14-02, 14-
 
 **Velocity:**
 
-- Total plans completed: 17 (v1.1)
-- Average duration: 3m 12s
-- Total execution time: 54m 22s
+- Total plans completed: 18 (v1.1)
+- Average duration: 3m 22s
+- Total execution time: 60m 54s
 
 **By Phase:**
 
@@ -56,7 +56,7 @@ Progress: [███████████████] 97% (14-01, 14-02, 14-
 | 12-heartbeat-system         | 3/3   | 6m 35s  | 2m 12s   |
 | 13.2-subagent-orchestration | 1/1   | 4m 00s  | 4m 00s   |
 | 13.3-infinite-conversation  | 2/2   | 4m 22s  | 2m 11s   |
-| 14-testing-framework        | 3/4   | 12m 40s | 4m 13s   |
+| 14-testing-framework        | 4/4   | 19m 12s | 4m 48s   |
 
 _Updated after each plan completion_
 
@@ -119,6 +119,10 @@ _Updated after each plan completion_
 - Gateway private helpers: not exported, deferred to integration tests
 - vi.hoisted for mock state shared across vi.mock factories
 - Real temp directories (mkdtempSync) for queue persistence tests vs mocking fs
+- Evalite --legacy-peer-deps: better-sqlite3 v12 vs v11 peer conflict (optional, no runtime issue)
+- Evalite import paths: evalite/ai-sdk for wrapAISDKModel, evalite/config for defineConfig
+- Eval prompts: Placeholder identity content (not real files), tests prompt structure fidelity
+- Eval input encoding: Pipe-delimited for cron (jobName|instruction)
 
 ### Roadmap Evolution
 
@@ -132,20 +136,19 @@ None.
 
 ### Blockers/Concerns
 
-None. All TypeScript errors resolved (was: drizzle-orm type issue + others).
+None. v1.1 Production Ready milestone complete.
 
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 14-03-PLAN.md (daemon + memory unit tests)
+Stopped at: Completed 14-04-PLAN.md (Evalite eval suite) — v1.1 milestone done
 Resume file: None
 
 ## Next Steps
 
-1. Execute 14-04 — Evalite eval suite
-2. v1.1 Production Ready complete
+v1.1 Production Ready is complete. All 18 plans across 6 phases executed successfully.
 
 ---
 
-_State updated: 2026-02-07 (14-03 complete, 52 daemon+memory unit tests added, 167 total)_
-_v1.1 in progress_
+_State updated: 2026-02-07 (14-04 complete, evalite eval suite with 11 LLM behavior test cases)_
+_v1.1 Production Ready — COMPLETE_
