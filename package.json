@@ -63,6 +63,7 @@
     "check:typecheck": "tsc --noEmit",
     "dev": "run-s build 'start {@}' --",
     "eval": "evalite",
+    "eval:verify": "node --experimental-strip-types evals/verify-scores.ts",
     "eval:watch": "evalite watch",
     "format": "run-s format:*",
     "format:prettier": "prettier --write .",

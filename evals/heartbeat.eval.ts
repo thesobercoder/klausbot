@@ -10,7 +10,7 @@ import { evalite } from "evalite";
 
 import {
   createBehaviorScorer,
-  createExactMatchScorer,
+  createHeartbeatOkScorer,
   createNotExactScorer,
 } from "./helpers/scorers.js";
 import { judgeModel, taskModel } from "./helpers/model.js";
@@ -49,7 +49,7 @@ evalite<string, string, string>("Heartbeat HEARTBEAT_OK Suppression", {
     return text;
   },
 
-  scorers: [createExactMatchScorer("HEARTBEAT_OK")],
+  scorers: [createHeartbeatOkScorer(judgeModel)],
 });
 
 evalite<string, string, string>("Heartbeat Actionable Items", {

@@ -18,21 +18,22 @@ import { buildEvalSystemPrompt, buildCronPrompt } from "./helpers/prompts.js";
 evalite<string, string, string>("Cron Output Quality", {
   data: () => [
     {
-      input: "Daily Weather|Check weather in Kolkata and give a brief summary",
+      input:
+        "Daily Motivation|Write a short motivational message to start the day",
       expected:
-        "Substantive weather summary with temperature, conditions, or forecast details",
+        "A substantive motivational message — uplifting, specific, not generic platitudes",
     },
     {
       input:
-        "News Digest|Summarize top 3 tech news stories in bullet point format",
+        "Fun Fact|Share an interesting science fact the user probably doesn't know",
       expected:
-        "Bullet-pointed list of 3 tech news items with brief descriptions",
+        "A specific, accurate science fact with a brief explanation of why it's interesting",
     },
     {
       input:
-        "Reminder Check|Check upcoming deadlines and remind the user of anything due this week",
+        "Exercise Reminder|Suggest a quick 10-minute workout routine for someone at a desk",
       expected:
-        "A reminder message about upcoming deadlines or confirmation that none are due",
+        "A specific workout routine with named exercises, not vague advice like 'stretch more'",
     },
   ],
 
