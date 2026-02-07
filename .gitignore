@@ -31,5 +31,8 @@ npm-debug.log*
 *.tsbuildinfo
 logs/
 
+# Test coverage
+coverage/
+
 # Evalite cache/results
 .evalite/

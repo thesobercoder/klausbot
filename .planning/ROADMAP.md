@@ -186,27 +186,27 @@ Plans:
 
 Plans:
 
-- [ ] 14-01-PLAN.md — Test infrastructure (Vitest config, helpers, npm scripts)
-- [ ] 14-02-PLAN.md — Unit tests: pure logic (cron/parse, cron/schedule, utils/split, utils/telegram-html, config/schema)
-- [ ] 14-03-PLAN.md — Unit tests: stateful modules (daemon/queue, daemon/spawner, daemon/gateway, memory/conversations, memory/context)
-- [ ] 14-04-PLAN.md — Evalite eval suite (system prompt, heartbeat, cron LLM behavior evals)
+- [x] 14-01-PLAN.md — Test infrastructure (Vitest config, helpers, npm scripts)
+- [x] 14-02-PLAN.md — Unit tests: pure logic (cron/parse, cron/schedule, utils/split, utils/telegram-html, config/schema)
+- [x] 14-03-PLAN.md — Unit tests: stateful modules (daemon/queue, daemon/spawner, daemon/gateway, memory/conversations, memory/context)
+- [x] 14-04-PLAN.md — Evalite eval suite (system prompt, heartbeat, cron LLM behavior evals)
 
 ## Progress
 
 **Execution Order:**
 Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13 -> 13.1 -> 13.2 -> 13.3 -> 14
 
-| Phase                  | Milestone | Plans Complete | Status      | Completed  |
-| ---------------------- | --------- | -------------- | ----------- | ---------- |
-| 9. Platform Foundation | v1.1      | 3/3            | Complete    | 2026-01-31 |
-| 10. Telegram Streaming | v1.1      | 2/2            | Complete    | 2026-02-05 |
-| 11. Telegram Threading | v1.1      | 1/1            | Complete    | 2026-02-05 |
-| 12. Heartbeat System   | v1.1      | 3/3            | Complete    | 2026-02-05 |
-| 13. Docker & Release   | v1.1      | 2/2            | Complete    | 2026-02-05 |
-| 13.1 Dockerfile Deps   | v1.1      | 1/1            | Complete    | 2026-02-05 |
-| 13.2 Subagent Orch     | v1.1      | 1/1            | Complete    | 2026-02-05 |
-| 13.3 Infinite Context  | v1.1      | 2/2            | Complete    | 2026-02-06 |
-| 14. Testing Framework  | v1.1      | 0/4            | Planned     | -          |
+| Phase                  | Milestone | Plans Complete | Status   | Completed  |
+| ---------------------- | --------- | -------------- | -------- | ---------- |
+| 9. Platform Foundation | v1.1      | 3/3            | Complete | 2026-01-31 |
+| 10. Telegram Streaming | v1.1      | 2/2            | Complete | 2026-02-05 |
+| 11. Telegram Threading | v1.1      | 1/1            | Complete | 2026-02-05 |
+| 12. Heartbeat System   | v1.1      | 3/3            | Complete | 2026-02-05 |
+| 13. Docker & Release   | v1.1      | 2/2            | Complete | 2026-02-05 |
+| 13.1 Dockerfile Deps   | v1.1      | 1/1            | Complete | 2026-02-05 |
+| 13.2 Subagent Orch     | v1.1      | 1/1            | Complete | 2026-02-05 |
+| 13.3 Infinite Context  | v1.1      | 2/2            | Complete | 2026-02-06 |
+| 14. Testing Framework  | v1.1      | 4/4            | Complete | 2026-02-07 |
 
 ---
 

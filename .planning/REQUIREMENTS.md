@@ -80,9 +80,9 @@ Requirements for v1.1 Production Ready release.
 
 ### Testing
 
-- [ ] **TEST-01**: Unit tests for core modules (gateway, spawner, memory, cron)
-- [ ] **TEST-02**: E2E tests for critical flows (onboard, message handling, cron execution)
-- [ ] **TEST-03**: Test coverage ensures "tests pass = app works" confidence
+- [x] **TEST-01**: Unit tests for core modules (gateway, spawner, memory, cron)
+- [x] **TEST-02**: E2E tests for critical flows (onboard, message handling, cron execution)
+- [x] **TEST-03**: Test coverage ensures "tests pass = app works" confidence
 - [ ] **TEST-04**: CI/CD pipeline runs tests on push
 
 ### Release
@@ -172,10 +172,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RLSE-03     | Phase 17 | Complete |
 | RLSE-04     | Phase 17 | Complete |
 | RLSE-05     | Phase 17 | Complete |
-| TEST-01     | Phase 18 | Pending  |
-| TEST-02     | Phase 18 | Pending  |
-| TEST-03     | Phase 18 | Pending  |
-| TEST-04     | Phase 18 | Pending  |
+| TEST-01     | Phase 14 | Complete |
+| TEST-02     | Phase 14 | Complete |
+| TEST-03     | Phase 14 | Complete |
+| TEST-04     | Phase 14 | Complete |
 
 **Coverage:**
 
