@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 14 of 14 (Testing Framework)
-Plan: 2/4 complete
+Plan: 3/4 complete
 Status: In progress — executing Phase 14 plans
-Last activity: 2026-02-07 — Completed 14-02-PLAN.md (pure-logic unit tests)
+Last activity: 2026-02-07 — Completed 14-03-PLAN.md (daemon + memory unit tests)
 
-Progress: [██████████████░] 95% (14-01, 14-02 complete; 14-03, 14-04 remaining)
+Progress: [███████████████] 97% (14-01, 14-02, 14-03 complete; 14-04 remaining)
 
 ## Milestone Summary
 
@@ -41,9 +41,9 @@ Progress: [██████████████░] 95% (14-01, 14-02 comp
 
 **Velocity:**
 
-- Total plans completed: 16 (v1.1)
-- Average duration: 3m 03s
-- Total execution time: 48m 59s
+- Total plans completed: 17 (v1.1)
+- Average duration: 3m 12s
+- Total execution time: 54m 22s
 
 **By Phase:**
 
@@ -56,7 +56,7 @@ Progress: [██████████████░] 95% (14-01, 14-02 comp
 | 12-heartbeat-system         | 3/3   | 6m 35s  | 2m 12s   |
 | 13.2-subagent-orchestration | 1/1   | 4m 00s  | 4m 00s   |
 | 13.3-infinite-conversation  | 2/2   | 4m 22s  | 2m 11s   |
-| 14-testing-framework        | 2/4   | 7m 17s  | 3m 39s   |
+| 14-testing-framework        | 3/4   | 12m 40s | 4m 13s   |
 
 _Updated after each plan completion_
 
@@ -116,6 +116,9 @@ _Updated after each plan completion_
 - Coverage thresholds: 40/30/40/40 initial bar, will increase as coverage grows
 - Deterministic time testing: explicit nowMs values for reproducible schedule tests
 - safeParse for Zod validation tests: check success field, no thrown errors
+- Gateway private helpers: not exported, deferred to integration tests
+- vi.hoisted for mock state shared across vi.mock factories
+- Real temp directories (mkdtempSync) for queue persistence tests vs mocking fs
 
 ### Roadmap Evolution
 
@@ -134,16 +137,15 @@ None. All TypeScript errors resolved (was: drizzle-orm type issue + others).
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 14-02-PLAN.md (pure-logic unit tests)
+Stopped at: Completed 14-03-PLAN.md (daemon + memory unit tests)
 Resume file: None
 
 ## Next Steps
 
-1. Execute 14-03 — Daemon/gateway integration tests
-2. Execute 14-04 — Evalite eval suite
-3. v1.1 Production Ready complete
+1. Execute 14-04 — Evalite eval suite
+2. v1.1 Production Ready complete
 
 ---
 
-_State updated: 2026-02-07 (14-02 complete, 100 pure-logic unit tests added)_
+_State updated: 2026-02-07 (14-03 complete, 52 daemon+memory unit tests added, 167 total)_
 _v1.1 in progress_
