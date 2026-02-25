@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import { createInterface } from "readline";
+import os from "os";
 import { Bot } from "grammy";
 import { createChildLogger } from "../utils/index.js";
 import { KLAUSBOT_HOME, buildSystemPrompt } from "../memory/index.js";
@@ -121,7 +122,7 @@ export async function streamClaudeResponse(
     // CRITICAL: stdin must inherit to avoid hang bug (same as spawner.ts)
     const claude = spawn("claude", args, {
       stdio: ["inherit", "pipe", "pipe"],
-      cwd: KLAUSBOT_HOME,
+      cwd: os.homedir(),
       env,
     });
 

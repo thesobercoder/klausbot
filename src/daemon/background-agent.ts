@@ -9,6 +9,7 @@
 import { spawn } from "child_process";
 import { createInterface } from "readline";
 import { writeFileSync, mkdirSync, unlinkSync } from "fs";
+import os from "os";
 import path from "path";
 import { KLAUSBOT_HOME } from "../memory/home.js";
 import { createChildLogger } from "../utils/logger.js";
@@ -154,7 +155,7 @@ export function spawnBackgroundAgent(options: BackgroundAgentOptions): void {
 
   const claude = spawn("claude", args, {
     stdio: ["inherit", "pipe", "pipe"],
-    cwd: KLAUSBOT_HOME,
+    cwd: os.homedir(),
     env,
   });
 

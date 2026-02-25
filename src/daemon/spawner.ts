@@ -166,7 +166,7 @@ export async function queryClaudeCode(
       prompt: truncatedPrompt,
       timeout,
       model: options.model,
-      cwd: KLAUSBOT_HOME,
+      cwd: os.homedir(),
     },
     "Spawning Claude Code",
   );
@@ -227,7 +227,7 @@ export async function queryClaudeCode(
     // CRITICAL: stdin must inherit to avoid hang bug (issue #771)
     const claude = spawn("claude", args, {
       stdio: ["inherit", "pipe", "pipe"],
-      cwd: KLAUSBOT_HOME, // Working directory for agentic file access
+      cwd: os.homedir(), // Working directory for agentic file access
       env,
     });
 
