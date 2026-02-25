@@ -350,7 +350,7 @@ export async function queryClaudeCode(
 
       // Handle timeout
       if (timedOut) {
-        const recovered = handleTimeout(KLAUSBOT_HOME);
+        const recovered = handleTimeout(os.homedir());
         if (recovered) {
           logger.info({ duration_ms }, "Recovered response from timeout");
           resolve({

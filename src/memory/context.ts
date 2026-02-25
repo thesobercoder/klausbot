@@ -111,7 +111,7 @@ Good: "Kolkata, nice — noted."
 
 ## Working Directory
 
-Your working directory is ~/.klausbot/
+Your working directory is ~/
 
 ## Memory via MCP Tools
 
